@@ -16,7 +16,11 @@
 
 package org.vaadin.addons.componentfactory.sidenavrail;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.dom.Element;
 import java.util.List;
@@ -31,6 +35,8 @@ import java.util.Optional;
 public class SideNavRailItem extends SideNavItem {
 
     private static final String LABEL_SPAN_CLASS = "label";
+
+    private Popover popover;
 
     public SideNavRailItem(String label) {
         super(label);
@@ -119,6 +125,67 @@ public class SideNavRailItem extends SideNavItem {
             if (child.getParent() == null) {
                 root.appendChild(child);
             }
+        }
+    }
+
+    @Override
+    protected void onAttach(AttachEvent event) {
+        super.onAttach(event);
+        ensurePopover();
+    }
+
+    private void ensurePopover() {
+        if (popover != null) {
+            return;
+        }
+        if (getItems().isEmpty()) {
+            return;
+        }
+        popover = new Popover();
+        popover.setTarget(this);
+        popover.setOpenOnHover(true);
+        popover.setOpenOnClick(false);
+        popover.setOpenOnFocus(false);
+        popover.setHoverDelay(200);
+        popover.setHideDelay(300);
+        popover.setOverlayRole("menu");
+        popover.setPosition(resolveEndTopPosition());
+
+        // Attach the popover as a sibling within the nearest SideNavRail ancestor
+        // so that it stays within the rail's DOM scope and is discoverable by tests
+        // and by CSS. Fall back to the UI element if no SideNavRail is found.
+        Element container = findSideNavRailElement()
+                .orElseGet(() -> getUI().orElseThrow(IllegalStateException::new).getElement());
+        container.appendChild(popover.getElement());
+
+        populatePopover();
+    }
+
+    private Optional<Element> findSideNavRailElement() {
+        return getParent()
+                .filter(p -> p instanceof SideNavRail)
+                .map(Component::getElement);
+    }
+
+    private void populatePopover() {
+        SideNav nested = new SideNav();
+        for (var child : getItems()) {
+            nested.addItem(child);
+        }
+        popover.removeAll();
+        popover.add(nested);
+    }
+
+    /**
+     * Resolves the right-aligned, top-anchored popover position. The spec flags the exact
+     * enum value as implementation-verified; try {@code END_TOP} first, then fall back to
+     * {@code END}.
+     */
+    private static PopoverPosition resolveEndTopPosition() {
+        try {
+            return PopoverPosition.valueOf("END_TOP");
+        } catch (IllegalArgumentException notFound) {
+            return PopoverPosition.valueOf("END");
         }
     }
 }
