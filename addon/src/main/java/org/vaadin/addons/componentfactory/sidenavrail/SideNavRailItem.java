@@ -169,11 +169,48 @@ public class SideNavRailItem extends SideNavItem {
 
     private void populatePopover() {
         SideNav nested = new SideNav();
-        for (var child : getItems()) {
-            nested.addItem(child);
+        for (SideNavItem child : getItems()) {
+            nested.addItem(copyOf(child));
         }
         popover.removeAll();
         popover.add(nested);
+    }
+
+    private static SideNavItem copyOf(SideNavItem source) {
+        String label = source.getLabel();
+        String path = source.getPath();
+        Component prefix = source.getPrefixComponent();
+
+        SideNavItem copy;
+        if (path != null && prefix != null) {
+            copy = new SideNavItem(label, path, copyComponent(prefix));
+        } else if (path != null) {
+            copy = new SideNavItem(label, path);
+        } else if (prefix != null) {
+            copy = new SideNavItem(label);
+            copy.setPrefixComponent(copyComponent(prefix));
+        } else {
+            copy = new SideNavItem(label);
+        }
+
+        for (SideNavItem grandchild : source.getItems()) {
+            copy.addItem(copyOf(grandchild));
+        }
+        return copy;
+    }
+
+    /**
+     * Clones a prefix component by reinstantiating via its class. Vaadin icons are the
+     * overwhelmingly common case; for anything else (custom components), fall back to
+     * sharing the original reference — rare in an icon-driven rail.
+     */
+    private static Component copyComponent(Component source) {
+        if (source instanceof com.vaadin.flow.component.icon.Icon icon) {
+            com.vaadin.flow.component.icon.Icon copy = new com.vaadin.flow.component.icon.Icon();
+            copy.getElement().setAttribute("icon", icon.getElement().getAttribute("icon"));
+            return copy;
+        }
+        return source;
     }
 
     /**

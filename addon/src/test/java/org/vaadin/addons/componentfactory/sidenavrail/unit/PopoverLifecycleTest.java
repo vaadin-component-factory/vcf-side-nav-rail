@@ -72,6 +72,30 @@ class PopoverLifecycleTest {
         assertEquals(300, popover.getHideDelay());
     }
 
+    @Test
+    void outerChildrenSurvivePopoverPopulation() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code");
+        parent.addItem(new SideNavRailItem("Branches", "/branches"));
+        parent.addItem(new SideNavRailItem("Tags", "/tags"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        assertEquals(2, parent.getItems().size(),
+                "Outer nav must retain its children for inline expansion");
+
+        Popover popover = UI.getCurrent().getChildren()
+                .flatMap(c -> c.getChildren())
+                .filter(c -> c instanceof Popover)
+                .map(c -> (Popover) c)
+                .findFirst().orElseThrow();
+
+        long nestedChildren = popover.getChildren()
+                .flatMap(c -> c.getChildren())
+                .count();
+        assertEquals(2L, nestedChildren, "Popover must render a mirrored copy of the children");
+    }
+
     private static Popover findPopoverTargeting(SideNavRailItem item) {
         return UI.getCurrent().getChildren()
                 .flatMap(c -> c.getChildren())
