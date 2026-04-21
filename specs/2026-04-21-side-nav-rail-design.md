@@ -54,13 +54,18 @@ This spec describes **Iteration 1 (MVP)**. Further iterations are intentionally 
 
 **Coordinates:**
 - **groupId:** `org.vaadin.addons.componentfactory`
-- **artifactId (addon):** `side-nav-rail`
-- **artifactId (demo):** `side-nav-rail-demo`
+- **artifactId (addon):** `vcf-side-nav-rail` (`vcf-` prefix is standard for Vaadin Component Factory addons)
+- **artifactId (demo):** `vcf-side-nav-rail-demo`
 - **Package:** `org.vaadin.addons.componentfactory.sidenavrail`
 
 **Module dependencies:**
 - `addon/` depends on `vaadin-core` (transitively pulling `side-nav` and `popover`). *No* Spring Boot in compile scope.
 - `demo/` depends on `addon/` (compile) plus `vaadin-spring-boot-starter` (compile).
+
+**POM inheritance:**
+- The `addon/pom.xml` **does not** reference a parent POM — it is fully standalone so the published artifact does not require consumers to also pull a parent. It declares its own `groupId`/`version`, imports the Vaadin BOM directly, and owns its Java/compiler properties.
+- The `demo/pom.xml` inherits from the root `pom.xml` (group/version/property reuse is fine — demo is never published).
+- The root `pom.xml` only exists as a convenience reactor POM: `./mvnw verify` at the workspace root builds both modules, but neither module *requires* it to be built individually.
 
 ## 3. Public API
 

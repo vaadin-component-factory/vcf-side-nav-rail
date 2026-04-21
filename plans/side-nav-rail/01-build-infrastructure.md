@@ -35,12 +35,14 @@ Create `/workspace/pom.xml`:
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.vaadin.addons.componentfactory</groupId>
-    <artifactId>side-nav-rail-parent</artifactId>
+    <artifactId>vcf-side-nav-rail-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>SideNav Rail (parent)</name>
-    <description>Parent POM for the SideNav Rail Vaadin addon.</description>
+    <name>SideNav Rail (reactor)</name>
+    <description>Reactor POM for the SideNav Rail workspace — builds addon and demo together.
+        The addon module is standalone (does not inherit from this POM) so that the
+        published artifact has no parent dependency.</description>
 
     <licenses>
         <license>
@@ -158,6 +160,8 @@ git commit -m "build: add parent POM and Maven wrapper"
 
 - [ ] **Step 1: Write the addon POM**
 
+> **Important:** the addon POM **does not** reference the reactor/parent POM. Vaadin Directory addons must be publishable as standalone artifacts — a parent reference would force consumers to also resolve the parent. Everything (groupId, version, properties, dependencyManagement) is therefore declared directly inside `addon/pom.xml`. Some redundancy with the reactor POM is accepted in exchange for a clean published artifact.
+
 Create `/workspace/addon/pom.xml`:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -166,17 +170,50 @@ Create `/workspace/addon/pom.xml`:
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.vaadin.addons.componentfactory</groupId>
-        <artifactId>side-nav-rail-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
-    </parent>
+    <!-- No <parent> — addon is standalone-publishable (see Vaadin Directory publishing rules). -->
 
-    <artifactId>side-nav-rail</artifactId>
+    <groupId>org.vaadin.addons.componentfactory</groupId>
+    <artifactId>vcf-side-nav-rail</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>SideNav Rail</name>
     <description>A togglable rail-mode SideNav for Vaadin 24.</description>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <vaadin.version>24.5.0</vaadin.version>
+        <spring-boot.version>3.4.0</spring-boot.version>
+        <karibu.version>2.2.0</karibu.version>
+        <junit.version>5.11.3</junit.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -214,15 +251,22 @@ Create `/workspace/addon/pom.xml`:
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
                 <configuration>
                     <includes>
                         <include>**/unit/*Test.java</include>
                     </includes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
         </plugins>
     </build>
@@ -282,11 +326,11 @@ Create `/workspace/demo/pom.xml`:
 
     <parent>
         <groupId>org.vaadin.addons.componentfactory</groupId>
-        <artifactId>side-nav-rail-parent</artifactId>
+        <artifactId>vcf-side-nav-rail-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>side-nav-rail-demo</artifactId>
+    <artifactId>vcf-side-nav-rail-demo</artifactId>
     <packaging>jar</packaging>
 
     <name>SideNav Rail — Demo</name>
@@ -294,7 +338,7 @@ Create `/workspace/demo/pom.xml`:
     <dependencies>
         <dependency>
             <groupId>org.vaadin.addons.componentfactory</groupId>
-            <artifactId>side-nav-rail</artifactId>
+            <artifactId>vcf-side-nav-rail</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

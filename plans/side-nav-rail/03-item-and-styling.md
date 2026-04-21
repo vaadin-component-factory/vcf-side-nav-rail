@@ -241,7 +241,7 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
 - [ ] **Step 2: Rebuild addon (verify resource is packaged)**
 
 Run: `./mvnw -pl addon -am package -DskipTests`
-Expected: `BUILD SUCCESS`. The CSS will be inside `target/side-nav-rail-0.1.0-SNAPSHOT.jar` under `META-INF/resources/frontend/`.
+Expected: `BUILD SUCCESS`. The CSS will be inside `target/vcf-side-nav-rail-0.1.0-SNAPSHOT.jar` under `META-INF/resources/frontend/`.
 
 - [ ] **Step 3: Commit**
 
