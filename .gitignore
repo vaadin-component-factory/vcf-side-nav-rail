@@ -15,3 +15,12 @@
 .superpowers/**
 .claude/**
 .devcontainer/**
+
+# Maven
+target/
+*.log
+
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/
