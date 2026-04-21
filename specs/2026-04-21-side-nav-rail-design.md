@@ -233,8 +233,6 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
 }
 ```
 
-> **Known rough edge (deferred to Phase 2):** rail-mode rows are a few pixels shorter than normal-mode rows because hiding the label drops the line-height contribution. An earlier attempt to pin `min-height` via `::part(link)` produced off-center icons and a subtly broken active-highlight, so the override was reverted. A proper fix needs a browser-checked approach — likely a padding adjustment on the `::part(link)` rather than a `min-height`.
-
 ### 5.3 Label wrap
 
 `SideNavRailItem` wraps the string label in a `<span class="label">` element — both in the string constructors and in `setLabel(String)`. Goal: the text becomes selectable by CSS (text nodes are not).
