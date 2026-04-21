@@ -16,10 +16,42 @@
 
 package org.vaadin.addons.componentfactory.sidenavrail;
 
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.sidenav.SideNav;
 
 /**
- * Placeholder — the real implementation is added in Task 6.
+ * A {@link SideNav} that can be switched between normal mode and a compact rail
+ * (icon-only) mode. Items with children may show a hover popover — see
+ * {@link PopoverMode}.
  */
+@CssImport("./side-nav-rail.css")
 public class SideNavRail extends SideNav {
+
+    private static final String RAIL_THEME = "rail";
+
+    private boolean railMode = false;
+
+    public SideNavRail() {
+        super();
+    }
+
+    public SideNavRail(String label) {
+        super(label);
+    }
+
+    public void setRailMode(boolean railMode) {
+        if (this.railMode == railMode) {
+            return;
+        }
+        this.railMode = railMode;
+        if (railMode) {
+            getElement().setAttribute("theme", RAIL_THEME);
+        } else {
+            getElement().removeAttribute("theme");
+        }
+    }
+
+    public boolean isRailMode() {
+        return railMode;
+    }
 }
