@@ -7,6 +7,10 @@ export default defineConfig({
   // the default navigation/action timeouts are generous enough to cover that.
   timeout: 120_000,
   retries: 1,
+  expect: {
+    // Covers the first-paint wait on a freshly compiled dev bundle.
+    timeout: 30_000,
+  },
   use: {
     baseURL: 'http://localhost:8081',
     trace: 'on-first-retry',

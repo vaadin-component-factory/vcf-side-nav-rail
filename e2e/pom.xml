@@ -37,6 +37,24 @@
 
     <build>
         <plugins>
+            <!-- Builds the production Vaadin frontend bundle into the JAR
+                 so the Spring Boot test app starts with zero dev-mode
+                 compile. Required for vaadin.productionMode=true. -->
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>${vaadin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-frontend</goal>
+                            <goal>build-frontend</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
