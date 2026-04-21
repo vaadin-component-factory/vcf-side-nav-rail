@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaadin.addons.componentfactory.sidenavrail.app;
+package org.vaadin.addons.componentfactory.sidenavrail.e2e.views;
 
-import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-@Layout
-public class TestMainLayout extends AppLayout {
+@Route("basic")
+public class BasicTestView extends VerticalLayout {
 
-    private final SideNavRail nav = new SideNavRail();
+    public BasicTestView() {
+        SideNavRail rail = new SideNavRail();
+        rail.setId("rail");
+        rail.addItem(new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create()));
+        rail.addItem(new SideNavRailItem("Inbox", "/inbox", VaadinIcon.ENVELOPE.create()));
 
-    public TestMainLayout() {
-        nav.addItem(new SideNavRailItem("Basic", "basic"));
-        nav.addItem(new SideNavRailItem("Collapsed Item", "collapsed-item"));
-        nav.addItem(new SideNavRailItem("Rail Only", "rail-only"));
-        nav.addItem(new SideNavRailItem("Nested", "nested"));
-
-        Button toggle = new Button("Toggle rail",
-                e -> nav.setRailMode(!nav.isRailMode()));
+        Button toggle = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));
         toggle.setId("toggle-rail");
 
-        addToNavbar(new HorizontalLayout(toggle));
-        addToDrawer(nav);
+        add(new HorizontalLayout(rail, toggle));
     }
 }

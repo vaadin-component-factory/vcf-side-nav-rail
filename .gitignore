@@ -27,3 +27,6 @@ test-results/
 
 # Vaadin generated frontend
 **/src/main/frontend/
+
+# Vaadin frontend bundles (generated in test runtime)
+**/src/main/bundles/

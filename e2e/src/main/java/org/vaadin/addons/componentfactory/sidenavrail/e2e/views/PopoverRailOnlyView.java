@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaadin.addons.componentfactory.sidenavrail.app.views;
+package org.vaadin.addons.componentfactory.sidenavrail.e2e.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-@Route("nested")
-public class NestedPopoverView extends VerticalLayout {
+@Route("rail-only")
+public class PopoverRailOnlyView extends VerticalLayout {
 
-    public NestedPopoverView() {
+    public PopoverRailOnlyView() {
         SideNavRail rail = new SideNavRail();
+        rail.setPopoverMode(PopoverMode.RAIL_ONLY);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(
                 "Code", "/code", VaadinIcon.CODE.create());
-
-        SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
-        branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));
-        branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
-        code.addItem(branches);
-
+        code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
         rail.addItem(code);
 

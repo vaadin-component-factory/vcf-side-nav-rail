@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaadin.addons.componentfactory.sidenavrail.app.views;
+package org.vaadin.addons.componentfactory.sidenavrail.e2e.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -24,12 +24,12 @@ import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-@Route("rail-only")
-public class PopoverRailOnlyView extends VerticalLayout {
+@Route("collapsed-item")
+public class PopoverCollapsedItemView extends VerticalLayout {
 
-    public PopoverRailOnlyView() {
+    public PopoverCollapsedItemView() {
         SideNavRail rail = new SideNavRail();
-        rail.setPopoverMode(PopoverMode.RAIL_ONLY);
+        rail.setPopoverMode(PopoverMode.COLLAPSED_ITEM);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.vaadin.addons.componentfactory.sidenavrail.app.views;
+package org.vaadin.addons.componentfactory.sidenavrail.e2e;
 
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.Route;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Route("basic")
-public class BasicTestView extends VerticalLayout {
-    public BasicTestView() {
-        add(new Paragraph("Basic test view — validates rail rendering and toggle."));
+@SpringBootApplication
+public class TestApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TestApplication.class, args);
     }
 }

@@ -32,6 +32,7 @@
 
     <modules>
         <module>addon</module>
+        <module>e2e</module>
         <module>demo</module>
     </modules>
 
