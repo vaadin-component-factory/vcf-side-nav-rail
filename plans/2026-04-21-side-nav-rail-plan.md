@@ -29,6 +29,8 @@
 > - **Popover attached to owning `SideNavRail` element.** The plan's code appended the popover to the UI root; the test expected it at depth 2. They were incompatible. The implementation attaches to the rail ancestor (walking the full parent chain). No visual impact — the overlay teleports to body either way.
 > - **`PopoverPosition.END_TOP` exists in Vaadin 24.** The fallback to `END` in `resolveEndTopPosition()` was never exercised but is retained as a defensive lookup.
 > - **Text-node filtering.** Several element streams need `.filter(e -> !e.isTextNode())` before calling `getTag()` — Vaadin's `Element.getTag()` throws on text nodes. This was discovered during Task 9 and applied consistently.
+> - **E2E runs in production mode.** After the plan was written, the e2e module was flipped from dev-mode (with or without hotdeploy) to `vaadin.productionMode=true`, with `vaadin-maven-plugin`'s `build-frontend` goal bound to `compile`. Reasoning: E2E tests should verify the production artifact, and this eliminates the first-paint flakiness where the dev-bundle compile outran the default `expect` timeout. See commit `86447dd`. The demo module stays in dev-mode with `vaadin.frontend.hotdeploy=true` (HMR is useful there — it's bedient by humans, not CI).
+> - **Playwright timeouts widened.** `playwright.config.ts` sets per-test timeout 120 s, navigation 60 s, action 15 s, `expect` 30 s, `retries: 1`. Defensively sized; actual wall-clock per test is sub-second now that prod-mode removes first-paint compile.
 
 ---
 

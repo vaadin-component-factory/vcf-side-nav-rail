@@ -244,12 +244,14 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   - `packaging: jar`, inherits from reactor.
   - **Never published:** `<maven.install.skip>true</maven.install.skip>` + `<maven.deploy.skip>true</maven.deploy.skip>`.
   - Compile deps: the addon + `vaadin-spring-boot-starter`.
-  - Plugins: `spring-boot-maven-plugin` (start/stop), `frontend-maven-plugin` (install Node + `npm ci` + `npx playwright install chromium`), `exec-maven-plugin` (`npx playwright test`), `maven-failsafe-plugin` (for the `verify` goal binding).
+  - Plugins: `vaadin-maven-plugin` (`prepare-frontend` + `build-frontend` in `compile` — builds the production JS bundle into the JAR), `spring-boot-maven-plugin` (start/stop), `frontend-maven-plugin` (installs Node + `npm ci` + `npx playwright install chromium`), `exec-maven-plugin` (`npx playwright test`), `maven-failsafe-plugin` (for the `verify` goal binding).
+  - Runs in **production mode** (`vaadin.productionMode=true` in `application.properties`). E2E tests verify the production artifact, not the dev-mode hot-deploy pipeline.
   - TestApplication + test views live in `src/main/java` (compile scope) — not `src/test/java`. The plugin chain then runs with standard defaults, no `classesDirectory`/`useTestClasspath` workarounds.
 - `demo/pom.xml`:
   - `packaging: jar`, inherits from reactor.
   - Compile deps: addon + `vaadin-spring-boot-starter`.
   - Plugin: `spring-boot-maven-plugin` (for `spring-boot:run`).
+  - Runs in dev mode with `vaadin.frontend.hotdeploy=true` — Vite HMR is useful here because the demo is bedient by humans during development/showcasing, not by CI.
 - Reactor `pom.xml`:
   - `packaging: pom`.
   - Modules: `addon`, `e2e`, `demo`.
@@ -303,6 +305,8 @@ e2e/src/test/playwright/
 | `verify` | `maven-failsafe-plugin` | Fails the build if any integration-test step failed |
 
 Because TestApplication is in `src/main/java` (compile scope) of the e2e module, `spring-boot-maven-plugin` runs with its plain defaults — no `classesDirectory`, no `useTestClasspath`, no `additionalClasspathElements`.
+
+The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`, which invokes Vite once and writes the production bundle into `target/classes/META-INF/VAADIN/`. The bundle ships inside the JAR that `spring-boot:start` then boots, so the test app starts in ~2.5 s with zero dev-mode compile on first page load.
 
 ### 7.3 Dependencies
 
