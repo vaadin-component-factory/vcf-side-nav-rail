@@ -35,7 +35,11 @@ public class MainLayout extends AppLayout {
                 "Code", "/code", VaadinIcon.CODE.create());
 
         SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
-        branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));
+        SideNavRailItem activeBranches = new SideNavRailItem("Active", "/code/branches/active");
+        activeBranches.addItem(new SideNavRailItem("main", "/code/branches/active/main"));
+        activeBranches.addItem(new SideNavRailItem("develop", "/code/branches/active/develop"));
+        activeBranches.addItem(new SideNavRailItem("feature/*", "/code/branches/active/features"));
+        branches.addItem(activeBranches);
         branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
         branches.addItem(new SideNavRailItem("Archived", "/code/branches/archived"));
         code.addItem(branches);
