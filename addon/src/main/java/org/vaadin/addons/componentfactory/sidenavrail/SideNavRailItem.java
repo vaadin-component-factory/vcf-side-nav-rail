@@ -37,6 +37,8 @@ public class SideNavRailItem extends SideNavItem {
     private static final String LABEL_SPAN_CLASS = "label";
 
     private Popover popover;
+    private boolean expandedListenerWired = false;
+    private boolean lastKnownExpanded = false;
 
     public SideNavRailItem(String label) {
         super(label);
@@ -137,18 +139,42 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Listens for the {@code expanded-changed} event fired by the underlying
-     * {@code <vaadin-side-nav-item>} web component. Whenever the user toggles the
-     * inline-expand state, re-evaluate popover gating — if the item is now expanded,
-     * the popover is redundant and must close.
+     * {@code <vaadin-side-nav-item>} web component. Re-evaluates popover gating on
+     * every inline-expand toggle. Effects:
+     * <ul>
+     *   <li>expand ➜ the popover is now redundant — {@code applyPopoverGating} closes it;
+     *   <li>collapse ➜ the children are hidden again; since the user's cursor is still
+     *       on the item (they just clicked the toggle), open the popover explicitly.
+     *       Vaadin's hover trigger would otherwise wait for the next {@code mouseenter}.
+     * </ul>
+     * The explicit open only fires on a {@code true → false} transition. The event
+     * also fires once at initial attach with the same value the item already had;
+     * without the transition guard that initial fire would pop every item's popover
+     * open on page load.
      */
     private void wireExpandedListener() {
+        if (expandedListenerWired) {
+            return;
+        }
         if (getItems().isEmpty()) {
             return;
         }
+        expandedListenerWired = true;
+        lastKnownExpanded = isExpanded();
+
         getElement().addEventListener("expanded-changed", e -> {
             SideNavRail owner = findOwnerRail();
-            if (owner != null) {
-                applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+            if (owner == null || popover == null) {
+                return;
+            }
+            boolean wasExpanded = lastKnownExpanded;
+            boolean nowExpanded = isExpanded();
+            lastKnownExpanded = nowExpanded;
+
+            applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+
+            if (wasExpanded && !nowExpanded && popover.isOpenOnHover()) {
+                popover.open();
             }
         });
     }

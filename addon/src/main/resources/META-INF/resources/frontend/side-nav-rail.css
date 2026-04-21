@@ -21,14 +21,3 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
 }
-
-/*
- * Hiding the label (and toggle-button) removes the line-height contribution that
- * usually drives item height in normal mode. Pin a min-height matching the
- * normal-mode default so rail and normal items feel like the same list.
- * Also center the remaining prefix icon horizontally now that the row is narrow.
- */
-vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(link) {
-  min-height: var(--lumo-size-m);
-  justify-content: center;
-}
