@@ -132,6 +132,25 @@ public class SideNavRailItem extends SideNavItem {
     protected void onAttach(AttachEvent event) {
         super.onAttach(event);
         ensurePopover();
+        wireExpandedListener();
+    }
+
+    /**
+     * Listens for the {@code expanded-changed} event fired by the underlying
+     * {@code <vaadin-side-nav-item>} web component. Whenever the user toggles the
+     * inline-expand state, re-evaluate popover gating — if the item is now expanded,
+     * the popover is redundant and must close.
+     */
+    private void wireExpandedListener() {
+        if (getItems().isEmpty()) {
+            return;
+        }
+        getElement().addEventListener("expanded-changed", e -> {
+            SideNavRail owner = findOwnerRail();
+            if (owner != null) {
+                applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+            }
+        });
     }
 
     private void ensurePopover() {
@@ -192,12 +211,18 @@ public class SideNavRailItem extends SideNavItem {
         if (popover == null) {
             return;
         }
+        // An inline-expanded item already shows its children in the outer nav, so a
+        // popover would be redundant. In rail mode the inline-expand is visually
+        // suppressed anyway, so the popover is still wanted.
         boolean eligible =
                 switch (mode) {
-                    case COLLAPSED_ITEM -> true;
+                    case COLLAPSED_ITEM -> railMode || !isExpanded();
                     case RAIL_ONLY -> railMode;
                 };
         popover.setOpenOnHover(eligible);
+        if (!eligible && popover.isOpened()) {
+            popover.close();
+        }
     }
 
     private void populatePopover() {

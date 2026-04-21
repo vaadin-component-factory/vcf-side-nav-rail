@@ -33,13 +33,23 @@ public class MainLayout extends AppLayout {
 
         SideNavRailItem code = new SideNavRailItem(
                 "Code", "/code", VaadinIcon.CODE.create());
-        code.addItem(new SideNavRailItem("Branches", "/code/branches"));
+
+        SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
+        branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));
+        branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
+        branches.addItem(new SideNavRailItem("Archived", "/code/branches/archived"));
+        code.addItem(branches);
         code.addItem(new SideNavRailItem("Commits", "/code/commits"));
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
 
         SideNavRailItem operate = new SideNavRailItem(
                 "Operate", "/operate", VaadinIcon.COGS.create());
-        operate.addItem(new SideNavRailItem("Environments", "/operate/environments"));
+
+        SideNavRailItem environments = new SideNavRailItem("Environments", "/operate/environments");
+        environments.addItem(new SideNavRailItem("Production", "/operate/environments/prod"));
+        environments.addItem(new SideNavRailItem("Staging", "/operate/environments/staging"));
+        environments.addItem(new SideNavRailItem("Development", "/operate/environments/dev"));
+        operate.addItem(environments);
         operate.addItem(new SideNavRailItem("Releases", "/operate/releases"));
 
         nav.addItem(dashboard, code, operate);
