@@ -33,6 +33,7 @@ public class SideNavRail extends SideNav {
     private static final String RAIL_THEME = "rail";
 
     private boolean railMode = false;
+    private PopoverMode popoverMode = PopoverMode.COLLAPSED_ITEM;
 
     public SideNavRail() {
         super();
@@ -57,6 +58,14 @@ public class SideNavRail extends SideNav {
 
     public boolean isRailMode() {
         return railMode;
+    }
+
+    public PopoverMode getPopoverMode() {
+        return popoverMode;
+    }
+
+    public void setPopoverMode(PopoverMode mode) {
+        this.popoverMode = java.util.Objects.requireNonNull(mode, "PopoverMode must not be null");
     }
 
     public Registration addRailModeChangedListener(
