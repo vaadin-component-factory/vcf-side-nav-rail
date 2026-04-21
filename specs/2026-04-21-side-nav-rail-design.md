@@ -179,11 +179,13 @@ Fires on every call to `setRailMode(...)` that actually changes the state (no-op
 
 Items **without** children never open a popover — they are directly clickable in every state, including rail mode.
 
+**Live state transitions:** a popover already open on hover *must close* when the user inline-expands its item in normal mode (otherwise the children are visible twice — once inline in the nav, once mirrored in the popover). `SideNavRailItem` listens for the `expanded-changed` DOM event on the underlying web component and re-evaluates the gating; if the item transitions to expanded under `COLLAPSED_ITEM` mode while the nav is not in rail mode, `popover.close()` is invoked.
+
 ### 4.2 Popover details
 
 - Implementation: the Vaadin `Popover` component (Flow), one instance per `SideNavRailItem` that has children, lazily created on first `onAttach`.
 - Target: the root element of the associated `SideNavRailItem`.
-- Trigger: `setOpenOnHover(true)`, all other triggers disabled.
+- Trigger: `setOpenOnHover(true)` gated by `applyPopoverGating(mode, railMode)`; re-evaluated on rail-mode toggle, popover-mode change, and the item's `expanded-changed` DOM event. When the gate flips to ineligible while the popover is open, `popover.close()` is called so it disappears immediately.
 - Timing: `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical values, made configurable in phase 2).
 - Position: aligned to the right of the item, top-aligned with the item — concretely `PopoverPosition.END_TOP` if present (the Vaadin popover enum follows the `DIRECTION_ALIGNMENT` naming pattern; exact enum value to be verified during implementation, fallback `END`).
 - Overlay role: `setOverlayRole("menu")`.
@@ -223,6 +225,15 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
 
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
+}
+
+/* Hiding label + toggle-button removes the line-height driver that normal
+   mode relies on for row height — pin it back to the Lumo default and
+   center the remaining prefix icon. Rail and normal items now render at
+   the same height, so the transition is visually stable. */
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(link) {
+  min-height: var(--lumo-size-m);
+  justify-content: center;
 }
 ```
 
