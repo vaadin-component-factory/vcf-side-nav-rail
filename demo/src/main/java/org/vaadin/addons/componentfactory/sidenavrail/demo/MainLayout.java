@@ -15,17 +15,32 @@
  */
 package org.vaadin.addons.componentfactory.sidenavrail.demo;
 
-import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
+/**
+ * Plain {@link HorizontalLayout} frame instead of {@code AppLayout} — the rail
+ * mode is the point of the demo and an AppLayout drawer + navbar adds chrome
+ * that obscures the effect.
+ */
 @Layout
-public class MainLayout extends AppLayout {
+public class MainLayout extends HorizontalLayout implements RouterLayout {
+
+    private final Div contentArea = new Div();
 
     public MainLayout() {
+        setSizeFull();
+        setPadding(false);
+        setSpacing(false);
+
         SideNavRail nav = new SideNavRail();
 
         SideNavRailItem dashboard =
@@ -60,7 +75,25 @@ public class MainLayout extends AppLayout {
 
         Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
                 e -> nav.setRailMode(!nav.isRailMode()));
-        addToNavbar(toggle);
-        addToDrawer(nav);
+
+        VerticalLayout sidebar = new VerticalLayout(toggle, nav);
+        sidebar.setPadding(false);
+        sidebar.setSpacing(false);
+        sidebar.setWidth(null);
+        sidebar.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
+
+        contentArea.setSizeFull();
+        contentArea.getStyle().set("padding", "var(--lumo-space-m)");
+
+        add(sidebar, contentArea);
+        setFlexGrow(1, contentArea);
+    }
+
+    @Override
+    public void showRouterLayoutContent(HasElement content) {
+        contentArea.removeAll();
+        if (content != null) {
+            contentArea.getElement().appendChild(content.getElement());
+        }
     }
 }
