@@ -16,8 +16,11 @@
 
 package org.vaadin.addons.componentfactory.sidenavrail;
 
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.shared.Registration;
 
 /**
  * A {@link SideNav} that can be switched between normal mode and a compact rail
@@ -49,9 +52,15 @@ public class SideNavRail extends SideNav {
         } else {
             getElement().removeAttribute("theme");
         }
+        ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
     public boolean isRailMode() {
         return railMode;
+    }
+
+    public Registration addRailModeChangedListener(
+            ComponentEventListener<RailModeChangedEvent> listener) {
+        return ComponentUtil.addListener(this, RailModeChangedEvent.class, listener);
     }
 }

@@ -49,4 +49,29 @@ class RailModeStateTest {
         assertFalse(nav.isRailMode());
         assertNull(nav.getElement().getAttribute("theme"));
     }
+
+    @Test
+    void togglingFiresOneEventPerChange() {
+        SideNavRail nav = new SideNavRail();
+        java.util.List<Boolean> received = new java.util.ArrayList<>();
+        nav.addRailModeChangedListener(e -> received.add(e.isRailMode()));
+
+        nav.setRailMode(true);
+        nav.setRailMode(true);   // no-op — same value
+        nav.setRailMode(false);
+
+        assertEquals(java.util.List.of(true, false), received);
+    }
+
+    @Test
+    void eventReportsFromClientFalseForServerCalls() {
+        SideNavRail nav = new SideNavRail();
+        java.util.concurrent.atomic.AtomicBoolean fromClient =
+                new java.util.concurrent.atomic.AtomicBoolean(true);
+        nav.addRailModeChangedListener(e -> fromClient.set(e.isFromClient()));
+
+        nav.setRailMode(true);
+
+        assertFalse(fromClient.get());
+    }
 }
