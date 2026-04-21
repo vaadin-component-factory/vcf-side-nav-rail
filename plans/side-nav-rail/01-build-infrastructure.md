@@ -52,7 +52,7 @@ Create `/workspace/pom.xml`:
     </licenses>
 
     <properties>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <vaadin.version>24.5.0</vaadin.version>
         <spring-boot.version>3.4.0</spring-boot.version>
@@ -188,7 +188,7 @@ Create `/workspace/addon/pom.xml`:
     </licenses>
 
     <properties>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <vaadin.version>24.5.0</vaadin.version>
         <spring-boot.version>3.4.0</spring-boot.version>

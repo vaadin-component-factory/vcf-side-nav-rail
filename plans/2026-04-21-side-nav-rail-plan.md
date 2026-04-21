@@ -8,7 +8,7 @@
 
 **Architecture:** Pure Java + CSS — no custom web component. `SideNavRail extends SideNav` sets a `theme="rail"` attribute that CSS uses to collapse labels and inline children. Items with children lazily attach a Vaadin `Popover` whose content is a secondary `SideNav` rendering the children. A `PopoverMode` enum picks when the popover is live (default: for every non-expanded item; alternative: only while the nav is in rail mode).
 
-**Tech Stack:** Java 25, Maven (multi-module), Vaadin 24 (`vaadin-core` + `vaadin-spring-boot-starter`), Spring Boot for the test runtime, Karibu Testing v24 for unit tests, Playwright (TypeScript) driven by `frontend-maven-plugin` + `exec-maven-plugin` for E2E, Apache 2.0 license.
+**Tech Stack:** Java 17, Maven (multi-module), Vaadin 24 (`vaadin-core` + `vaadin-spring-boot-starter`), Spring Boot for the test runtime, Karibu Testing v24 for unit tests, Playwright (TypeScript) driven by `frontend-maven-plugin` + `exec-maven-plugin` for E2E, Apache 2.0 license.
 
 **Spec:** [`specs/2026-04-21-side-nav-rail-design.md`](../specs/2026-04-21-side-nav-rail-design.md) — authoritative for everything in this plan.
 
@@ -43,7 +43,7 @@ These apply to every task in every phase. Don't repeat them inside individual ta
 ### Build
 - Use `./mvnw` exclusively once Task 1 sets it up. Don't fall back to bare `mvn`.
 - `<vaadin.version>` is pinned to `24.5.0` throughout the MVP. Bumping happens outside this plan.
-- Java target: `maven.compiler.release=25` (devcontainer default; matches the Dockerfile).
+- Java target: `maven.compiler.release=17` (via devcontainer Dockerfile; matches the Dockerfile).
 
 ### Commits
 - Conventional-commit-ish prefixes: `build:` (POMs, wrapper, plugins), `feat:` (user-facing component code), `test:` (anything under `src/test/`), `docs:`, `chore:`.

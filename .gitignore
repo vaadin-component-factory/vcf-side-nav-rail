@@ -24,3 +24,6 @@ target/
 node_modules/
 playwright-report/
 test-results/
+
+# Vaadin generated frontend
+**/src/main/frontend/

@@ -231,7 +231,7 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
 - Parent POM (`/workspace/pom.xml`):
   - `packaging: pom`
   - Modules: `addon`, `demo`.
-  - Vaadin BOM, Java 25 (devcontainer default) as `maven.compiler.release`.
+  - Vaadin BOM, Java 17 (via devcontainer Dockerfile) as `maven.compiler.release`.
   - Shared plugins: `spotless`, `maven-compiler-plugin`.
 
 ## 7. Tests
