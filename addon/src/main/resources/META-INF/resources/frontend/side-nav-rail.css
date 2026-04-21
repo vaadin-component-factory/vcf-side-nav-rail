@@ -1,0 +1,23 @@
+/*
+ * Copyright 2026 Vaadin Ltd. Licensed under the Apache License, Version 2.0.
+ *
+ * Styles for the SideNavRail addon. Applied only when `theme="rail"` is set on the
+ * root <vaadin-side-nav> element by SideNavRail#setRailMode(true).
+ */
+
+vaadin-side-nav[theme~="rail"] {
+  width: var(--lumo-size-l);
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label,
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item [slot="suffix"] {
+  display: none;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
+  display: none;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
+  display: none;
+}
