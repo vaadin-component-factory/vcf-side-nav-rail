@@ -179,7 +179,12 @@ Fires on every call to `setRailMode(...)` that actually changes the state (no-op
 
 Items **without** children never open a popover — they are directly clickable in every state, including rail mode.
 
-**Live state transitions:** a popover already open on hover *must close* when the user inline-expands its item in normal mode (otherwise the children are visible twice — once inline in the nav, once mirrored in the popover). `SideNavRailItem` listens for the `expanded-changed` DOM event on the underlying web component and re-evaluates the gating; if the item transitions to expanded under `COLLAPSED_ITEM` mode while the nav is not in rail mode, `popover.close()` is invoked.
+**Live state transitions:** the popover reacts to inline-expand toggles so its visibility stays in sync with whether the item's children are already visible elsewhere:
+
+- **Inline-expand while popover is open** (`false → true` transition): the children are now shown inline, so the popover is redundant — `popover.close()` is invoked.
+- **Inline-collapse while still hovering** (`true → false` transition): the children are hidden again but the user's cursor is still on the item (they just clicked the toggle). The popover is opened explicitly; Vaadin's hover trigger would otherwise wait for the next `mouseenter`.
+
+Both effects are driven by the `expanded-changed` DOM event on the underlying `<vaadin-side-nav-item>`. The listener tracks the last-known expanded state server-side and only reacts to real transitions — the initial attach-time fire (which carries the current value, not a change) is ignored, so popovers don't pop open on page load.
 
 ### 4.2 Popover details
 
@@ -226,16 +231,9 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
 }
-
-/* Hiding label + toggle-button removes the line-height driver that normal
-   mode relies on for row height — pin it back to the Lumo default and
-   center the remaining prefix icon. Rail and normal items now render at
-   the same height, so the transition is visually stable. */
-vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(link) {
-  min-height: var(--lumo-size-m);
-  justify-content: center;
-}
 ```
+
+> **Known rough edge (deferred to Phase 2):** rail-mode rows are a few pixels shorter than normal-mode rows because hiding the label drops the line-height contribution. An earlier attempt to pin `min-height` via `::part(link)` produced off-center icons and a subtly broken active-highlight, so the override was reverted. A proper fix needs a browser-checked approach — likely a padding adjustment on the `::part(link)` rather than a `min-height`.
 
 ### 5.3 Label wrap
 
