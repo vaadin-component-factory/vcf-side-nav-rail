@@ -14,6 +14,24 @@
 
 ---
 
+## Implementation status
+
+> **Status (2026-04-21):** all 24 tasks complete on branch `mvp/iteration-1`. Final reactor `./mvnw clean verify` is green — 17/17 addon unit tests + 8/8 Playwright E2E tests pass.
+>
+> The spec has been updated in-place to reflect the final shape of the code. This plan document is kept as the historical record of *how* the work got there.
+>
+> **Key deviations from the plan as originally written:**
+>
+> - **Separate `e2e/` module.** The plan assumed the Spring Boot test runtime would live in `addon/src/test/java/.../app/`. In practice, `spring-boot-maven-plugin` + `classesDirectory` + `useTestClasspath` produced a tangle of workarounds that would not boot reliably. Phase 5 was effectively re-executed by moving TestApplication + test views + Playwright scaffold into a dedicated `e2e/` module where they live at compile scope. The addon POM is consequently much leaner (no Spring Boot test deps, no integration-test plugin chain). See commit `306a2a9`.
+> - **Java 17, not 25.** Spring Boot 3.x's bundled ASM cannot parse Java 25 class files. The devcontainer Dockerfile and both POMs were changed to Java 17. See commit `27251c4`.
+> - **Vaadin 24.10.1 + Spring Boot 3.5.13.** The plan's version pins (24.5.0 / 3.4.0) were placeholders; the final build uses the latest stable in each 24.x / 3.x line. See commit `4fb9bb4`.
+> - **`TestMainLayout` removed.** The plan included a shared `@Layout` layout wrapping all test views. This caused duplicate `#toggle-rail` IDs when a view also declared its own toggle button; Playwright's strict mode rejected the ambiguous selectors. Resolved by removing the layout and giving `BasicTestView` its own rail + toggle.
+> - **Popover attached to owning `SideNavRail` element.** The plan's code appended the popover to the UI root; the test expected it at depth 2. They were incompatible. The implementation attaches to the rail ancestor (walking the full parent chain). No visual impact — the overlay teleports to body either way.
+> - **`PopoverPosition.END_TOP` exists in Vaadin 24.** The fallback to `END` in `resolveEndTopPosition()` was never exercised but is retained as a defensive lookup.
+> - **Text-node filtering.** Several element streams need `.filter(e -> !e.isTextNode())` before calling `getTag()` — Vaadin's `Element.getTag()` throws on text nodes. This was discovered during Task 9 and applied consistently.
+
+---
+
 ## Cross-phase conventions
 
 These apply to every task in every phase. Don't repeat them inside individual task steps — rely on this section.

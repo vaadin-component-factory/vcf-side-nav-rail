@@ -30,3 +30,13 @@ test-results/
 
 # Vaadin frontend bundles (generated in test runtime)
 **/src/main/bundles/
+
+# Vaadin generates these in the module root during dev-mode builds
+**/package.json
+**/package-lock.json
+**/tsconfig.json
+**/types.d.ts
+# ...but keep Playwright's ones in the e2e module
+!e2e/src/test/playwright/package.json
+!e2e/src/test/playwright/package-lock.json
+!e2e/src/test/playwright/tsconfig.json
