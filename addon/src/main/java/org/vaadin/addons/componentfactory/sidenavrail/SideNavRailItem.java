@@ -1,0 +1,124 @@
+/*
+ * Copyright 2026 Vaadin Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.vaadin.addons.componentfactory.sidenavrail;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.dom.Element;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * {@link SideNavItem} variant that renders its string label inside a
+ * {@code <span class="label">}. The wrap is what lets CSS hide the label in rail mode
+ * ({@code vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label}); a bare text node
+ * cannot be targeted by CSS.
+ */
+public class SideNavRailItem extends SideNavItem {
+
+    private static final String LABEL_SPAN_CLASS = "label";
+
+    public SideNavRailItem(String label) {
+        super(label);
+        wrapLabel();
+    }
+
+    public SideNavRailItem(String label, String path) {
+        super(label, path);
+        wrapLabel();
+    }
+
+    public SideNavRailItem(String label, Class<? extends Component> view) {
+        super(label, view);
+        wrapLabel();
+    }
+
+    public SideNavRailItem(String label, String path, Component prefixComponent) {
+        super(label, path, prefixComponent);
+        wrapLabel();
+    }
+
+    public SideNavRailItem(
+            String label, Class<? extends Component> view, Component prefixComponent) {
+        super(label, view, prefixComponent);
+        wrapLabel();
+    }
+
+    @Override
+    public void setLabel(String label) {
+        super.setLabel(label);
+        wrapLabel();
+    }
+
+    private void wrapLabel() {
+        Element root = getElement();
+        String label = super.getLabel();
+        if (label == null) {
+            return;
+        }
+
+        Optional<Element> existing = findLabelSpan(root);
+        if (existing.isPresent()) {
+            existing.get().setText(label);
+            removeBareLabelTextNode(root);
+            return;
+        }
+
+        Element span = new Element("span");
+        span.setAttribute("class", LABEL_SPAN_CLASS);
+        span.setText(label);
+        removeBareLabelTextNode(root);
+        root.appendChild(span);
+    }
+
+    private static Optional<Element> findLabelSpan(Element root) {
+        return root.getChildren()
+                .filter(e -> !e.isTextNode())
+                .filter(e -> "span".equals(e.getTag()))
+                .filter(e -> LABEL_SPAN_CLASS.equals(e.getAttribute("class")))
+                .findFirst();
+    }
+
+    /**
+     * Removes the bare text node that {@code super.setLabel(...)} appends directly on
+     * the root element as a child text {@link Element}. Non-text element children
+     * (e.g. prefix icon with {@code slot="prefix"}) are preserved by snapshotting and
+     * re-attaching them around the {@code setText("")} call.
+     */
+    private static void removeBareLabelTextNode(Element root) {
+        // Check whether there are any child text nodes to remove.
+        boolean hasTextNodes = root.getChildren().anyMatch(Element::isTextNode);
+        if (!hasTextNodes) {
+            return;
+        }
+
+        // Snapshot non-text element children before setText("") detaches them.
+        List<Element> elementChildren = root.getChildren()
+                .filter(e -> !e.isTextNode())
+                .toList();
+
+        // setText("") removes text-node children and may also detach element children.
+        root.setText("");
+
+        // Re-attach any element children that were detached.
+        for (Element child : elementChildren) {
+            if (child.getParent() == null) {
+                root.appendChild(child);
+            }
+        }
+    }
+}
