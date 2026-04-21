@@ -143,7 +143,6 @@ public class SideNavRailItem extends SideNavItem {
         }
         popover = new Popover();
         popover.setTarget(this);
-        popover.setOpenOnHover(true);
         popover.setOpenOnClick(false);
         popover.setOpenOnFocus(false);
         popover.setHoverDelay(200);
@@ -151,20 +150,54 @@ public class SideNavRailItem extends SideNavItem {
         popover.setOverlayRole("menu");
         popover.setPosition(resolveEndTopPosition());
 
-        // Attach the popover as a sibling within the nearest SideNavRail ancestor
-        // so that it stays within the rail's DOM scope and is discoverable by tests
-        // and by CSS. Fall back to the UI element if no SideNavRail is found.
-        Element container = findSideNavRailElement()
+        // Attach the popover — the target element lives inside the rail, so we place
+        // the popover as a child of the rail (or the UI as fallback).
+        Element attachPoint = findSideNavRailElement()
                 .orElseGet(() -> getUI().orElseThrow(IllegalStateException::new).getElement());
-        container.appendChild(popover.getElement());
+        attachPoint.appendChild(popover.getElement());
 
         populatePopover();
+
+        SideNavRail owner = findOwnerRail();
+        if (owner != null) {
+            applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+        } else {
+            popover.setOpenOnHover(true);  // standalone item — default on
+        }
     }
 
     private Optional<Element> findSideNavRailElement() {
-        return getParent()
-                .filter(p -> p instanceof SideNavRail)
-                .map(Component::getElement);
+        SideNavRail owner = findOwnerRail();
+        return owner != null ? Optional.of(owner.getElement()) : Optional.empty();
+    }
+
+    private SideNavRail findOwnerRail() {
+        com.vaadin.flow.component.Component p = getParent().orElse(null);
+        while (p != null) {
+            if (p instanceof SideNavRail rail) {
+                return rail;
+            }
+            p = p.getParent().orElse(null);
+        }
+        return null;
+    }
+
+    /**
+     * Applies the open-eligibility of this item's popover based on the owning
+     * {@link SideNavRail}'s current {@link PopoverMode} and rail state. Package-private —
+     * external callers should use {@link SideNavRail#setPopoverMode(PopoverMode)} or
+     * {@link SideNavRail#setRailMode(boolean)} instead.
+     */
+    void applyPopoverGating(PopoverMode mode, boolean railMode) {
+        if (popover == null) {
+            return;
+        }
+        boolean eligible =
+                switch (mode) {
+                    case COLLAPSED_ITEM -> true;
+                    case RAIL_ONLY -> railMode;
+                };
+        popover.setOpenOnHover(eligible);
     }
 
     private void populatePopover() {

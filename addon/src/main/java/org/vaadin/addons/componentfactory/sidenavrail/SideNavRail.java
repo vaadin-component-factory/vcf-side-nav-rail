@@ -53,6 +53,7 @@ public class SideNavRail extends SideNav {
         } else {
             getElement().removeAttribute("theme");
         }
+        updatePopoverGating();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -66,6 +67,14 @@ public class SideNavRail extends SideNav {
 
     public void setPopoverMode(PopoverMode mode) {
         this.popoverMode = java.util.Objects.requireNonNull(mode, "PopoverMode must not be null");
+        updatePopoverGating();
+    }
+
+    private void updatePopoverGating() {
+        getChildren()
+                .filter(c -> c instanceof SideNavRailItem)
+                .map(c -> (SideNavRailItem) c)
+                .forEach(i -> i.applyPopoverGating(popoverMode, railMode));
     }
 
     public Registration addRailModeChangedListener(
