@@ -162,7 +162,6 @@ class PopoverModeTest {
 
     private static Popover locatePopoverOrNull(SideNavRailItem item) {
         return UI.getCurrent().getChildren()
-                .flatMap(c -> c.getChildren())
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .filter(p -> p.getTarget() == item)

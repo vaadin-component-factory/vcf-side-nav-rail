@@ -16,7 +16,7 @@
 
 ## Implementation status
 
-> **Status (2026-04-22):** MVP + phase 2 shipped. Reactor `./mvnw clean verify` is green — **26/26** addon unit tests + **13/13** Playwright E2E tests pass.
+> **Status (2026-04-22):** MVP + phase 2 shipped. Reactor `./mvnw clean verify` is green — **28/28** addon unit tests + **13/13** Playwright E2E tests pass.
 >
 > The spec has been updated in-place to reflect the final shape of the code. This plan document is kept as the historical record of *how* the work got there.
 >
@@ -37,7 +37,7 @@
 > - **Java 17, not 25.** Spring Boot 3.x's bundled ASM cannot parse Java 25 class files. The devcontainer Dockerfile and both POMs were changed to Java 17. See commit `27251c4`.
 > - **Vaadin 24.10.1 + Spring Boot 3.5.13.** The plan's version pins (24.5.0 / 3.4.0) were placeholders; the final build uses the latest stable in each 24.x / 3.x line. See commit `4fb9bb4`.
 > - **`TestMainLayout` removed.** The plan included a shared `@Layout` layout wrapping all test views. This caused duplicate `#toggle-rail` IDs when a view also declared its own toggle button; Playwright's strict mode rejected the ambiguous selectors. Resolved by removing the layout and giving `BasicTestView` its own rail + toggle.
-> - **Popover attached to owning `SideNavRail` element.** The plan's code appended the popover to the UI root; the test expected it at depth 2. They were incompatible. The implementation attaches to the rail ancestor (walking the full parent chain). No visual impact — the overlay teleports to body either way.
+> - **Popover attachment left to Vaadin.** Earlier revisions manually called `rail.getElement().appendChild(popover.getElement())`; this was cargo-culted from a mismatch between the plan's code and an early test. The real contract is that `Popover.setTarget(...)` installs an attach/detach listener on the target that auto-adds the popover to the UI and auto-removes it when the target detaches (see `Popover#onTargetAttach` + `removeFromUiIfAutoAdded`). Manually appending breaks that lifecycle — the `autoAddedToTheUi` flag is set while the popover sits under the rail, so the auto-remove can't find it on detach. Phase 2.1 deletes the manual append; `PopoverLifecycleTest` now pins the expected lifecycle (popover becomes a direct UI child; it detaches when its owning rail is removed from the UI). The overlay still teleports to `body`, so no visual change.
 > - **`PopoverPosition.END_TOP` exists in Vaadin 24.** The fallback to `END` in `resolveEndTopPosition()` was never exercised but is retained as a defensive lookup.
 > - **Text-node filtering.** Several element streams need `.filter(e -> !e.isTextNode())` before calling `getTag()` — Vaadin's `Element.getTag()` throws on text nodes. This was discovered during Task 9 and applied consistently.
 > - **E2E runs in production mode.** After the plan was written, the e2e module was flipped from dev-mode (with or without hotdeploy) to `vaadin.productionMode=true`, with `vaadin-maven-plugin`'s `build-frontend` goal bound to `compile`. Reasoning: E2E tests should verify the production artifact, and this eliminates the first-paint flakiness where the dev-bundle compile outran the default `expect` timeout. See commit `86447dd`. The demo module stays in dev-mode with `vaadin.frontend.hotdeploy=true` (HMR is useful there — it's bedient by humans, not CI).

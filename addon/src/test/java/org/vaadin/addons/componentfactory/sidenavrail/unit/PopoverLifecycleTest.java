@@ -49,7 +49,6 @@ class PopoverLifecycleTest {
         UI.getCurrent().add(nav);
 
         long popovers = UI.getCurrent().getChildren()
-                .flatMap(c -> c.getChildren())
                 .filter(c -> c instanceof Popover)
                 .count();
         assertEquals(0L, popovers);
@@ -73,6 +72,54 @@ class PopoverLifecycleTest {
     }
 
     @Test
+    void popoverBecomesDirectUiChildNotNavDescendant() {
+        // The popover auto-adds itself to the UI root via Popover.setTarget(...).
+        // Regression guard: we used to appendChild the popover onto the rail element
+        // manually, which double-parented it and defeated the auto-detach. The popover
+        // must land as a direct UI child, not as a child of the nav.
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code");
+        parent.addItem(new SideNavRailItem("Branches", "/branches"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        long navChildPopovers = nav.getChildren()
+                .filter(c -> c instanceof Popover)
+                .count();
+        assertEquals(0L, navChildPopovers,
+                "Popover must NOT be a child of the nav (auto-add should place it on the UI)");
+
+        long uiChildPopovers = UI.getCurrent().getChildren()
+                .filter(c -> c instanceof Popover)
+                .count();
+        assertEquals(1L, uiChildPopovers,
+                "Popover should auto-add itself as a direct UI child");
+    }
+
+    @Test
+    void popoverDetachesWhenOwnerRailIsRemoved() {
+        // When the rail (and therefore each SideNavRailItem target) detaches, the
+        // Popover's detach listener calls removeFromUiIfAutoAdded() and the popover
+        // disappears from the UI. Without this, every rail removal would leak a
+        // stale popover into the UI.
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code");
+        parent.addItem(new SideNavRailItem("Branches", "/branches"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        assertEquals(1L, UI.getCurrent().getChildren()
+                .filter(c -> c instanceof Popover)
+                .count(), "precondition: popover attached");
+
+        UI.getCurrent().remove(nav);
+
+        assertEquals(0L, UI.getCurrent().getChildren()
+                .filter(c -> c instanceof Popover)
+                .count(), "popover must be removed from UI when its target detaches");
+    }
+
+    @Test
     void outerChildrenSurvivePopoverPopulation() {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem parent = new SideNavRailItem("Code");
@@ -85,7 +132,6 @@ class PopoverLifecycleTest {
                 "Outer nav must retain its children for inline expansion");
 
         Popover popover = UI.getCurrent().getChildren()
-                .flatMap(c -> c.getChildren())
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .findFirst().orElseThrow();
@@ -98,7 +144,6 @@ class PopoverLifecycleTest {
 
     private static Popover findPopoverTargeting(SideNavRailItem item) {
         return UI.getCurrent().getChildren()
-                .flatMap(c -> c.getChildren())
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .filter(p -> p.getTarget() == item)

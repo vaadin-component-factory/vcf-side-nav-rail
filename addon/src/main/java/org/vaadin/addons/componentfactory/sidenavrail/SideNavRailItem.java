@@ -239,6 +239,14 @@ public class SideNavRailItem extends SideNavItem {
         });
     }
 
+    /**
+     * Creates the item's popover on first attach. The popover is deliberately not
+     * appended anywhere server-side: {@link Popover#setTarget(Component)} installs
+     * attach/detach listeners on the target that auto-add the popover to the UI when
+     * the target enters the tree and remove it again when the target leaves. Adding it
+     * manually would double-parent the element, bypass the auto-remove on detach, and
+     * leak a stale popover if the rail is later removed.
+     */
     private void ensurePopover() {
         if (popover != null) {
             return;
@@ -255,12 +263,6 @@ public class SideNavRailItem extends SideNavItem {
         popover.setOverlayRole("menu");
         popover.setPosition(resolveEndTopPosition());
 
-        // Attach the popover — the target element lives inside the rail, so we place
-        // the popover as a child of the rail (or the UI as fallback).
-        Element attachPoint = findSideNavRailElement()
-                .orElseGet(() -> getUI().orElseThrow(IllegalStateException::new).getElement());
-        attachPoint.appendChild(popover.getElement());
-
         populatePopover();
 
         SideNavRail owner = findOwnerRail();
@@ -269,11 +271,6 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
-    }
-
-    private Optional<Element> findSideNavRailElement() {
-        SideNavRail owner = findOwnerRail();
-        return owner != null ? Optional.of(owner.getElement()) : Optional.empty();
     }
 
     private SideNavRail findOwnerRail() {
