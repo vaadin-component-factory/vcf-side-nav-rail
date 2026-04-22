@@ -60,6 +60,7 @@ public class SideNavRail extends SideNav {
     private boolean railMode = false;
     private PopoverMode popoverMode = PopoverMode.ALL_COLLAPSED_ITEMS;
     private PopoverParentLabelMode popoverParentLabelMode = PopoverParentLabelMode.NONE;
+    private RailTooltipMode railTooltipMode = RailTooltipMode.ALL;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -90,6 +91,7 @@ public class SideNavRail extends SideNav {
             getElement().removeAttribute("theme");
         }
         updatePopoverGating();
+        applyTooltips();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -138,6 +140,27 @@ public class SideNavRail extends SideNav {
         rebuildPopoverContents();
     }
 
+    /**
+     * The current rail-tooltip mode. Default: {@link RailTooltipMode#ALL}. Tooltips
+     * are only shown while the rail is in rail mode; see {@link RailTooltipMode} for
+     * the per-value semantics.
+     */
+    public RailTooltipMode getRailTooltipMode() {
+        return railTooltipMode;
+    }
+
+    /**
+     * Controls which root items surface their label as a native tooltip while the rail
+     * is in rail mode. Re-applies the tooltip state to every root item immediately.
+     *
+     * @throws NullPointerException if {@code mode} is {@code null}
+     */
+    public void setRailTooltipMode(RailTooltipMode mode) {
+        this.railTooltipMode = java.util.Objects.requireNonNull(
+                mode, "RailTooltipMode must not be null");
+        applyTooltips();
+    }
+
     private void updatePopoverGating() {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
@@ -172,6 +195,29 @@ public class SideNavRail extends SideNav {
         }
     }
 
+    private void applyTooltips() {
+        for (SideNavItem child : getItems()) {
+            applyTooltipFor(child);
+        }
+    }
+
+    /**
+     * Sets or clears the tooltip text on a single root item based on the current
+     * rail-mode + {@link RailTooltipMode} combination. Tooltip is only shown in rail
+     * mode; normal mode always clears it (label is visible directly). Items whose
+     * own label is blank don't receive a tooltip either — there's nothing to show.
+     */
+    private void applyTooltipFor(SideNavItem item) {
+        boolean eligible = railMode && switch (railTooltipMode) {
+            case NONE -> false;
+            case ONLY_WITHOUT_CHILDREN -> item.getItems().isEmpty();
+            case ALL -> true;
+        };
+        String label = item.getLabel();
+        String text = (eligible && label != null && !label.isBlank()) ? label : null;
+        item.setTooltipText(text);
+    }
+
     /**
      * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever
      * {@link #setRailMode(boolean)} actually changes the state (no-ops don't fire).
@@ -201,6 +247,7 @@ public class SideNavRail extends SideNav {
         super.addItem(items);
         for (SideNavItem item : items) {
             markAsRootItem(item);
+            applyTooltipFor(item);
         }
     }
 
@@ -215,6 +262,7 @@ public class SideNavRail extends SideNav {
         requireRailItem(item);
         super.addItemAsFirst(item);
         markAsRootItem(item);
+        applyTooltipFor(item);
     }
 
     static void requireRailItem(SideNavItem item) {

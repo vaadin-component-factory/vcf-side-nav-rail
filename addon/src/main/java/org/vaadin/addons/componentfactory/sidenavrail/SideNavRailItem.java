@@ -106,6 +106,26 @@ public class SideNavRailItem extends SideNavItem {
         super.setLabel(label);
         wrapLabel();
         ensureLetterAvatar();
+        refreshTooltipTextIfInstalled();
+    }
+
+    /**
+     * Keeps the tooltip text in sync with the label when the owning rail has installed
+     * one. We don't install a tooltip here ourselves — that's the rail's job — but
+     * we do refresh the text on label change so a relabelled item doesn't show a stale
+     * tooltip. No-op when no tooltip text is currently set.
+     */
+    private void refreshTooltipTextIfInstalled() {
+        com.vaadin.flow.component.shared.Tooltip tooltip = getTooltip();
+        if (tooltip == null) {
+            return;
+        }
+        String existing = tooltip.getText();
+        if (existing == null || existing.isEmpty()) {
+            return;
+        }
+        String label = getLabel();
+        tooltip.setText((label != null && !label.isBlank()) ? label : null);
     }
 
     /**

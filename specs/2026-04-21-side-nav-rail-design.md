@@ -104,6 +104,10 @@ public class SideNavRail extends SideNav {
     public void setPopoverParentLabelMode(PopoverParentLabelMode mode);
     public PopoverParentLabelMode getPopoverParentLabelMode();
 
+    /** Which root items surface their label as a native tooltip in rail mode. Default: ALL. */
+    public void setRailTooltipMode(RailTooltipMode mode);
+    public RailTooltipMode getRailTooltipMode();
+
     public Registration addRailModeChangedListener(
             ComponentEventListener<RailModeChangedEvent> listener);
 
@@ -192,7 +196,37 @@ public enum PopoverParentLabelMode {
 
 **Known limitation:** a parent's `setLabel(...)` or `setPrefixComponent(...)` applied <em>after</em> the popover exists is not picked up automatically. Call `setPopoverParentLabelMode(...)` again (e.g. with the current value) to force a rebuild, or configure the item before the popover is first populated.
 
-### 3.5 `RailModeChangedEvent`
+### 3.5 `RailTooltipMode`
+
+Controls which root items surface their label as a native Vaadin tooltip while the
+rail is in rail mode. Tooltips are never shown in normal mode — the label is already
+visible there — and they apply to <em>direct children of the rail only</em>, never to
+nested items.
+
+```java
+public enum RailTooltipMode {
+    /** No tooltips on root items. */
+    NONE,
+    /** Tooltip only on root items that have no children (popover-less leaves). */
+    ONLY_WITHOUT_CHILDREN,
+    /** Tooltip on every root item. Default. */
+    ALL
+}
+```
+
+**Rendering:** internally uses `SideNavItem.setTooltipText(label)` (Vaadin's
+`HasTooltip` mixin). The default `BOTTOM` tooltip position and the
+`PopoverPosition.END_TOP` of the hover popover don't spatially collide, so both can
+coexist on a parent item.
+
+**Quirk (documented on `RailTooltipMode.ALL`):** if a tooltip is already visible on
+one root item and the pointer moves to a different root item that also opens a
+popover, Vaadin's overlay interaction dismisses the already-visible tooltip. The
+initial-hover case (no prior tooltip) isn't affected. We can't influence this from
+the server; consumers that find the flicker distracting can switch to
+`ONLY_WITHOUT_CHILDREN`.
+
+### 3.6 `RailModeChangedEvent`
 
 ```java
 public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
@@ -432,7 +466,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 - ~~Parent name as popover header (mentioned in the customer email, *not* in `initial.md`).~~ **Shipped** — see [§3.4 `PopoverParentLabelMode`](#34-popoverparentlabelmode) and [§4.2](#42-popover-details). Opt-in with four modes: `NONE` (default), `LABEL_ONLY`, `ICON_ONLY`, `FULL`.
 - ~~Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.~~ **Exposed as a styling hook** — see [§5.1](#51-marker-attributes). `SideNavRail` marks each direct child with the `[root-item]` attribute so consumer CSS can target them via `vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon`. The actual visual treatment is app-level CSS on purpose — different apps want different looks, and Vaadin's standard `setMatchNested(true)` + `[current]` mechanism already covers the detection side.
 - ~~Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.~~ **Shipped as a letter-avatar fallback** — see [§3.2](#32-sidenavrailitem) and [§5.2](#52-css-module). A `SideNavRailItem` without a prefix component auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24 to match the Lumo icon size) whose abbreviation is the first letter of the label, uppercase. Hidden in normal mode, visible in rail mode. The avatar is replaced by any user-provided prefix component and regenerated if the user later clears it.
-- Tooltip in rail mode for items *without* children (shows label on hover).
+- ~~Tooltip in rail mode for items *without* children (shows label on hover).~~ **Shipped as `RailTooltipMode`** — a three-valued enum on `SideNavRail` controlling which root items surface their label as a native Vaadin tooltip while rail mode is active. See [§3.5 `RailTooltipMode`](#35-railtooltipmode). Values: `NONE`, `ONLY_WITHOUT_CHILDREN`, `ALL` (default). Tooltips are never shown in normal mode; leaving rail mode clears them. Scope extended beyond the original "only items without children" wording: we set tooltips on *all* root items by default because `PopoverParentLabelMode.NONE` (the default) means a parent popover doesn't repeat the label, so the tooltip provides a consistent discovery mechanism across all root items.
 - Transition/animation on rail mode toggle (width, labels).
 - Configurable hover delays and popover position at the nav level.
 
