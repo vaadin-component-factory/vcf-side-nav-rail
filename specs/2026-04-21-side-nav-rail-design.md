@@ -108,6 +108,18 @@ public class SideNavRail extends SideNav {
     public void setRailTooltipMode(RailTooltipMode mode);
     public RailTooltipMode getRailTooltipMode();
 
+    /** Hover delay (ms) before the popover opens. Default: 200. */
+    public void setPopoverHoverDelay(int hoverDelayMs);
+    public int getPopoverHoverDelay();
+
+    /** Hide delay (ms) after mouseout before the popover closes. Default: 300. */
+    public void setPopoverHideDelay(int hideDelayMs);
+    public int getPopoverHideDelay();
+
+    /** Popover position relative to its item. Default: END_TOP. */
+    public void setPopoverPosition(PopoverPosition position);
+    public PopoverPosition getPopoverPosition();
+
     public Registration addRailModeChangedListener(
             ComponentEventListener<RailModeChangedEvent> listener);
 
@@ -284,8 +296,8 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 - Implementation: the Vaadin `Popover` component (Flow), one instance per `SideNavRailItem` that has children, lazily created on first `onAttach`.
 - Target: the root element of the associated `SideNavRailItem`.
 - Trigger: `setOpenOnHover(true)` gated by `applyPopoverGating(mode, railMode)`; re-evaluated on rail-mode toggle, popover-mode change, and the item's `expanded-changed` DOM event. When the gate flips to ineligible while the popover is open, `popover.close()` is called so it disappears immediately.
-- Timing: `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical values; making these configurable on the nav is listed in [§9.1](#91-phase-2--user-facing-polish)).
-- Position: aligned to the right of the item, top-aligned with the item — concretely `PopoverPosition.END_TOP` if present (the Vaadin popover enum follows the `DIRECTION_ALIGNMENT` naming pattern; exact enum value to be verified during implementation, fallback `END`).
+- Timing: default `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical). Configurable at the nav level via `SideNavRail.setPopoverHoverDelay(int)` and `setPopoverHideDelay(int)` — new values propagate to every existing popover immediately and seed new ones created after the change.
+- Position: default `PopoverPosition.END_TOP` (top-aligned, to the inline-end of the item). Configurable via `SideNavRail.setPopoverPosition(PopoverPosition)` — new values propagate live to existing popovers, and any non-null `PopoverPosition` value is accepted (rails pinned to the inline-end of a layout typically use `START_TOP`, etc.).
 - Overlay role: `setOverlayRole("menu")`.
 - Content: a secondary `SideNav` instance (not a `SideNavRail`) rendering the children of the item. Nested expand/collapse inside the popover then works via the standard `SideNav` mechanism (`initial.md`: *"Inside that popover, side nav items … can be expanded and collapsed like within the normal side nav"*).
 - Rendering strategy (rebuilding a copy from the item hierarchy vs. DOM-reparenting the existing light DOM) is intentionally left open to implementation; what matters is that navigation and active highlighting work inside the popover the same way as in a standard `SideNav`.
@@ -491,7 +503,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 - ~~Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.~~ **Shipped as a letter-avatar fallback** — see [§3.2](#32-sidenavrailitem) and [§5.2](#52-css-module). A `SideNavRailItem` without a prefix component auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24 to match the Lumo icon size) whose abbreviation is the first letter of the label, uppercase. Hidden in normal mode, visible in rail mode. The avatar is replaced by any user-provided prefix component and regenerated if the user later clears it.
 - ~~Tooltip in rail mode for items *without* children (shows label on hover).~~ **Shipped as `RailTooltipMode`** — a three-valued enum on `SideNavRail` controlling which root items surface their label as a native Vaadin tooltip while rail mode is active. See [§3.5 `RailTooltipMode`](#35-railtooltipmode). Values: `NONE`, `ONLY_WITHOUT_CHILDREN`, `ALL` (default). Tooltips are never shown in normal mode; leaving rail mode clears them. Scope extended beyond the original "only items without children" wording: we set tooltips on *all* root items by default because `PopoverParentLabelMode.NONE` (the default) means a parent popover doesn't repeat the label, so the tooltip provides a consistent discovery mechanism across all root items.
 - ~~Transition/animation on rail mode toggle (width, labels).~~ **Shipped as CSS transitions** — see [§5.2](#52-css-module). Rail width, label text, suffix, and the expand-toggle chevron fade/collapse together over a single configurable duration + easing (`--side-nav-rail-transition-duration` default `200ms`, `--side-nav-rail-transition-easing` default `ease-out`). Setting the duration to `0s` disables the animation. No Java API added.
-- Configurable hover delays and popover position at the nav level.
+- ~~Configurable hover delays and popover position at the nav level.~~ **Shipped** — see [§3.1](#31-sidenavrail) for the three new setters (`setPopoverHoverDelay`, `setPopoverHideDelay`, `setPopoverPosition`) and [§4.2](#42-popover-details) for the behaviour. Defaults unchanged (200/300/`END_TOP`). Live propagation to all existing popovers; new popovers seed from the current values.
 
 ### 9.2 Phase 2 — accessibility
 

@@ -19,6 +19,7 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.shared.Registration;
@@ -57,10 +58,17 @@ public class SideNavRail extends SideNav {
 
     private static final String RAIL_THEME = "rail";
 
+    private static final int DEFAULT_POPOVER_HOVER_DELAY_MS = 200;
+    private static final int DEFAULT_POPOVER_HIDE_DELAY_MS = 300;
+    private static final PopoverPosition DEFAULT_POPOVER_POSITION = PopoverPosition.END_TOP;
+
     private boolean railMode = false;
     private PopoverMode popoverMode = PopoverMode.ALL_COLLAPSED_ITEMS;
     private PopoverParentLabelMode popoverParentLabelMode = PopoverParentLabelMode.NONE;
     private RailTooltipMode railTooltipMode = RailTooltipMode.ALL;
+    private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
+    private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
+    private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -161,6 +169,60 @@ public class SideNavRail extends SideNav {
         applyTooltips();
     }
 
+    /**
+     * The hover delay (ms) before the popover opens. Default: 200&nbsp;ms (Lumo-typical).
+     */
+    public int getPopoverHoverDelay() {
+        return popoverHoverDelay;
+    }
+
+    /**
+     * Sets the hover delay (ms) before the popover opens. Applied to every existing
+     * popover immediately. Negative values behave as Vaadin's {@code Popover} defines
+     * them — the addon does not validate.
+     */
+    public void setPopoverHoverDelay(int hoverDelayMs) {
+        this.popoverHoverDelay = hoverDelayMs;
+        applyPopoverSettings();
+    }
+
+    /**
+     * The hide delay (ms) after the pointer leaves the target before the popover closes.
+     * Default: 300&nbsp;ms (Lumo-typical).
+     */
+    public int getPopoverHideDelay() {
+        return popoverHideDelay;
+    }
+
+    /**
+     * Sets the hide delay (ms) after the pointer leaves the target before the popover
+     * closes. Applied to every existing popover immediately.
+     */
+    public void setPopoverHideDelay(int hideDelayMs) {
+        this.popoverHideDelay = hideDelayMs;
+        applyPopoverSettings();
+    }
+
+    /**
+     * The position the popover opens at relative to its item. Default:
+     * {@link PopoverPosition#END_TOP} — top-aligned, to the inline-end of the item
+     * (right in an LTR layout). Suitable for a rail pinned to the inline-start edge.
+     */
+    public PopoverPosition getPopoverPosition() {
+        return popoverPosition;
+    }
+
+    /**
+     * Sets the popover position. Applied to every existing popover immediately.
+     *
+     * @throws NullPointerException if {@code position} is {@code null}
+     */
+    public void setPopoverPosition(PopoverPosition position) {
+        this.popoverPosition = java.util.Objects.requireNonNull(
+                position, "PopoverPosition must not be null");
+        applyPopoverSettings();
+    }
+
     private void updatePopoverGating() {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
@@ -191,6 +253,23 @@ public class SideNavRail extends SideNav {
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 rebuildPopoverContentsRecursively(rail);
+            }
+        }
+    }
+
+    private void applyPopoverSettings() {
+        for (SideNavItem child : getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                applyPopoverSettingsRecursively(rail);
+            }
+        }
+    }
+
+    private void applyPopoverSettingsRecursively(SideNavRailItem item) {
+        item.applyPopoverSettings(popoverHoverDelay, popoverHideDelay, popoverPosition);
+        for (SideNavItem child : item.getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                applyPopoverSettingsRecursively(rail);
             }
         }
     }

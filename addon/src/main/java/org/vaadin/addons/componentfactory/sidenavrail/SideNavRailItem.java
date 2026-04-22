@@ -350,19 +350,38 @@ public class SideNavRailItem extends SideNavItem {
         popover.setTarget(this);
         popover.setOpenOnClick(false);
         popover.setOpenOnFocus(false);
-        popover.setHoverDelay(200);
-        popover.setHideDelay(300);
         popover.setOverlayRole("menu");
-        popover.setPosition(resolveEndTopPosition());
+
+        SideNavRail owner = findOwnerRail();
+        // Seed from the owning rail's current settings so a popover created mid-session
+        // picks up timings/position configured earlier. Fall back to Lumo-typical
+        // defaults for popovers living outside a rail (rare but supported).
+        popover.setHoverDelay(owner != null ? owner.getPopoverHoverDelay() : 200);
+        popover.setHideDelay(owner != null ? owner.getPopoverHideDelay() : 300);
+        popover.setPosition(owner != null ? owner.getPopoverPosition() : resolveEndTopPosition());
 
         populatePopover();
 
-        SideNavRail owner = findOwnerRail();
         if (owner != null) {
             applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
+    }
+
+    /**
+     * Pushes updated hover/hide delays and position to the existing popover, if any.
+     * Called by {@link SideNavRail} when one of those settings changes so a live rail
+     * reflects the new values without needing a reattach. No-op when the popover has
+     * not been created yet.
+     */
+    void applyPopoverSettings(int hoverDelay, int hideDelay, PopoverPosition position) {
+        if (popover == null) {
+            return;
+        }
+        popover.setHoverDelay(hoverDelay);
+        popover.setHideDelay(hideDelay);
+        popover.setPosition(position);
     }
 
     private SideNavRail findOwnerRail() {
