@@ -27,6 +27,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -118,7 +119,23 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             }
         });
 
-        HorizontalLayout navbar = new HorizontalLayout(title, modeSelect);
+        Select<PopoverParentLabelMode> parentLabelSelect = new Select<>();
+        parentLabelSelect.setId("popover-parent-label-select");
+        parentLabelSelect.setLabel("Popover header");
+        parentLabelSelect.setItems(PopoverParentLabelMode.values());
+        parentLabelSelect.setItemLabelGenerator(MainLayout::humanize);
+        parentLabelSelect.setValue(nav.getPopoverParentLabelMode());
+        parentLabelSelect.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                nav.setPopoverParentLabelMode(e.getValue());
+            }
+        });
+
+        HorizontalLayout selects = new HorizontalLayout(modeSelect, parentLabelSelect);
+        selects.setAlignItems(FlexComponent.Alignment.END);
+        selects.setSpacing(true);
+
+        HorizontalLayout navbar = new HorizontalLayout(title, selects);
         navbar.setWidthFull();
         navbar.setPadding(true);
         navbar.setSpacing(true);
@@ -133,6 +150,15 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             case ALL_COLLAPSED_ITEMS -> "All collapsed items";
             case ONLY_ROOT_COLLAPSED_ITEMS -> "Only root collapsed items";
             case ONLY_RAIL_MODE -> "Only in rail mode";
+        };
+    }
+
+    private static String humanize(PopoverParentLabelMode mode) {
+        return switch (mode) {
+            case NONE -> "None";
+            case LABEL_ONLY -> "Label only";
+            case ICON_ONLY -> "Icon only";
+            case FULL -> "Icon + label";
         };
     }
 
