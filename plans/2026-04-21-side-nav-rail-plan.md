@@ -16,9 +16,20 @@
 
 ## Implementation status
 
-> **Status (2026-04-21):** all 24 tasks complete on branch `mvp/iteration-1`. Final reactor `./mvnw clean verify` is green — 17/17 addon unit tests + 8/8 Playwright E2E tests pass.
+> **Status (2026-04-22):** MVP + phase 2 shipped. Reactor `./mvnw clean verify` is green — **26/26** addon unit tests + **13/13** Playwright E2E tests pass.
 >
 > The spec has been updated in-place to reflect the final shape of the code. This plan document is kept as the historical record of *how* the work got there.
+>
+> **Phase 2 additions (post-merge of MVP):**
+>
+> - **`PopoverMode` renamed + expanded to three values.** `COLLAPSED_ITEM` → `ALL_COLLAPSED_ITEMS`, `RAIL_ONLY` → `ONLY_RAIL_MODE`, **new** `ONLY_ROOT_COLLAPSED_ITEMS` that restricts popovers to direct children of the `SideNavRail` (nested parents never open a popover). Spec §3.3 and §4.1 carry the new behaviour matrix. Default remains `ALL_COLLAPSED_ITEMS`.
+> - **`updatePopoverGating` made recursive.** With `ONLY_ROOT_COLLAPSED_ITEMS`, eligibility depends on tree position, so a non-recursive walk would leave nested popovers mis-gated after a mode switch. New helper `applyGatingRecursively(SideNavRailItem)` traverses the full item tree on every rail-mode/popover-mode change.
+> - **Type-safe children.** `SideNavRail.addItem(...)` / `addItemAsFirst(...)` and `SideNavRailItem.addItem(...)` / `addItemAsFirst(...)` now reject plain `SideNavItem` instances with `IllegalArgumentException`. Rationale: label-wrap and popover gating are implemented on `SideNavRailItem` overrides and cannot be retrofitted onto a parent-class instance — a silent accept would produce a partially-broken item that nobody can debug. Enforced at runtime (the parent class's generic signature prevents a compile-time guard without reshaping the public API).
+> - **Full Javadocs on every public method.** MVP shipped without Javadocs; this gap was closed in phase 2. Tone targets existing Vaadin developers — we explain *why* and *when*, not what a `Component` is.
+> - **New tests.** `PopoverModeTest` grew three cases for `ONLY_ROOT_COLLAPSED_ITEMS` (root eligible, nested not eligible, close-on-mode-switch). New `TypeGuardTest` has 6 cases covering both entry points on both classes. New E2E spec `popover-only-root-collapsed-items.spec.ts` — root opens popover; nested parent does not. The E2E spec uses **semantic assertions** (`popover.getByText('Branches')` + `popover.getByText('Tags')`) rather than DOM count checks, which would break on hidden-but-in-DOM grandchildren.
+> - **New test view.** `PopoverOnlyRootCollapsedItemsView` at `/only-root-collapsed-items` — "Code" as root with "Branches" (itself a parent with children) + "Tags" nested inside.
+>
+> **Key deviations from the plan as originally written (MVP phase):**
 >
 > **Key deviations from the plan as originally written:**
 >

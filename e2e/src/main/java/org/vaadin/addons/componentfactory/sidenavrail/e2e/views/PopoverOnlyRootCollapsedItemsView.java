@@ -24,18 +24,29 @@ import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-@Route("rail-only")
-public class PopoverRailOnlyView extends VerticalLayout {
+/**
+ * ONLY_ROOT_COLLAPSED_ITEMS scenario — "Code" is a root item with children
+ * (should get a popover); "Branches" is nested inside "Code" and itself has
+ * children (must NOT get a popover because it is not a direct child of the
+ * rail).
+ */
+@Route("only-root-collapsed-items")
+public class PopoverOnlyRootCollapsedItemsView extends VerticalLayout {
 
-    public PopoverRailOnlyView() {
+    public PopoverOnlyRootCollapsedItemsView() {
         SideNavRail rail = new SideNavRail();
-        rail.setPopoverMode(PopoverMode.RAIL_ONLY);
+        rail.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(
                 "Code", "/code", VaadinIcon.CODE.create());
-        code.addItem(new SideNavRailItem("Branches", "/code/branches"));
+
+        SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
+        branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));
+        branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
+        code.addItem(branches);
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
+
         rail.addItem(code);
 
         Button toggle = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));

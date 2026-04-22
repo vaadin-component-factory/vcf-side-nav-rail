@@ -131,16 +131,20 @@ public class SideNavRailItem extends SideNavItem {
 
 ### 3.3 `PopoverMode`
 
-The enum name refers to the *item* state (Vaadin standard: `[expanded]` vs. not expanded), not the nav state. This makes the distinction from `RAIL_ONLY` (nav state) explicit.
+Three values, each describing which set of items is eligible for the hover popover:
 
 ```java
 public enum PopoverMode {
-    /** Popover on every non-expanded item-with-children — regardless of whether the nav is in rail mode. Default. */
-    COLLAPSED_ITEM,
-    /** Popover only when the nav as a whole is in rail mode (isRailMode() == true). */
-    RAIL_ONLY
+    /** Every non-expanded item with children, any depth, any nav state. Default. */
+    ALL_COLLAPSED_ITEMS,
+    /** Only direct children of the SideNavRail (top level). Nested items never get a popover. */
+    ONLY_ROOT_COLLAPSED_ITEMS,
+    /** Any item with children, but only while the whole nav is in rail mode. */
+    ONLY_RAIL_MODE
 }
 ```
+
+`ONLY_ROOT_COLLAPSED_ITEMS` in rail mode is effectively equivalent to `ALL_COLLAPSED_ITEMS` because rail mode already hides nested items, so the root-only restriction is a no-op there.
 
 ### 3.4 `RailModeChangedEvent`
 
@@ -162,20 +166,26 @@ Fires on every call to `setRailMode(...)` that actually changes the state (no-op
 1. The whole nav is in **rail mode** — all labels and inline children are suppressed.
 2. A specific parent item is **inline-closed** in normal mode — that item's children are hidden while the rest of the nav is fully visible.
 
-`PopoverMode` picks which of these two cases triggers the hover popover:
+`PopoverMode` picks which of these two cases triggers the hover popover, and whether the rule applies to every item with children or only to root items (direct children of the rail):
 
 | `PopoverMode` | Popover appears when… |
 |---|---|
-| `COLLAPSED_ITEM` *(default)* | …*any* parent item's children are hidden — whether that's because the nav is in rail mode or because the item is inline-closed in normal mode. |
-| `RAIL_ONLY` | …*only* the nav is in rail mode. Inline-closed items in normal mode stay silent — they only open on click, like standard `SideNav`. |
+| `ALL_COLLAPSED_ITEMS` *(default)* | …*any* parent item's children are hidden — whether because the nav is in rail mode or because the item is inline-closed in normal mode. Applies at every depth. |
+| `ONLY_ROOT_COLLAPSED_ITEMS` | …same condition as `ALL_COLLAPSED_ITEMS`, but restricted to **root items** (direct children of the `SideNavRail`). Nested parents never open a popover, even when their children are hidden. |
+| `ONLY_RAIL_MODE` | …*only* the nav is in rail mode. Inline-closed items in normal mode stay silent — they only open on click, like standard `SideNav`. |
 
 **Full behaviour matrix (items with children):**
 
-| Nav state | Item inline state | `COLLAPSED_ITEM` | `RAIL_ONLY` |
-|---|---|---|---|
-| rail | any (children hidden anyway) | Popover | Popover |
-| normal | inline-closed | Popover | **No popover** |
-| normal | inline-open | No popover | No popover |
+| Nav state | Item depth | Item inline state | `ALL_COLLAPSED_ITEMS` | `ONLY_ROOT_COLLAPSED_ITEMS` | `ONLY_RAIL_MODE` |
+|---|---|---|---|---|---|
+| rail | root | any (children hidden anyway) | Popover | Popover | Popover |
+| rail | nested | — (not reachable: rail mode hides nested items) | — | — | — |
+| normal | root | inline-closed | Popover | Popover | **No popover** |
+| normal | root | inline-open | No popover | No popover | No popover |
+| normal | nested | inline-closed | Popover | **No popover** | **No popover** |
+| normal | nested | inline-open | No popover | No popover | No popover |
+
+In rail mode, `ONLY_ROOT_COLLAPSED_ITEMS` is effectively equivalent to `ALL_COLLAPSED_ITEMS`: rail mode hides nested items entirely, so the root-only restriction never has anything to filter out.
 
 Items **without** children never open a popover — they are directly clickable in every state, including rail mode.
 

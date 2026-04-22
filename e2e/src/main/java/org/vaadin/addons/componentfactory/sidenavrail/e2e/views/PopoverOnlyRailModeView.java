@@ -24,12 +24,12 @@ import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-@Route("collapsed-item")
-public class PopoverCollapsedItemView extends VerticalLayout {
+@Route("only-rail-mode")
+public class PopoverOnlyRailModeView extends VerticalLayout {
 
-    public PopoverCollapsedItemView() {
+    public PopoverOnlyRailModeView() {
         SideNavRail rail = new SideNavRail();
-        rail.setPopoverMode(PopoverMode.COLLAPSED_ITEM);
+        rail.setPopoverMode(PopoverMode.ONLY_RAIL_MODE);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(

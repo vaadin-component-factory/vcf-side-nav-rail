@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('popover in RAIL_ONLY mode', () => {
+test.describe('popover in ONLY_RAIL_MODE', () => {
   test('no popover on inline-closed parent while nav is in normal mode', async ({ page }) => {
-    await page.goto('/rail-only');
+    await page.goto('/only-rail-mode');
 
     const parent = page.locator('#rail vaadin-side-nav-item').first();
     await parent.hover();
@@ -12,7 +12,7 @@ test.describe('popover in RAIL_ONLY mode', () => {
   });
 
   test('popover appears once rail mode is engaged', async ({ page }) => {
-    await page.goto('/rail-only');
+    await page.goto('/only-rail-mode');
 
     await page.locator('#toggle-rail').click();
 
@@ -24,7 +24,7 @@ test.describe('popover in RAIL_ONLY mode', () => {
   });
 
   test('disengaging rail mode silences the popover again', async ({ page }) => {
-    await page.goto('/rail-only');
+    await page.goto('/only-rail-mode');
 
     await page.locator('#toggle-rail').click();
     await page.locator('#toggle-rail').click();

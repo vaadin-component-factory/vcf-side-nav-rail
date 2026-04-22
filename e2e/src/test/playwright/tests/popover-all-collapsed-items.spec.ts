@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('popover in COLLAPSED_ITEM mode', () => {
+test.describe('popover in ALL_COLLAPSED_ITEMS mode', () => {
   test('popover opens on hover over inline-closed parent in normal mode', async ({ page }) => {
-    await page.goto('/collapsed-item');
+    await page.goto('/all-collapsed-items');
 
     const parent = page.locator('#rail vaadin-side-nav-item').first();
     await parent.hover();
@@ -14,7 +14,7 @@ test.describe('popover in COLLAPSED_ITEM mode', () => {
   });
 
   test('popover also opens in rail mode', async ({ page }) => {
-    await page.goto('/collapsed-item');
+    await page.goto('/all-collapsed-items');
 
     await page.locator('#toggle-rail').click();
 
@@ -26,7 +26,7 @@ test.describe('popover in COLLAPSED_ITEM mode', () => {
   });
 
   test('popover closes when the item is expanded inline in normal mode', async ({ page }) => {
-    await page.goto('/collapsed-item');
+    await page.goto('/all-collapsed-items');
 
     const parent = page.locator('#rail vaadin-side-nav-item').first();
     await parent.hover();
@@ -46,7 +46,7 @@ test.describe('popover in COLLAPSED_ITEM mode', () => {
   });
 
   test('popover reopens when the user collapses the item inline again', async ({ page }) => {
-    await page.goto('/collapsed-item');
+    await page.goto('/all-collapsed-items');
 
     const parent = page.locator('#rail vaadin-side-nav-item').first();
     const popover = page.locator('vaadin-popover-overlay[opened]');
@@ -70,7 +70,7 @@ test.describe('popover in COLLAPSED_ITEM mode', () => {
   });
 
   test('no popover is open immediately after page load', async ({ page }) => {
-    await page.goto('/collapsed-item');
+    await page.goto('/all-collapsed-items');
 
     // Give the app a moment to settle (client-side bootstrap + any initial
     // "expanded-changed" fires that might mistakenly open popovers).

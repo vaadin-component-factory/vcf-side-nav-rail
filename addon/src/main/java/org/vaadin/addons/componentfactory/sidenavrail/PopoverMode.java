@@ -22,11 +22,22 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 public enum PopoverMode {
 
     /**
-     * Popover appears for every non-expanded item with children, regardless of whether
-     * the nav is in rail mode. This is the default and mirrors the customer-requested
-     * behaviour of {@link SideNavRail}.
+     * Popover appears for every non-expanded item with children, regardless of depth in
+     * the hierarchy and regardless of whether the nav is in rail mode. This is the
+     * default and mirrors the customer-requested behaviour of {@link SideNavRail}.
      */
-    COLLAPSED_ITEM,
+    ALL_COLLAPSED_ITEMS,
+
+    /**
+     * Popover appears only for non-expanded items that are <em>direct children</em> of
+     * the {@link SideNavRail} — not for nested items further down the tree. Useful when
+     * only top-level navigation should get the hover preview but deeper levels should
+     * behave like a plain {@link com.vaadin.flow.component.sidenav.SideNav}.
+     *
+     * <p>In rail mode this is effectively the same as {@link #ALL_COLLAPSED_ITEMS}
+     * because rail mode hides nested items anyway.
+     */
+    ONLY_ROOT_COLLAPSED_ITEMS,
 
     /**
      * Popover appears only when the nav as a whole is in rail mode
@@ -34,5 +45,5 @@ public enum PopoverMode {
      * mode behave like a standard {@link com.vaadin.flow.component.sidenav.SideNav} —
      * they only open on click.
      */
-    RAIL_ONLY
+    ONLY_RAIL_MODE
 }

@@ -27,10 +27,30 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * {@link SideNavItem} variant that renders its string label inside a
- * {@code <span class="label">}. The wrap is what lets CSS hide the label in rail mode
- * ({@code vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label}); a bare text node
- * cannot be targeted by CSS.
+ * {@link SideNavItem} variant that integrates with {@link SideNavRail}'s rail mode and
+ * hover popover. API-compatible with {@code SideNavItem} — drop in anywhere you would
+ * use {@code SideNavItem} under a {@link SideNavRail}.
+ *
+ * <p>Two things happen beyond the standard item:
+ *
+ * <ul>
+ *   <li>The string label is wrapped in a {@code <span class="label">} so rail-mode CSS
+ *       (which selects {@code vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label})
+ *       can hide it. A bare text node cannot be targeted by CSS.
+ *   <li>Items that have children lazily attach a {@link Popover} on first attach. The
+ *       popover's hover-trigger eligibility is gated by the owning
+ *       {@link SideNavRail}'s {@link PopoverMode} and rail state — see
+ *       {@link SideNavRail#setPopoverMode(PopoverMode)} for the full behaviour matrix.
+ * </ul>
+ *
+ * <p>Typical usage:
+ *
+ * <pre>{@code
+ * SideNavRail rail = new SideNavRail();
+ * SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
+ * code.addItem(new SideNavRailItem("Branches", "/code/branches"));
+ * rail.addItem(code);
+ * }</pre>
  */
 public class SideNavRailItem extends SideNavItem {
 
@@ -40,36 +60,76 @@ public class SideNavRailItem extends SideNavItem {
     private boolean expandedListenerWired = false;
     private boolean lastKnownExpanded = false;
 
+    /** Non-navigating container item. Click does nothing; useful as a parent for children. */
     public SideNavRailItem(String label) {
         super(label);
         wrapLabel();
     }
 
+    /** Item navigating to the given path (server- or client-side route). */
     public SideNavRailItem(String label, String path) {
         super(label, path);
         wrapLabel();
     }
 
+    /** Item navigating to the given Flow route class. */
     public SideNavRailItem(String label, Class<? extends Component> view) {
         super(label, view);
         wrapLabel();
     }
 
+    /** Item navigating to a path, with a prefix component rendered on the left (typically an icon). */
     public SideNavRailItem(String label, String path, Component prefixComponent) {
         super(label, path, prefixComponent);
         wrapLabel();
     }
 
+    /** Item navigating to a Flow route class, with a prefix component on the left. */
     public SideNavRailItem(
             String label, Class<? extends Component> view, Component prefixComponent) {
         super(label, view, prefixComponent);
         wrapLabel();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Overridden to re-wrap the label in {@code <span class="label">} so CSS can hide
+     * it in rail mode. Idempotent across repeated calls.
+     */
     @Override
     public void setLabel(String label) {
         super.setLabel(label);
         wrapLabel();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Only accepts {@link SideNavRailItem} children. Passing a plain
+     * {@link SideNavItem} throws {@link IllegalArgumentException} — nested items need
+     * the same label-wrap + popover-gating wiring the parent has.
+     *
+     * @throws IllegalArgumentException if any item is not a {@link SideNavRailItem}
+     */
+    @Override
+    public void addItem(SideNavItem... items) {
+        for (SideNavItem item : items) {
+            SideNavRail.requireRailItem(item);
+        }
+        super.addItem(items);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
+     *     see {@link #addItem(SideNavItem...)}
+     */
+    @Override
+    public void addItemAsFirst(SideNavItem item) {
+        SideNavRail.requireRailItem(item);
+        super.addItemAsFirst(item);
     }
 
     private void wrapLabel() {
@@ -228,6 +288,14 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
+     * Whether this item is a direct child of the owning {@link SideNavRail} rather than
+     * nested inside another item. Used to gate {@link PopoverMode#ONLY_ROOT_COLLAPSED_ITEMS}.
+     */
+    private boolean isRootItem() {
+        return getParent().map(p -> p instanceof SideNavRail).orElse(false);
+    }
+
+    /**
      * Applies the open-eligibility of this item's popover based on the owning
      * {@link SideNavRail}'s current {@link PopoverMode} and rail state. Package-private —
      * external callers should use {@link SideNavRail#setPopoverMode(PopoverMode)} or
@@ -242,8 +310,10 @@ public class SideNavRailItem extends SideNavItem {
         // suppressed anyway, so the popover is still wanted.
         boolean eligible =
                 switch (mode) {
-                    case COLLAPSED_ITEM -> railMode || !isExpanded();
-                    case RAIL_ONLY -> railMode;
+                    case ALL_COLLAPSED_ITEMS -> railMode || !isExpanded();
+                    case ONLY_ROOT_COLLAPSED_ITEMS ->
+                            isRootItem() && (railMode || !isExpanded());
+                    case ONLY_RAIL_MODE -> railMode;
                 };
         popover.setOpenOnHover(eligible);
         if (!eligible && popover.isOpened()) {
