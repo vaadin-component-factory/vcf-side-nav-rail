@@ -18,21 +18,26 @@ package org.vaadin.addons.componentfactory.sidenavrail.demo;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Plain {@link HorizontalLayout} frame instead of {@code AppLayout} — the rail
- * mode is the point of the demo and an AppLayout drawer + navbar adds chrome
- * that obscures the effect.
+ * Plain layout frame instead of {@code AppLayout} — the rail mode is the point
+ * of the demo and an AppLayout drawer + navbar adds chrome that obscures the
+ * effect. A thin top navbar hosts a {@link Select} for live-switching the
+ * rail's {@link PopoverMode}; the sidebar with the rail sits below it.
  */
 @Layout
-public class MainLayout extends HorizontalLayout implements RouterLayout {
+public class MainLayout extends VerticalLayout implements RouterLayout {
 
     private final Div contentArea = new Div();
 
@@ -85,8 +90,50 @@ public class MainLayout extends HorizontalLayout implements RouterLayout {
         contentArea.setSizeFull();
         contentArea.getStyle().set("padding", "var(--lumo-space-m)");
 
-        add(sidebar, contentArea);
-        setFlexGrow(1, contentArea);
+        HorizontalLayout body = new HorizontalLayout(sidebar, contentArea);
+        body.setSizeFull();
+        body.setPadding(false);
+        body.setSpacing(false);
+        body.setFlexGrow(1, contentArea);
+
+        add(buildNavbar(nav), body);
+        setFlexGrow(1, body);
+    }
+
+    private HorizontalLayout buildNavbar(SideNavRail nav) {
+        Span title = new Span("SideNav Rail — Demo");
+        title.getStyle()
+                .set("font-weight", "600")
+                .set("font-size", "var(--lumo-font-size-l)");
+
+        Select<PopoverMode> modeSelect = new Select<>();
+        modeSelect.setId("popover-mode-select");
+        modeSelect.setLabel("Popover mode");
+        modeSelect.setItems(PopoverMode.values());
+        modeSelect.setItemLabelGenerator(MainLayout::humanize);
+        modeSelect.setValue(nav.getPopoverMode());
+        modeSelect.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                nav.setPopoverMode(e.getValue());
+            }
+        });
+
+        HorizontalLayout navbar = new HorizontalLayout(title, modeSelect);
+        navbar.setWidthFull();
+        navbar.setPadding(true);
+        navbar.setSpacing(true);
+        navbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        navbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        navbar.getStyle().set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+        return navbar;
+    }
+
+    private static String humanize(PopoverMode mode) {
+        return switch (mode) {
+            case ALL_COLLAPSED_ITEMS -> "All collapsed items";
+            case ONLY_ROOT_COLLAPSED_ITEMS -> "Only root collapsed items";
+            case ONLY_RAIL_MODE -> "Only in rail mode";
+        };
     }
 
     @Override
