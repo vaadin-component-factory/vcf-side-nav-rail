@@ -104,9 +104,13 @@ public class SideNavRail extends SideNav {
     public void setPopoverParentLabelMode(PopoverParentLabelMode mode);
     public PopoverParentLabelMode getPopoverParentLabelMode();
 
-    /** Which root items surface their label as a native tooltip in rail mode. Default: ALL. */
+    /** Which root items surface their label as a tooltip in rail mode. Default: ALL. */
     public void setRailTooltipMode(RailTooltipMode mode);
     public RailTooltipMode getRailTooltipMode();
+
+    /** Use the browser-native `title` tooltip instead of the addon's CSS pseudo-element. Default: false. */
+    public void setRailTooltipNative(boolean useNative);
+    public boolean isRailTooltipNative();
 
     /** Hover delay (ms) before the popover opens. Default: 200. */
     public void setPopoverHoverDelay(int hoverDelayMs);
@@ -226,20 +230,29 @@ public enum RailTooltipMode {
 }
 ```
 
-**Rendering:** internally uses `SideNavItem.setTooltipText(label)` (Vaadin's
-`HasTooltip` mixin). The default `BOTTOM` tooltip position and the
-`PopoverPosition.END_TOP` of the hover popover don't spatially collide, so both can
-coexist on a parent item.
+**Rendering:** the tooltip is a **pure-CSS pseudo-element** (`::after`) on the rail
+item, driven by a `data-rail-tooltip` DOM attribute that `SideNavRail` sets on each
+eligible item. Styling mirrors `vaadin-tooltip-overlay` (Lumo `contrast-90pct`
+background, `base-color` text, `border-radius-s`, `font-size-s`); the position is
+top-left of the item so it doesn't collide horizontally with the popover.
+Configurable via CSS custom properties:
 
-**Vaadin by-design behaviour (documented on `RailTooltipMode.ALL`):** if a tooltip
-is already visible on one root item and the pointer slides onto another root item
-that also opens a popover, the tooltip switches to the new item's label and is then
-dismissed as the popover opens. The initial-hover case (no prior tooltip) is not
-affected. Cause: `vaadin-tooltip-mixin` listens on `document.body` for
-`vaadin-overlay-open` events and auto-closes itself when any peer overlay appears
-(see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768)
-for the upstream acknowledgement of this design). Consumers who don't want tooltips
-on items that own a popover can switch to `ONLY_WITHOUT_CHILDREN`.
+- `--side-nav-rail-tooltip-hover-delay` (default `500ms`)
+- `--side-nav-rail-tooltip-fade-duration` (default `120ms`)
+
+**Why pseudo-element instead of `vaadin-tooltip`:** Vaadin's native tooltip
+auto-dismisses itself whenever a peer overlay opens — `vaadin-tooltip-mixin`
+listens on `document.body` for `vaadin-overlay-open` events (see
+[vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768)).
+That meant tooltips on items with a hover popover would flash and disappear as the
+popover opened. A CSS pseudo-element isn't part of the overlay system, so it stays
+visible alongside the popover.
+
+**Native-tooltip fallback:** `SideNavRail.setRailTooltipNative(true)` switches from
+the pseudo-element to the browser's native `title` tooltip. No overlay interaction,
+no Vaadin styling — the browser decides delay, position, and look. Useful when
+`title` semantics are specifically needed (assistive tech, automation tooling) or
+when consumers want the OS-native rendering.
 
 ### 3.6 `RailModeChangedEvent`
 
@@ -374,6 +387,25 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] { display: 
 /* Letter-avatar fallback (see §3.2) — hidden normally, visible in rail */
 vaadin-avatar.side-nav-rail-letter-avatar { display: none; }
 vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar { display: inline-flex; }
+
+/* Rail-mode tooltip (see §3.5) — pseudo-element fed by data-rail-tooltip */
+vaadin-side-nav[theme~="rail"] { position: relative; z-index: 10000; overflow: visible; }
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip] { position: relative; }
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
+  content: attr(data-rail-tooltip);
+  position: absolute;
+  /* top-left above the icon so it doesn't clash horizontally with the popover */
+  background: var(--lumo-contrast-90pct); color: var(--lumo-base-color);
+  padding: 0.1875em var(--lumo-space-xs);
+  border-radius: var(--lumo-border-radius-s);
+  font-size: var(--lumo-font-size-s);
+  opacity: 0;
+  transition: opacity var(--side-nav-rail-tooltip-fade-duration, 120ms);
+}
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:hover::after {
+  opacity: 1;
+  transition-delay: var(--side-nav-rail-tooltip-hover-delay, 500ms);
+}
 ```
 
 **Customizable transition:** the duration and easing are CSS custom properties set on `vaadin-side-nav`; consumers can override them at any scope (per-rail, theme-level, or `:root`). Setting `--side-nav-rail-transition-duration: 0s` disables the animation entirely.

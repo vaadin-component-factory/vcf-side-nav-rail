@@ -110,22 +110,27 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Keeps the tooltip text in sync with the label when the owning rail has installed
-     * one. We don't install a tooltip here ourselves — that's the rail's job — but
-     * we do refresh the text on label change so a relabelled item doesn't show a stale
-     * tooltip. No-op when no tooltip text is currently set.
+     * Keeps the installed tooltip attribute in sync with the label. The owning rail
+     * decides <em>whether</em> a tooltip is installed and <em>which</em> attribute
+     * (custom pseudo-element vs. native {@code title}) is used; we don't change that
+     * here, we just refresh the text on whichever attribute is currently set so a
+     * relabelled item doesn't carry a stale tooltip. No-op if no tooltip is installed.
      */
     private void refreshTooltipTextIfInstalled() {
-        com.vaadin.flow.component.shared.Tooltip tooltip = getTooltip();
-        if (tooltip == null) {
-            return;
-        }
-        String existing = tooltip.getText();
-        if (existing == null || existing.isEmpty()) {
+        String attr;
+        if (getElement().hasAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE)) {
+            attr = SideNavRail.RAIL_TOOLTIP_ATTRIBUTE;
+        } else if (getElement().hasAttribute(SideNavRail.NATIVE_TOOLTIP_ATTRIBUTE)) {
+            attr = SideNavRail.NATIVE_TOOLTIP_ATTRIBUTE;
+        } else {
             return;
         }
         String label = getLabel();
-        tooltip.setText((label != null && !label.isBlank()) ? label : null);
+        if (label != null && !label.isBlank()) {
+            getElement().setAttribute(attr, label);
+        } else {
+            getElement().removeAttribute(attr);
+        }
     }
 
     /**

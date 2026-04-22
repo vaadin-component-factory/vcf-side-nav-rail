@@ -69,6 +69,7 @@ public class SideNavRail extends SideNav {
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
+    private boolean railTooltipNative = false;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -166,6 +167,31 @@ public class SideNavRail extends SideNav {
     public void setRailTooltipMode(RailTooltipMode mode) {
         this.railTooltipMode = java.util.Objects.requireNonNull(
                 mode, "RailTooltipMode must not be null");
+        applyTooltips();
+    }
+
+    /**
+     * Whether rail-mode tooltips are rendered as browser-native tooltips (via the
+     * {@code title} HTML attribute) rather than the addon's CSS pseudo-element.
+     * Default: {@code false} (pseudo-element, Lumo-styled, immune to
+     * {@code vaadin-tooltip-mixin}'s overlay dismissal).
+     */
+    public boolean isRailTooltipNative() {
+        return railTooltipNative;
+    }
+
+    /**
+     * Switches between the addon's pseudo-element tooltip ({@code false}, default) and
+     * the browser-native {@code title} tooltip ({@code true}).
+     *
+     * <p>The native tooltip has a fixed browser-decided delay (roughly 500&nbsp;ms) and
+     * browser-decided styling and position, so it won't react to
+     * {@link #setPopoverHoverDelay(int)} and may look inconsistent with the rest of the
+     * Vaadin UI — but it carries zero overlay-interaction risk and works everywhere
+     * {@code title} works, including assistive technologies.
+     */
+    public void setRailTooltipNative(boolean native_) {
+        this.railTooltipNative = native_;
         applyTooltips();
     }
 
@@ -281,21 +307,29 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets or clears the tooltip text on a single root item based on the current
-     * rail-mode + {@link RailTooltipMode} combination. Tooltip is only shown in rail
-     * mode; normal mode always clears it (label is visible directly). Items whose
-     * own label is blank don't receive a tooltip either — there's nothing to show.
+     * Sets or clears the tooltip attribute on a single root item based on the current
+     * rail-mode, {@link RailTooltipMode}, and native-vs-custom toggle. Always wipes
+     * both the native {@code title} and the custom {@code data-rail-tooltip} first so
+     * flipping the native flag doesn't leave the old attribute on the item.
      */
     private void applyTooltipFor(SideNavItem item) {
+        item.getElement().removeAttribute(RAIL_TOOLTIP_ATTRIBUTE);
+        item.getElement().removeAttribute(NATIVE_TOOLTIP_ATTRIBUTE);
+
         boolean eligible = railMode && switch (railTooltipMode) {
             case NONE -> false;
             case ONLY_WITHOUT_CHILDREN -> item.getItems().isEmpty();
             case ALL -> true;
         };
         String label = item.getLabel();
-        String text = (eligible && label != null && !label.isBlank()) ? label : null;
-        item.setTooltipText(text);
+        if (eligible && label != null && !label.isBlank()) {
+            String attr = railTooltipNative ? NATIVE_TOOLTIP_ATTRIBUTE : RAIL_TOOLTIP_ATTRIBUTE;
+            item.getElement().setAttribute(attr, label);
+        }
     }
+
+    static final String RAIL_TOOLTIP_ATTRIBUTE = "data-rail-tooltip";
+    static final String NATIVE_TOOLTIP_ATTRIBUTE = "title";
 
     /**
      * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever

@@ -37,6 +37,9 @@ vaadin-side-nav[theme~="rail"] {
  */
 vaadin-side-nav vaadin-side-nav-item .label,
 vaadin-side-nav vaadin-side-nav-item [slot="suffix"] {
+  /* inline-block so max-width applies — plain inline spans ignore it, which would
+     leave the element sitting at its content width even while it fades out. */
+  display: inline-block;
   opacity: 1;
   max-width: 20em;
   overflow: hidden;
@@ -123,4 +126,70 @@ vaadin-avatar.side-nav-rail-letter-avatar {
 
 vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
   display: inline-flex;
+}
+
+/*
+ * Rail-mode tooltip. Pure CSS — a ::after pseudo-element on the item, fed by the
+ * data-rail-tooltip attribute that SideNavRail sets based on RailTooltipMode. We
+ * deliberately don't use Vaadin's tooltip here: vaadin-tooltip-mixin auto-dismisses
+ * itself when a peer overlay (our hover popover) opens. A CSS tooltip isn't a
+ * vaadin-overlay, so it stays visible alongside the popover.
+ *
+ * Styling mirrors vaadin-tooltip-overlay — Lumo contrast-90pct background, base-color
+ * text, border-radius-s, font-size-s. Configurable via custom properties:
+ *
+ *   --side-nav-rail-tooltip-hover-delay  (default 500ms, matches vaadin-tooltip)
+ *   --side-nav-rail-tooltip-fade-duration (default 120ms, the fade itself)
+ */
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip] {
+  position: relative;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
+  content: attr(data-rail-tooltip);
+
+  /* Position: to the inline-end of the item, vertically centred with the icon.
+     Horizontal offset (100%) avoids clipping — labels wider than the rail's
+     48px would be cut off if we tried to centre them over the icon. */
+  position: absolute;
+  left: var(--lumo-space-s, 0.5rem);
+  top: calc(-1 * var(--lumo-space-s, 0.5rem));
+  transform: translateY(-50%);
+  z-index: 10000;  /* above vaadin-popover-overlay (default ~1000) */
+
+  /* Lumo tooltip-like appearance (mirrors vaadin-tooltip-overlay styling). */
+  background: var(--lumo-contrast-90pct);
+  color: var(--lumo-base-color);
+  padding: 0.1875em var(--lumo-space-xs, 0.25rem);
+  border-radius: var(--lumo-border-radius-s, 0.25em);
+  font-size: var(--lumo-font-size-s);
+  line-height: var(--lumo-line-height-xs, 1.2);
+  white-space: nowrap;
+  pointer-events: none;
+
+  opacity: 0;
+  transition:
+    opacity
+      var(--side-nav-rail-tooltip-fade-duration, 120ms)
+      var(--side-nav-rail-transition-easing, ease-out);
+  transition-delay: 0s;  /* instant fade-out */
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:hover::after,
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:focus-visible::after {
+  opacity: 1;
+  transition-delay: var(--side-nav-rail-tooltip-hover-delay, 500ms);
+}
+
+/*
+ * The rail itself is hoisted into its own stacking context so the pseudo-element
+ * tooltip can stack above vaadin-popover-overlay (which lives in <body> and would
+ * otherwise win by source order). Without this, a tooltip on an item whose
+ * popover is open would render behind the popover. overflow:visible lets the
+ * pseudo-element extend beyond the narrow rail width.
+ */
+vaadin-side-nav[theme~="rail"] {
+  position: relative;
+  z-index: 10000;
+  overflow: visible;
 }
