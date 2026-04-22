@@ -261,9 +261,19 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 
 ## 5. Styling
 
-### 5.1 Marker attribute
+### 5.1 Marker attributes
 
-`theme="rail"` is set on the `<vaadin-side-nav>`, *not* the `[collapsed]` attribute. The latter is already taken by the Vaadin-native label-collapse feature (active when `SideNav.setCollapsible(true)` and the user clicks the header).
+- `theme="rail"` on the `<vaadin-side-nav>` root marks rail mode. We deliberately do **not** use `[collapsed]` — the latter is already owned by Vaadin's native label-collapse feature (active when `SideNav.setCollapsible(true)` and the user clicks the header).
+- `[root-item]` on a `<vaadin-side-nav-item>` marks a direct child of the rail (top-level navigation). The addon sets the attribute automatically in `SideNavRail.addItem` / `addItemAsFirst` and does not style it itself — it is a hook for consumer CSS that wants to distinguish root items from nested ones. Typical use (e.g. for the active-descendant indicator in [§9.1](#91-phase-2--user-facing-polish)):
+
+  ```css
+  /* highlight the root item's icon when any descendant route is active */
+  vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon {
+      color: var(--lumo-primary-color);
+  }
+  ```
+
+  Combine with `SideNavItem.setMatchNested(true)` on the root if you want `[current]` to propagate from descendant routes.
 
 ### 5.2 CSS module
 
@@ -409,7 +419,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 ### 9.1 Phase 2 — user-facing polish
 
 - ~~Parent name as popover header (mentioned in the customer email, *not* in `initial.md`).~~ **Shipped** — see [§3.4 `PopoverParentLabelMode`](#34-popoverparentlabelmode) and [§4.2](#42-popover-details). Opt-in with four modes: `NONE` (default), `LABEL_ONLY`, `ICON_ONLY`, `FULL`.
-- Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.
+- ~~Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.~~ **Exposed as a styling hook** — see [§5.1](#51-marker-attributes). `SideNavRail` marks each direct child with the `[root-item]` attribute so consumer CSS can target them via `vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon`. The actual visual treatment is app-level CSS on purpose — different apps want different looks, and Vaadin's standard `setMatchNested(true)` + `[current]` mechanism already covers the detection side.
 - Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.
 - Tooltip in rail mode for items *without* children (shows label on hover).
 - Transition/animation on rail mode toggle (width, labels).

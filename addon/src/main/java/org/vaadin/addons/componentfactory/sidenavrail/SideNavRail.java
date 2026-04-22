@@ -199,6 +199,9 @@ public class SideNavRail extends SideNav {
             requireRailItem(item);
         }
         super.addItem(items);
+        for (SideNavItem item : items) {
+            markAsRootItem(item);
+        }
     }
 
     /**
@@ -211,6 +214,7 @@ public class SideNavRail extends SideNav {
     public void addItemAsFirst(SideNavItem item) {
         requireRailItem(item);
         super.addItemAsFirst(item);
+        markAsRootItem(item);
     }
 
     static void requireRailItem(SideNavItem item) {
@@ -220,5 +224,24 @@ public class SideNavRail extends SideNav {
                             + item.getClass().getName()
                             + ". Use new SideNavRailItem(...) instead.");
         }
+    }
+
+    /**
+     * Marks an item as a direct child of the rail so app-level CSS can target it
+     * separately from nested items. The attribute is set on the item's root element
+     * and is consumed exclusively by consumer stylesheets — the addon itself does
+     * not style it. Typical use:
+     *
+     * <pre>{@code
+     * vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon {
+     *     color: var(--lumo-primary-color);
+     * }
+     * }</pre>
+     *
+     * <p>Combine with {@link com.vaadin.flow.component.sidenav.SideNavItem#setMatchNested}
+     * if you want the root to carry {@code [current]} when a descendant route is active.
+     */
+    private static void markAsRootItem(SideNavItem item) {
+        item.getElement().setAttribute("root-item", "");
     }
 }
