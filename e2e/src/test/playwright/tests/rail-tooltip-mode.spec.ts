@@ -1,27 +1,18 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * Reads the text property set on the vaadin-tooltip slotted under a root side-nav-item.
- * This reflects what SideNavRail.applyTooltipFor(...) configured server-side; it is what
- * drives the native tooltip overlay at runtime. We intentionally read the JS property
- * rather than the opened overlay because a Vaadin popover bundle glitch on the current
- * stack (patchVirtualContainer error) can suppress the overlay while the configuration
- * itself is correct — the server-side behaviour is what this spec validates.
+ * After toggling rail mode or changing the tooltip mode, the server applies
+ * setTooltipText via a roundtrip. Playwright's click() resolves before that
+ * roundtrip lands, so hovering immediately finds the tooltip still unconfigured.
+ * This helper polls the slotted vaadin-tooltip until its text property matches.
  */
-async function tooltipText(page: Page, path: string): Promise<string | null> {
-    return await page.evaluate((p: string) => {
-        const el = document.querySelector(`vaadin-side-nav-item[path="${p}"]`);
-        const tip = el?.querySelector(':scope > vaadin-tooltip') as any;
-        return tip?.text ?? null;
-    }, path);
-}
-
-async function waitForTooltipText(page: Page, path: string, expected: string | null): Promise<void> {
+async function waitForTooltipText(
+    page: Page, path: string, expected: string | null): Promise<void> {
     await page.waitForFunction(
         ({ p, exp }: { p: string; exp: string | null }) => {
             const el = document.querySelector(`vaadin-side-nav-item[path="${p}"]`);
             const tip = el?.querySelector(':scope > vaadin-tooltip') as any;
-            const actual = tip?.text ?? null;
+            const actual = (tip?.text as string | undefined) ?? null;
             return actual === exp;
         },
         { p: path, exp: expected },
@@ -29,48 +20,77 @@ async function waitForTooltipText(page: Page, path: string, expected: string | n
 }
 
 test.describe('rail tooltip', () => {
-    test('no tooltip text in normal mode even when mode is ALL', async ({ page }) => {
+    test('no tooltip in normal mode even when mode is ALL', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
 
-        // Default mode is ALL but rail mode is off — tooltip text must be empty.
-        expect(await tooltipText(page, 'dashboard')).toBeFalsy();
-        expect(await tooltipText(page, 'code')).toBeFalsy();
+        const dashboard = page.locator('vaadin-side-nav-item[path="dashboard"]');
+        await dashboard.hover();
+        await page.waitForTimeout(800);
+
+        // Default mode is ALL but rail mode is off — no tooltip overlay should open.
+        await expect(page.locator('vaadin-tooltip-overlay[opened]')).toHaveCount(0);
     });
 
-    test('ALL sets tooltip text on all root items in rail mode', async ({ page }) => {
+    test('ALL shows a tooltip for leaf items in rail mode', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#toggle-rail').click();
-
         await waitForTooltipText(page, 'dashboard', 'Dashboard');
-        await waitForTooltipText(page, 'code', 'Code');
+
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+
+        const tooltip = page.locator('vaadin-tooltip-overlay[opened]');
+        await expect(tooltip).toBeVisible({ timeout: 4_000 });
+        await expect(tooltip).toContainText('Dashboard');
     });
 
-    test('ONLY_WITHOUT_CHILDREN skips items with children', async ({ page }) => {
+    test('ONLY_WITHOUT_CHILDREN suppresses tooltips on items with children', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#mode-without-children').click();
         await page.locator('#toggle-rail').click();
-
         await waitForTooltipText(page, 'dashboard', 'Dashboard');
         await waitForTooltipText(page, 'code', null);
+
+        // Leaf: tooltip opens
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+        await expect(page.locator('vaadin-tooltip-overlay[opened]'))
+            .toBeVisible({ timeout: 4_000 });
+
+        // Move away; then hover Code (has children) — no tooltip should open
+        await page.mouse.move(0, 0);
+        await expect(page.locator('vaadin-tooltip-overlay[opened]'))
+            .toHaveCount(0, { timeout: 2_000 });
+        await page.locator('vaadin-side-nav-item[path="code"]').hover();
+        await page.waitForTimeout(800);
+        await expect(page.locator('vaadin-tooltip-overlay[opened]')).toHaveCount(0);
     });
 
-    test('NONE leaves tooltip text empty even in rail mode', async ({ page }) => {
+    test('NONE suppresses tooltips entirely', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#mode-none').click();
         await page.locator('#toggle-rail').click();
 
-        // Give the server roundtrip a moment even though we expect no text to appear.
-        await page.waitForTimeout(500);
-        expect(await tooltipText(page, 'dashboard')).toBeFalsy();
-        expect(await tooltipText(page, 'code')).toBeFalsy();
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+        await page.waitForTimeout(800);
+        await expect(page.locator('vaadin-tooltip-overlay[opened]')).toHaveCount(0);
     });
 
-    test('leaving rail mode clears the tooltip text', async ({ page }) => {
+    test('leaving rail mode clears the tooltip', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#toggle-rail').click();
         await waitForTooltipText(page, 'dashboard', 'Dashboard');
 
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+        await expect(page.locator('vaadin-tooltip-overlay[opened]'))
+            .toBeVisible({ timeout: 4_000 });
+
+        // Leave rail mode; the server-side apply clears the text
+        await page.mouse.move(0, 0);
         await page.locator('#toggle-rail').click();
         await waitForTooltipText(page, 'dashboard', null);
+
+        // Next hover stays silent
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+        await page.waitForTimeout(800);
+        await expect(page.locator('vaadin-tooltip-overlay[opened]')).toHaveCount(0);
     });
 });
