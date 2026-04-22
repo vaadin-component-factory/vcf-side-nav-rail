@@ -28,6 +28,7 @@ import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
+import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -134,7 +135,19 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             }
         });
 
-        HorizontalLayout selects = new HorizontalLayout(modeSelect, parentLabelSelect);
+        Select<RailTooltipMode> tooltipSelect = new Select<>();
+        tooltipSelect.setId("rail-tooltip-select");
+        tooltipSelect.setLabel("Rail tooltips");
+        tooltipSelect.setItems(RailTooltipMode.values());
+        tooltipSelect.setItemLabelGenerator(MainLayout::humanize);
+        tooltipSelect.setValue(nav.getRailTooltipMode());
+        tooltipSelect.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                nav.setRailTooltipMode(e.getValue());
+            }
+        });
+
+        HorizontalLayout selects = new HorizontalLayout(modeSelect, parentLabelSelect, tooltipSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
 
@@ -162,6 +175,14 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             case LABEL_ONLY -> "Label only";
             case ICON_ONLY -> "Icon only";
             case FULL -> "Icon + label";
+        };
+    }
+
+    private static String humanize(RailTooltipMode mode) {
+        return switch (mode) {
+            case NONE -> "None";
+            case ONLY_WITHOUT_CHILDREN -> "Only without children";
+            case ALL -> "All root items";
         };
     }
 
