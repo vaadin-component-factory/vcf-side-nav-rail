@@ -17,6 +17,7 @@ package org.vaadin.addons.componentfactory.sidenavrail.demo;
 
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -147,7 +148,14 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             }
         });
 
-        HorizontalLayout selects = new HorizontalLayout(modeSelect, parentLabelSelect, tooltipSelect);
+        Checkbox nativeTooltipCheckbox = new Checkbox("Native tooltip");
+        nativeTooltipCheckbox.setId("rail-tooltip-native");
+        nativeTooltipCheckbox.setValue(nav.isRailTooltipNative());
+        nativeTooltipCheckbox.addValueChangeListener(
+                e -> nav.setRailTooltipNative(Boolean.TRUE.equals(e.getValue())));
+
+        HorizontalLayout selects = new HorizontalLayout(
+                modeSelect, parentLabelSelect, tooltipSelect, nativeTooltipCheckbox);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
 
