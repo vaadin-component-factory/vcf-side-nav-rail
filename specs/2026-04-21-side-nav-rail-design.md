@@ -219,12 +219,15 @@ public enum RailTooltipMode {
 `PopoverPosition.END_TOP` of the hover popover don't spatially collide, so both can
 coexist on a parent item.
 
-**Quirk (documented on `RailTooltipMode.ALL`):** if a tooltip is already visible on
-one root item and the pointer moves to a different root item that also opens a
-popover, Vaadin's overlay interaction dismisses the already-visible tooltip. The
-initial-hover case (no prior tooltip) isn't affected. We can't influence this from
-the server; consumers that find the flicker distracting can switch to
-`ONLY_WITHOUT_CHILDREN`.
+**Vaadin by-design behaviour (documented on `RailTooltipMode.ALL`):** if a tooltip
+is already visible on one root item and the pointer slides onto another root item
+that also opens a popover, the tooltip switches to the new item's label and is then
+dismissed as the popover opens. The initial-hover case (no prior tooltip) is not
+affected. Cause: `vaadin-tooltip-mixin` listens on `document.body` for
+`vaadin-overlay-open` events and auto-closes itself when any peer overlay appears
+(see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768)
+for the upstream acknowledgement of this design). Consumers who don't want tooltips
+on items that own a popover can switch to `ONLY_WITHOUT_CHILDREN`.
 
 ### 3.6 `RailModeChangedEvent`
 

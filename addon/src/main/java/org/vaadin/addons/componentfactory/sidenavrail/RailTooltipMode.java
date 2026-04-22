@@ -37,20 +37,25 @@ public enum RailTooltipMode {
     ONLY_WITHOUT_CHILDREN,
 
     /**
-     * Every root item gets a tooltip. Default. Keeps the label discoverable
-     * consistently, even for items whose popover doesn't include a header — see
-     * {@link PopoverParentLabelMode}. A tooltip on an item that also opens a popover
-     * appears below the icon (default tooltip position), while the popover opens to
-     * the right, so they don't spatially overlap.
+     * Every root item gets a tooltip. Default. Rationale: in a rail whose root items
+     * are typically clickable links, the user often clicks directly on an icon rather
+     * than pausing on it to explore the popover — the tooltip is the primary
+     * identification cue and should be available on every icon regardless of whether
+     * it has children. A tooltip on an item that also opens a popover sits below the
+     * icon (default tooltip position), while the popover opens to the right, so they
+     * don't spatially overlap.
      *
-     * <p><b>Quirk to be aware of:</b> if a tooltip is <em>already open</em> on one root
-     * item and the pointer moves to another root item that has a popover, the tooltip
-     * briefly shows the new item's label and then disappears as the popover opens —
-     * the popover's overlay dismisses the already-visible tooltip. If the pointer
-     * lands on a root item <em>directly</em> (no prior tooltip), tooltip and popover
-     * coexist cleanly. This is Vaadin's overlay-interaction behaviour; we cannot
-     * influence it from the server without patching Vaadin internals. Use
-     * {@link #ONLY_WITHOUT_CHILDREN} if you want to avoid the transient flicker.
+     * <p><b>Vaadin by-design behaviour:</b> if a tooltip is <em>already open</em> on
+     * one root item and the pointer slides onto another root item that also opens a
+     * popover, the tooltip switches to the new item's label and is then dismissed as
+     * the popover opens. This is driven by {@code vaadin-tooltip-mixin} listening for
+     * {@code vaadin-overlay-open} events on {@code document.body} and auto-closing
+     * itself when a peer overlay appears (see
+     * <a href="https://github.com/vaadin/web-components/issues/9768">web-components#9768</a>
+     * for the upstream acknowledgement). The direct-hover case (no prior tooltip)
+     * slips past this check because the tooltip has not yet reached the opened state
+     * when the popover fires the event. Use {@link #ONLY_WITHOUT_CHILDREN} if you
+     * don't want tooltips on items that also own a popover.
      */
     ALL
 }
