@@ -18,6 +18,8 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -95,12 +97,31 @@ public class SideNavRailItem extends SideNavItem {
      * {@inheritDoc}
      *
      * <p>Overridden to re-wrap the label in {@code <span class="label">} so CSS can hide
-     * it in rail mode. Idempotent across repeated calls.
+     * it in rail mode, and to refresh the auto-generated letter-avatar fallback (see
+     * {@link #ensureLetterAvatar()}) so it matches the new label's first letter.
+     * Idempotent across repeated calls.
      */
     @Override
     public void setLabel(String label) {
         super.setLabel(label);
         wrapLabel();
+        ensureLetterAvatar();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Overridden so that setting the prefix back to {@code null} re-generates the
+     * letter-avatar fallback (otherwise a user-removed icon would leave the item
+     * unmarked in rail mode). Passing a real component (icon, image, …) replaces the
+     * avatar as usual — the override is a no-op in that case.
+     */
+    @Override
+    public void setPrefixComponent(Component prefix) {
+        super.setPrefixComponent(prefix);
+        if (prefix == null) {
+            ensureLetterAvatar();
+        }
     }
 
     /**
@@ -193,8 +214,59 @@ public class SideNavRailItem extends SideNavItem {
     @Override
     protected void onAttach(AttachEvent event) {
         super.onAttach(event);
+        ensureLetterAvatar();
         ensurePopover();
         wireExpandedListener();
+    }
+
+    private static final String AVATAR_CLASS = "side-nav-rail-letter-avatar";
+
+    /**
+     * Fills an empty prefix slot with a single-letter {@link Avatar} derived from the
+     * label so rail mode is not reduced to a blank tile when the consumer forgot to
+     * provide an icon. Uses {@link AvatarVariant#LUMO_SMALL} (24×24, matching the
+     * standard Lumo icon size used elsewhere in the side nav) with a Lumo-typical
+     * background and secondary text color out of the box.
+     *
+     * <p>Only runs when the prefix slot is empty or still holds the avatar we set
+     * earlier — a user-provided prefix is always left alone. Blank labels produce no
+     * avatar, and any stale avatar that ends up with a blank label is removed.
+     */
+    private void ensureLetterAvatar() {
+        Component existing = getPrefixComponent();
+        if (existing != null && !isOwnAvatar(existing)) {
+            return;  // User-provided prefix — hands off.
+        }
+
+        String label = getLabel();
+        boolean hasLabel = label != null && !label.isBlank();
+        if (!hasLabel) {
+            if (existing != null) {
+                super.setPrefixComponent(null);
+            }
+            return;
+        }
+
+        String letter = String.valueOf(Character.toUpperCase(label.charAt(0)));
+        if (existing instanceof Avatar avatar && isOwnAvatar(existing)) {
+            avatar.setAbbreviation(letter);
+            return;
+        }
+        Avatar avatar = new Avatar();
+        avatar.addThemeVariants(AvatarVariant.LUMO_SMALL);
+        avatar.setAbbreviation(letter);
+        avatar.addClassName(AVATAR_CLASS);
+        super.setPrefixComponent(avatar);
+    }
+
+    /**
+     * Identity check for the auto-generated avatar, done via the CSS marker class.
+     * Framework-agnostic (works whether the wrapped component is an {@link Avatar},
+     * a {@code Span}, or anything else the consumer might have subclassed) — the
+     * marker class is what the addon tracks.
+     */
+    private static boolean isOwnAvatar(Component c) {
+        return c != null && c.getElement().getClassList().contains(AVATAR_CLASS);
     }
 
     /**
@@ -357,7 +429,10 @@ public class SideNavRailItem extends SideNavItem {
 
         Component prefix = getPrefixComponent();
         String label = getLabel();
-        boolean hasIcon = wantsIcon && prefix != null;
+        // The letter-avatar fallback is a rail-mode visual crutch, not a real icon —
+        // treat it as "no icon" for popover-header purposes (the header has the label
+        // to identify the parent; repeating the letter avatar would be redundant).
+        boolean hasIcon = wantsIcon && prefix != null && !isOwnAvatar(prefix);
         boolean hasLabel = wantsLabel && label != null && !label.isBlank();
         if (!hasIcon && !hasLabel) {
             return;  // Would produce an empty header — skip.

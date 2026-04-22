@@ -45,3 +45,19 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   height: var(--lumo-icon-size-s);
   color: var(--lumo-secondary-text-color);
 }
+
+/*
+ * Letter-avatar fallback (auto-generated as a vaadin-avatar when an item has a label
+ * but no prefix component). Hidden in normal mode — the text label already identifies
+ * the item. Surfaces in rail mode, where the item would otherwise collapse to a blank
+ * tile. Sizing and colors come from the LUMO_SMALL variant (24×24, Lumo contrast
+ * background, secondary text color) — matches the 24×24 that vaadin-side-nav-item
+ * renders real icons at via --lumo-icon-size-m.
+ */
+vaadin-avatar.side-nav-rail-letter-avatar {
+  display: none;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
+  display: inline-flex;
+}

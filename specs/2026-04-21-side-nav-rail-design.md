@@ -146,6 +146,8 @@ public class SideNavRailItem extends SideNavItem {
 
 **Note:** The label wrap only applies to String labels (constructor + `setLabel(String)`). If a consumer manipulates label rendering externally or fills the default slot with their own components, the styling is their responsibility — the override only manages the text node that `super` produces.
 
+**Letter-avatar fallback:** if an item has a non-blank label but no prefix component, `onAttach` (and every subsequent `setLabel` / `setPrefixComponent(null)`) auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24) with the first letter of the label (uppercase) as its abbreviation. The avatar carries the marker class `side-nav-rail-letter-avatar`; CSS hides it in normal mode and shows it in rail mode so the item doesn't collapse to a blank tile. A user-provided prefix always wins — the addon only fills an empty slot and never overwrites a real icon.
+
 ### 3.3 `PopoverMode`
 
 Three values, each describing which set of items is eligible for the hover popover:
@@ -296,6 +298,15 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
 }
+
+/* Letter-avatar fallback (see §3.2): hidden in normal mode, visible only in rail mode. */
+vaadin-avatar.side-nav-rail-letter-avatar {
+  display: none;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
+  display: inline-flex;
+}
 ```
 
 ### 5.3 Label wrap
@@ -420,7 +431,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 
 - ~~Parent name as popover header (mentioned in the customer email, *not* in `initial.md`).~~ **Shipped** — see [§3.4 `PopoverParentLabelMode`](#34-popoverparentlabelmode) and [§4.2](#42-popover-details). Opt-in with four modes: `NONE` (default), `LABEL_ONLY`, `ICON_ONLY`, `FULL`.
 - ~~Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.~~ **Exposed as a styling hook** — see [§5.1](#51-marker-attributes). `SideNavRail` marks each direct child with the `[root-item]` attribute so consumer CSS can target them via `vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon`. The actual visual treatment is app-level CSS on purpose — different apps want different looks, and Vaadin's standard `setMatchNested(true)` + `[current]` mechanism already covers the detection side.
-- Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.
+- ~~Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.~~ **Shipped as a letter-avatar fallback** — see [§3.2](#32-sidenavrailitem) and [§5.2](#52-css-module). A `SideNavRailItem` without a prefix component auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24 to match the Lumo icon size) whose abbreviation is the first letter of the label, uppercase. Hidden in normal mode, visible in rail mode. The avatar is replaced by any user-provided prefix component and regenerated if the user later clears it.
 - Tooltip in rail mode for items *without* children (shows label on hover).
 - Transition/animation on rail mode toggle (width, labels).
 - Configurable hover delays and popover position at the nav level.
