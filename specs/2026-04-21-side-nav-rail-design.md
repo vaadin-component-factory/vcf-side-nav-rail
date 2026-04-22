@@ -96,12 +96,20 @@ public class SideNavRail extends SideNav {
     public void setRailMode(boolean railMode);
     public boolean isRailMode();
 
-    /** Controls when the hover popover appears for items with children. Default: COLLAPSED_ITEM. */
+    /** Controls when the hover popover appears for items with children. Default: ALL_COLLAPSED_ITEMS. */
     public void setPopoverMode(PopoverMode mode);
     public PopoverMode getPopoverMode();
 
     public Registration addRailModeChangedListener(
             ComponentEventListener<RailModeChangedEvent> listener);
+
+    /**
+     * Only {@link SideNavRailItem} children are accepted. Passing a plain
+     * {@link SideNavItem} throws {@link IllegalArgumentException} — the label wrap
+     * and popover gating depend on {@code SideNavRailItem}'s overrides.
+     */
+    @Override public void addItem(SideNavItem... items);
+    @Override public void addItemAsFirst(SideNavItem item);
 }
 ```
 
@@ -124,6 +132,11 @@ public class SideNavRailItem extends SideNavItem {
     // Idempotent: if the span does not exist yet, the bare text node produced by
     // super is wrapped in a new <span class="label">. If it already exists from a
     // previous call, only its text content is updated — no second span is created.
+
+    // Same type-guard as SideNavRail: only SideNavRailItem children accepted —
+    // plain SideNavItem throws IllegalArgumentException.
+    @Override public void addItem(SideNavItem... items);
+    @Override public void addItemAsFirst(SideNavItem item);
 }
 ```
 
@@ -201,7 +214,7 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 - Implementation: the Vaadin `Popover` component (Flow), one instance per `SideNavRailItem` that has children, lazily created on first `onAttach`.
 - Target: the root element of the associated `SideNavRailItem`.
 - Trigger: `setOpenOnHover(true)` gated by `applyPopoverGating(mode, railMode)`; re-evaluated on rail-mode toggle, popover-mode change, and the item's `expanded-changed` DOM event. When the gate flips to ineligible while the popover is open, `popover.close()` is called so it disappears immediately.
-- Timing: `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical values, made configurable in phase 2).
+- Timing: `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical values; making these configurable on the nav is listed in [§9.1](#91-phase-2--user-facing-polish)).
 - Position: aligned to the right of the item, top-aligned with the item — concretely `PopoverPosition.END_TOP` if present (the Vaadin popover enum follows the `DIRECTION_ALIGNMENT` naming pattern; exact enum value to be verified during implementation, fallback `END`).
 - Overlay role: `setOverlayRole("menu")`.
 - Content: a secondary `SideNav` instance (not a `SideNavRail`) rendering the children of the item. Nested expand/collapse inside the popover then works via the standard `SideNav` mechanism (`initial.md`: *"Inside that popover, side nav items … can be expanded and collapsed like within the normal side nav"*).
@@ -412,4 +425,4 @@ Additional implementation-time findings worth noting:
 
 - **Spring Boot + Java-version gotcha:** Spring Boot 3.4's bundled ASM cannot parse Java 25 class files. The compile target was pinned to Java 17 accordingly (see the devcontainer Dockerfile + `<maven.compiler.release>17</maven.compiler.release>` in the addon POM).
 - **Vaadin `Element.getTag()` on text nodes:** throws `UnsupportedOperationException`. The `SideNavRailItem` implementation and `LabelWrapTest` filter with `e -> !e.isTextNode()` before calling `getTag()` in stream operations.
-- **Popover attachment:** the popover is appended to the owning `SideNavRail` element rather than directly to the UI root. This has no visual effect (the overlay teleports to the body anyway) but keeps the popover in the component's logical scope.
+- **Popover lifecycle:** `Popover.setTarget(...)` installs attach/detach listeners on the target that auto-add the popover to the UI and auto-remove it on detach. No manual `appendChild` is needed — the popover becomes a direct UI child, and removing the rail detaches it cleanly. `PopoverLifecycleTest` pins both invariants.
