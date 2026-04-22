@@ -5,19 +5,82 @@
  * root <vaadin-side-nav> element by SideNavRail#setRailMode(true).
  */
 
+/*
+ * Transition timings, consumer-configurable. Set on vaadin-side-nav so a consumer
+ * can override per-rail or globally (e.g. theme-level override). The rail itself,
+ * the labels/suffix, and the toggle-button all pick up the same duration + easing
+ * so the collapse reads as a single coordinated motion.
+ *
+ *   --side-nav-rail-transition-duration  (default 200ms)
+ *   --side-nav-rail-transition-easing    (default ease-out)
+ *
+ * Set either to 0s (duration) to disable the animation entirely.
+ */
+vaadin-side-nav {
+  --side-nav-rail-transition-duration: 200ms;
+  --side-nav-rail-transition-easing: ease-out;
+
+  transition:
+    width
+      var(--side-nav-rail-transition-duration)
+      var(--side-nav-rail-transition-easing);
+}
+
 vaadin-side-nav[theme~="rail"] {
   width: var(--lumo-size-l);
 }
 
+/*
+ * Labels + suffix fade out and their horizontal footprint collapses at the same
+ * time as the rail narrows. We intentionally avoid display:none on these so the
+ * opacity + max-width can interpolate smoothly.
+ */
+vaadin-side-nav vaadin-side-nav-item .label,
+vaadin-side-nav vaadin-side-nav-item [slot="suffix"] {
+  opacity: 1;
+  max-width: 20em;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    opacity
+      var(--side-nav-rail-transition-duration)
+      var(--side-nav-rail-transition-easing),
+    max-width
+      var(--side-nav-rail-transition-duration)
+      var(--side-nav-rail-transition-easing);
+}
+
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label,
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item [slot="suffix"] {
-  display: none;
+  opacity: 0;
+  max-width: 0;
+}
+
+/*
+ * Toggle-button (the chevron that expands inline children). Fades out in rail
+ * mode; pointer-events are suppressed so the user can't accidentally click a
+ * fully-transparent button. Width-collapse isn't needed — the rail is already
+ * narrower than the button would be.
+ */
+vaadin-side-nav vaadin-side-nav-item::part(toggle-button) {
+  opacity: 1;
+  transition:
+    opacity
+      var(--side-nav-rail-transition-duration)
+      var(--side-nav-rail-transition-easing);
 }
 
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
+/*
+ * Inline children (the [slot="children"] items that render nested navigation
+ * below an expanded parent) snap away without a transition. Animating their
+ * vertical collapse would require knowing their rendered height; the popover
+ * surfaces them in rail mode anyway, so the abrupt hide is acceptable.
+ */
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
 }

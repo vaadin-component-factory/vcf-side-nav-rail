@@ -313,35 +313,55 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 
 ### 5.2 CSS module
 
-`addon/src/main/resources/META-INF/resources/frontend/side-nav-rail.css`, included via `@CssImport` on `SideNavRail`:
+`addon/src/main/resources/META-INF/resources/frontend/side-nav-rail.css`, included via `@CssImport` on `SideNavRail`. The essentials:
 
 ```css
-vaadin-side-nav[theme~="rail"] {
-  width: var(--lumo-size-l);
+/* Rail width + coordinated transition for the mode toggle */
+vaadin-side-nav {
+  --side-nav-rail-transition-duration: 200ms;
+  --side-nav-rail-transition-easing: ease-out;
+  transition: width
+    var(--side-nav-rail-transition-duration)
+    var(--side-nav-rail-transition-easing);
 }
+vaadin-side-nav[theme~="rail"] { width: var(--lumo-size-l); }
 
+/* Labels + suffix fade out AND collapse horizontally during the rail toggle */
+vaadin-side-nav vaadin-side-nav-item .label,
+vaadin-side-nav vaadin-side-nav-item [slot="suffix"] {
+  opacity: 1;
+  max-width: 20em;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    opacity  var(--side-nav-rail-transition-duration) var(--side-nav-rail-transition-easing),
+    max-width var(--side-nav-rail-transition-duration) var(--side-nav-rail-transition-easing);
+}
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label,
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item [slot="suffix"] {
-  display: none;
+  opacity: 0;
+  max-width: 0;
 }
 
+/* Toggle-button fades out, inline children snap away (no reliable height to animate) */
+vaadin-side-nav vaadin-side-nav-item::part(toggle-button) {
+  opacity: 1;
+  transition: opacity
+    var(--side-nav-rail-transition-duration)
+    var(--side-nav-rail-transition-easing);
+}
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] { display: none; }
 
-vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
-  display: none;
-}
-
-/* Letter-avatar fallback (see §3.2): hidden in normal mode, visible only in rail mode. */
-vaadin-avatar.side-nav-rail-letter-avatar {
-  display: none;
-}
-
-vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
-  display: inline-flex;
-}
+/* Letter-avatar fallback (see §3.2) — hidden normally, visible in rail */
+vaadin-avatar.side-nav-rail-letter-avatar { display: none; }
+vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar { display: inline-flex; }
 ```
+
+**Customizable transition:** the duration and easing are CSS custom properties set on `vaadin-side-nav`; consumers can override them at any scope (per-rail, theme-level, or `:root`). Setting `--side-nav-rail-transition-duration: 0s` disables the animation entirely.
 
 ### 5.3 Label wrap
 
@@ -467,7 +487,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 - ~~Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.~~ **Exposed as a styling hook** — see [§5.1](#51-marker-attributes). `SideNavRail` marks each direct child with the `[root-item]` attribute so consumer CSS can target them via `vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon`. The actual visual treatment is app-level CSS on purpose — different apps want different looks, and Vaadin's standard `setMatchNested(true)` + `[current]` mechanism already covers the detection side.
 - ~~Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.~~ **Shipped as a letter-avatar fallback** — see [§3.2](#32-sidenavrailitem) and [§5.2](#52-css-module). A `SideNavRailItem` without a prefix component auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24 to match the Lumo icon size) whose abbreviation is the first letter of the label, uppercase. Hidden in normal mode, visible in rail mode. The avatar is replaced by any user-provided prefix component and regenerated if the user later clears it.
 - ~~Tooltip in rail mode for items *without* children (shows label on hover).~~ **Shipped as `RailTooltipMode`** — a three-valued enum on `SideNavRail` controlling which root items surface their label as a native Vaadin tooltip while rail mode is active. See [§3.5 `RailTooltipMode`](#35-railtooltipmode). Values: `NONE`, `ONLY_WITHOUT_CHILDREN`, `ALL` (default). Tooltips are never shown in normal mode; leaving rail mode clears them. Scope extended beyond the original "only items without children" wording: we set tooltips on *all* root items by default because `PopoverParentLabelMode.NONE` (the default) means a parent popover doesn't repeat the label, so the tooltip provides a consistent discovery mechanism across all root items.
-- Transition/animation on rail mode toggle (width, labels).
+- ~~Transition/animation on rail mode toggle (width, labels).~~ **Shipped as CSS transitions** — see [§5.2](#52-css-module). Rail width, label text, suffix, and the expand-toggle chevron fade/collapse together over a single configurable duration + easing (`--side-nav-rail-transition-duration` default `200ms`, `--side-nav-rail-transition-easing` default `ease-out`). Setting the duration to `0s` disables the animation. No Java API added.
 - Configurable hover delays and popover position at the nav level.
 
 ### 9.2 Phase 2 — accessibility
