@@ -59,6 +59,7 @@ public class SideNavRail extends SideNav {
 
     private boolean railMode = false;
     private PopoverMode popoverMode = PopoverMode.ALL_COLLAPSED_ITEMS;
+    private PopoverParentLabelMode popoverParentLabelMode = PopoverParentLabelMode.NONE;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -116,6 +117,27 @@ public class SideNavRail extends SideNav {
         updatePopoverGating();
     }
 
+    /**
+     * The current parent-label mode for popover headers. Default:
+     * {@link PopoverParentLabelMode#NONE}. See {@link PopoverParentLabelMode} for the
+     * rendering rules per value.
+     */
+    public PopoverParentLabelMode getPopoverParentLabelMode() {
+        return popoverParentLabelMode;
+    }
+
+    /**
+     * Sets whether (and how) each popover renders a header identifying its parent item.
+     * Rebuilds the content of all existing popovers so the change is visible immediately.
+     *
+     * @throws NullPointerException if {@code mode} is {@code null}
+     */
+    public void setPopoverParentLabelMode(PopoverParentLabelMode mode) {
+        this.popoverParentLabelMode = java.util.Objects.requireNonNull(
+                mode, "PopoverParentLabelMode must not be null");
+        rebuildPopoverContents();
+    }
+
     private void updatePopoverGating() {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
@@ -129,6 +151,23 @@ public class SideNavRail extends SideNav {
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 applyGatingRecursively(rail);
+            }
+        }
+    }
+
+    private void rebuildPopoverContents() {
+        for (SideNavItem child : getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                rebuildPopoverContentsRecursively(rail);
+            }
+        }
+    }
+
+    private void rebuildPopoverContentsRecursively(SideNavRailItem item) {
+        item.rebuildPopoverContent();
+        for (SideNavItem child : item.getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                rebuildPopoverContentsRecursively(rail);
             }
         }
     }

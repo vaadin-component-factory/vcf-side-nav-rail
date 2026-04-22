@@ -319,12 +319,62 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     private void populatePopover() {
+        popover.removeAll();
+        renderHeaderIfConfigured();
+
         SideNav nested = new SideNav();
         for (SideNavItem child : getItems()) {
             nested.addItem(copyOf(child));
         }
-        popover.removeAll();
         popover.add(nested);
+    }
+
+    /**
+     * Rebuilds the popover's content using the owning rail's current
+     * {@link PopoverParentLabelMode}. Invoked by {@link SideNavRail} when the mode changes
+     * so the header toggles without requiring a full reattach. Safe to call before the
+     * popover is attached — no-op.
+     */
+    void rebuildPopoverContent() {
+        if (popover == null) {
+            return;
+        }
+        populatePopover();
+    }
+
+    private void renderHeaderIfConfigured() {
+        SideNavRail owner = findOwnerRail();
+        PopoverParentLabelMode mode =
+                (owner != null) ? owner.getPopoverParentLabelMode() : PopoverParentLabelMode.NONE;
+        if (mode == PopoverParentLabelMode.NONE) {
+            return;
+        }
+
+        boolean wantsIcon = mode == PopoverParentLabelMode.ICON_ONLY
+                || mode == PopoverParentLabelMode.FULL;
+        boolean wantsLabel = mode == PopoverParentLabelMode.LABEL_ONLY
+                || mode == PopoverParentLabelMode.FULL;
+
+        Component prefix = getPrefixComponent();
+        String label = getLabel();
+        boolean hasIcon = wantsIcon && prefix != null;
+        boolean hasLabel = wantsLabel && label != null && !label.isBlank();
+        if (!hasIcon && !hasLabel) {
+            return;  // Would produce an empty header — skip.
+        }
+
+        com.vaadin.flow.component.html.Div header = new com.vaadin.flow.component.html.Div();
+        header.addClassName("side-nav-rail-popover-header");
+        if (hasIcon) {
+            header.add(copyComponent(prefix));
+        }
+        if (hasLabel) {
+            com.vaadin.flow.component.html.Span text =
+                    new com.vaadin.flow.component.html.Span(label);
+            text.addClassName("side-nav-rail-popover-header-label");
+            header.add(text);
+        }
+        popover.add(header);
     }
 
     private static SideNavItem copyOf(SideNavItem source) {

@@ -21,3 +21,27 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
   display: none;
 }
+
+/*
+ * Popover header (opt-in via SideNavRail#setPopoverParentLabelMode). Rendered as a
+ * light-DOM div *inside* vaadin-popover-overlay, which teleports to <body> — the rail
+ * theme selector above doesn't reach it, so these rules apply globally to the class.
+ */
+.side-nav-rail-popover-header {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  color: var(--lumo-secondary-text-color);
+  font-weight: 600;
+  font-size: var(--lumo-font-size-s);
+  line-height: var(--lumo-line-height-s);
+}
+
+.side-nav-rail-popover-header vaadin-icon,
+.side-nav-rail-popover-header iron-icon {
+  width: var(--lumo-icon-size-s);
+  height: var(--lumo-icon-size-s);
+  color: var(--lumo-secondary-text-color);
+}

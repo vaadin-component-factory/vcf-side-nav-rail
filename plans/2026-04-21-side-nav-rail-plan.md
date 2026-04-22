@@ -16,9 +16,13 @@
 
 ## Implementation status
 
-> **Status (2026-04-22):** MVP + phase 2 shipped. Reactor `./mvnw clean verify` is green — **28/28** addon unit tests + **13/13** Playwright E2E tests pass.
+> **Status (2026-04-22):** MVP + phase 2 + phase 9.1 in progress. Reactor `./mvnw clean verify` is green — **37/37** addon unit tests + **16/16** Playwright E2E tests pass (count updated after phase 9.1 first item).
 >
 > The spec has been updated in-place to reflect the final shape of the code. This plan document is kept as the historical record of *how* the work got there.
+>
+> **Phase 9.1 additions — user-facing polish (iterative, in progress on `phase9.1/user-facing-polish`):**
+>
+> - **`PopoverParentLabelMode` (opt-in popover header).** New enum on `SideNavRail`: `NONE` (default), `LABEL_ONLY`, `ICON_ONLY`, `FULL`. Renders a header `Div.side-nav-rail-popover-header` above the nested `SideNav` inside the popover. Graceful empty handling — if the chosen mode would produce an empty header (no icon for `ICON_ONLY`, blank label for `LABEL_ONLY`), the header is skipped. `setPopoverParentLabelMode(...)` rebuilds all existing popovers so the switch is visible immediately. Lumo-style CSS (secondary text color, subtle bottom border). Tests: 9 unit + 3 Playwright (the live-switch case is covered in Karibu only; reproducing it via Playwright proved brittle because clicking a mode button outside the rail moves the mouse off the hovered item and closes the hover-open popover). Demo navbar gains a second `Select` to switch modes at runtime. Spec §3.4 + §4.2 updated, §9.1 bullet crossed out.
 >
 > **Phase 2 additions (post-merge of MVP):**
 >

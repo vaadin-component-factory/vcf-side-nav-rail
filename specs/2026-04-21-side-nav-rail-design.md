@@ -100,6 +100,10 @@ public class SideNavRail extends SideNav {
     public void setPopoverMode(PopoverMode mode);
     public PopoverMode getPopoverMode();
 
+    /** Whether (and how) each popover renders a header for its parent. Default: NONE (opt-in). */
+    public void setPopoverParentLabelMode(PopoverParentLabelMode mode);
+    public PopoverParentLabelMode getPopoverParentLabelMode();
+
     public Registration addRailModeChangedListener(
             ComponentEventListener<RailModeChangedEvent> listener);
 
@@ -159,7 +163,34 @@ public enum PopoverMode {
 
 `ONLY_ROOT_COLLAPSED_ITEMS` in rail mode is effectively equivalent to `ALL_COLLAPSED_ITEMS` because rail mode already hides nested items, so the root-only restriction is a no-op there.
 
-### 3.4 `RailModeChangedEvent`
+### 3.4 `PopoverParentLabelMode`
+
+Opt-in header on the popover overlay that identifies the parent item. Default is
+{@code NONE} — existing MVP behaviour is unchanged unless the consumer opts in.
+
+```java
+public enum PopoverParentLabelMode {
+    /** No header. Default. */
+    NONE,
+    /** Header shows the parent's text label only. */
+    LABEL_ONLY,
+    /** Header shows a copy of the parent's prefix component (typically an icon) only. */
+    ICON_ONLY,
+    /** Header shows both the prefix component and the label, icon first. */
+    FULL
+}
+```
+
+**Rendering:**
+
+- A single `Div` with CSS class `side-nav-rail-popover-header` is inserted as the first child of the popover, before the nested `SideNav` that renders the children.
+- The label is wrapped in a `Span.side-nav-rail-popover-header-label`; the icon is cloned via the same `copyComponent(...)` helper used for the nested `SideNav` items.
+- Graceful empty handling: if the configured mode asks for content the parent does not provide (`ICON_ONLY` with no prefix component, `LABEL_ONLY` with a blank label), the header is skipped entirely rather than rendered blank.
+- Live switch: `setPopoverParentLabelMode(...)` rebuilds the content of all existing popovers so the header toggles without requiring a reattach.
+
+**Known limitation:** a parent's `setLabel(...)` or `setPrefixComponent(...)` applied <em>after</em> the popover exists is not picked up automatically. Call `setPopoverParentLabelMode(...)` again (e.g. with the current value) to force a rebuild, or configure the item before the popover is first populated.
+
+### 3.5 `RailModeChangedEvent`
 
 ```java
 public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
@@ -220,6 +251,7 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 - Content: a secondary `SideNav` instance (not a `SideNavRail`) rendering the children of the item. Nested expand/collapse inside the popover then works via the standard `SideNav` mechanism (`initial.md`: *"Inside that popover, side nav items … can be expanded and collapsed like within the normal side nav"*).
 - Rendering strategy (rebuilding a copy from the item hierarchy vs. DOM-reparenting the existing light DOM) is intentionally left open to implementation; what matters is that navigation and active highlighting work inside the popover the same way as in a standard `SideNav`.
 - **Only one popover per item**, even for multiple hierarchy levels — nested popovers are excluded (`initial.md`).
+- Optional header identifying the parent — see [§3.4 `PopoverParentLabelMode`](#34-popoverparentlabelmode). Default is no header.
 
 ### 4.3 Rail mode behaviour
 
@@ -376,7 +408,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 
 ### 9.1 Phase 2 — user-facing polish
 
-- Parent name as popover header (mentioned in the customer email, *not* in `initial.md`).
+- ~~Parent name as popover header (mentioned in the customer email, *not* in `initial.md`).~~ **Shipped** — see [§3.4 `PopoverParentLabelMode`](#34-popoverparentlabelmode) and [§4.2](#42-popover-details). Opt-in with four modes: `NONE` (default), `LABEL_ONLY`, `ICON_ONLY`, `FULL`.
 - Active/selected indicator on the icon when a descendant of a parent hidden in rail mode is active.
 - Icon fallback or warning when a `SideNavRailItem` ends up in rail mode without an icon.
 - Tooltip in rail mode for items *without* children (shows label on hover).
