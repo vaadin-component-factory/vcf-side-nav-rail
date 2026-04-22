@@ -77,7 +77,10 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         operate.addItem(environments);
         operate.addItem(new SideNavRailItem("Releases", "/operate/releases"));
 
-        nav.addItem(dashboard, code, operate);
+        // Intentionally icon-less — demonstrates the letter-avatar fallback in rail mode.
+        SideNavRailItem admin = new SideNavRailItem("Admin", "/admin");
+
+        nav.addItem(dashboard, code, operate, admin);
 
         Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
                 e -> nav.setRailMode(!nav.isRailMode()));
