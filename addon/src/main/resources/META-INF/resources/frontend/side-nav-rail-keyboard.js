@@ -49,6 +49,14 @@ function handleKeydown(event, rail) {
             event.preventDefault();
             moveFocusSibling(item, rail, -1);
             break;
+        case 'ArrowRight':
+            event.preventDefault();
+            moveFocusRight(item);
+            break;
+        case 'ArrowLeft':
+            event.preventDefault();
+            moveFocusLeft(item, rail);
+            break;
     }
 }
 
@@ -90,6 +98,48 @@ function moveFocusSibling(current, rail, direction) {
         focusItem(next);
     }
     // else: stop at boundary (no-op)
+}
+
+function hasChildren(item) {
+    return item.querySelector(':scope > vaadin-side-nav-item') !== null;
+}
+
+function firstChild(item) {
+    return item.querySelector(':scope > vaadin-side-nav-item');
+}
+
+function parentItem(item, rail) {
+    let p = item.parentElement;
+    while (p && p !== rail) {
+        if (p.localName === 'vaadin-side-nav-item') {
+            return p;
+        }
+        p = p.parentElement;
+    }
+    return null;
+}
+
+function moveFocusRight(item) {
+    if (!hasChildren(item)) {
+        return;
+    }
+    if (!item.expanded) {
+        item.expanded = true;
+    } else {
+        const child = firstChild(item);
+        if (child) focusItem(child);
+    }
+}
+
+function moveFocusLeft(item, rail) {
+    if (item.expanded && hasChildren(item)) {
+        item.expanded = false;
+        return;
+    }
+    const parent = parentItem(item, rail);
+    if (parent) {
+        focusItem(parent);
+    }
 }
 
 /**

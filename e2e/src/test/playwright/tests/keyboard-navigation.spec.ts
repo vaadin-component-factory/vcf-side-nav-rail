@@ -7,7 +7,10 @@ import { test, expect, Page } from '@playwright/test';
  * because Playwright's focusability probe doesn't detect delegatesFocus well.
  */
 async function focusItem(page: Page, path: string): Promise<void> {
-    await page.locator(`vaadin-side-nav-item[path="${path}"]`).evaluate(
+    // Scope to #rail: popovers keep a hidden clone of each nested item in the
+    // light DOM, so a bare vaadin-side-nav-item[path="..."] selector can
+    // resolve to multiple elements (strict-mode violation).
+    await page.locator(`#rail vaadin-side-nav-item[path="${path}"]`).evaluate(
         (el: HTMLElement) => {
             // Vaadin's <vaadin-side-nav-item> renders its anchor inside shadow DOM.
             // Focusing the custom element itself does not move document.activeElement;
@@ -105,5 +108,68 @@ test.describe('normal mode — Arrow-Up/Down', () => {
         await page.keyboard.press('ArrowDown');
         // Jumps directly to Admin without visiting code/branches.
         await expectFocusedPath(page, 'admin');
+    });
+});
+
+test.describe('normal mode — Arrow-Right/Left', () => {
+    test('Arrow-Right on collapsed parent expands it (focus stays on parent)', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');
+
+        await expect(page.locator('vaadin-side-nav-item[path="code"]'))
+            .toHaveJSProperty('expanded', true);
+        await expectFocusedPath(page, 'code');
+    });
+
+    test('Arrow-Right on expanded parent moves focus to first child', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+        await focusItem(page, 'code');
+
+        await page.keyboard.press('ArrowRight');
+        await expectFocusedPath(page, 'code/branches');
+    });
+
+    test('Arrow-Right on leaf is a no-op', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowRight');
+        await expectFocusedPath(page, 'dashboard');
+    });
+
+    test('Arrow-Left on expanded parent collapses it', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+        await focusItem(page, 'code');
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator('vaadin-side-nav-item[path="code"]'))
+            .toHaveJSProperty('expanded', false);
+    });
+
+    test('Arrow-Left on child moves focus to parent', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+        await focusItem(page, 'code/branches');
+
+        await page.keyboard.press('ArrowLeft');
+        await expectFocusedPath(page, 'code');
+    });
+
+    test('Arrow-Left on top-level leaf is a no-op', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowLeft');
+        await expectFocusedPath(page, 'dashboard');
     });
 });
