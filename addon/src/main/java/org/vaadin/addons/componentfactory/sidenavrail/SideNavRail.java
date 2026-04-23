@@ -102,6 +102,7 @@ public class SideNavRail extends SideNav {
         updatePopoverGating();
         applyTooltips();
         applyAriaToRootItems();
+        applyFocusTriggerToRootItems();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -311,6 +312,14 @@ public class SideNavRail extends SideNav {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 rail.applyAriaAttributes(railMode);
+            }
+        }
+    }
+
+    private void applyFocusTriggerToRootItems() {
+        for (SideNavItem child : getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                rail.applyFocusTrigger(railMode);
             }
         }
     }

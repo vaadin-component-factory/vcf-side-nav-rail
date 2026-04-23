@@ -359,10 +359,10 @@ public class SideNavRailItem extends SideNavItem {
         popover = new Popover();
         popover.setTarget(this);
         popover.setOpenOnClick(false);
-        popover.setOpenOnFocus(false);
+        SideNavRail owner = findOwnerRail();
+        popover.setOpenOnFocus(owner != null && owner.isRailMode());
         popover.setOverlayRole("menu");
 
-        SideNavRail owner = findOwnerRail();
         // Seed from the owning rail's current settings so a popover created mid-session
         // picks up timings/position configured earlier. Fall back to Lumo-typical
         // defaults for popovers living outside a rail (rare but supported).
@@ -378,6 +378,18 @@ public class SideNavRailItem extends SideNavItem {
             applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
+        }
+    }
+
+    /**
+     * Updates the popover's focus-trigger according to rail state. Called by
+     * {@link SideNavRail#setRailMode(boolean)} so the flag tracks live mode changes.
+     * Public because it is invoked from the {@link SideNavRail} in the same package —
+     * consider it addon-internal; user code should not depend on it.
+     */
+    public void applyFocusTrigger(boolean railMode) {
+        if (popover != null) {
+            popover.setOpenOnFocus(railMode);
         }
     }
 
