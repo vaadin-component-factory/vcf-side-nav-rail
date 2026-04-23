@@ -86,37 +86,15 @@ function isRailActive(rail) {
 }
 
 /**
- * Returns all visible items in document order: items whose ancestors are all
- * expanded. Root items of the rail are always visible.
- *
- * In rail mode with focus on a root item, we walk root items only — nested
- * items remain in the DOM but are visually hidden under the rail, so a
- * sibling walk that descended into them would feel broken (per spec §4.4.2).
+ * Returns all visible items in document order: items whose ancestors (up to the
+ * given scope element) are all expanded. Root items of the scope are always
+ * visible; collapsed subtrees are skipped from the walk.
  */
-function visibleItems(rail, target) {
-    // Focus inside a popover: walk siblings at the same nesting level. Popovers
-    // may host nested subtrees (Branches/Commits, Users → Active/Archived), so
-    // we restrict the walk to the focused item's immediate parent.
-    const overlay = target && target.closest && target.closest('vaadin-popover-overlay');
-    if (overlay) {
-        const levelParent = target.parentElement;
-        if (levelParent) {
-            return [...levelParent.querySelectorAll(':scope > vaadin-side-nav-item')];
-        }
-    }
-
-    const railMode = isRailActive(rail);
-
-    // Rail mode + focus on a root item → walk root items only.
-    if (railMode && target && target.hasAttribute('root-item')) {
-        return [...rail.querySelectorAll(':scope > vaadin-side-nav-item[root-item]')];
-    }
-
-    // Default: visible walk across all items whose ancestors are expanded.
-    const all = [...rail.querySelectorAll('vaadin-side-nav-item')];
+function visibleItemsInScope(scope) {
+    const all = [...scope.querySelectorAll('vaadin-side-nav-item')];
     return all.filter(item => {
         let parent = item.parentElement;
-        while (parent && parent !== rail) {
+        while (parent && parent !== scope) {
             if (parent.localName === 'vaadin-side-nav-item' && !parent.expanded) {
                 return false;
             }
@@ -124,6 +102,29 @@ function visibleItems(rail, target) {
         }
         return true;
     });
+}
+
+/**
+ * Picks the right walk-set for the currently focused item. Three cases:
+ *   1. Focus inside a popover overlay → visible-item walk rooted at the overlay
+ *      (same tree semantics as normal mode — Arrow-Down on an expanded parent
+ *      descends into the first child, stops at boundaries inside the overlay).
+ *   2. Rail mode + focus on a root item → walk root items only (nested items
+ *      are still in the DOM but hidden under the rail — per §4.4.2).
+ *   3. Otherwise → visible-item walk across the whole rail.
+ */
+function visibleItems(rail, target) {
+    const overlay = target && target.closest && target.closest('vaadin-popover-overlay');
+    if (overlay) {
+        return visibleItemsInScope(overlay);
+    }
+
+    const railMode = isRailActive(rail);
+    if (railMode && target && target.hasAttribute('root-item')) {
+        return [...rail.querySelectorAll(':scope > vaadin-side-nav-item[root-item]')];
+    }
+
+    return visibleItemsInScope(rail);
 }
 
 function moveFocusSibling(current, rail, direction) {

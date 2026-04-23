@@ -299,6 +299,27 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
         await page.keyboard.press('ArrowUp');
         await expectFocusedPath(page, 'code/branches');
     });
+
+    test('Arrow-Down inside popover descends into expanded child subtree', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        await page.keyboard.press('ArrowRight');  // into popover — on Users
+        await page.keyboard.press('ArrowRight');  // Users expanded; focus still on Users
+
+        // Arrow-Down from an expanded Users should descend into its first child
+        // (Active), not jump to its sibling Roles — matches normal-mode tree nav.
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin/users/active');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin/users/archived');
+
+        // After the last child of Users comes the uncle (Roles).
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin/roles');
+    });
 });
 
 test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => {
