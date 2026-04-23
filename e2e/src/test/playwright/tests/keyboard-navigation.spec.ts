@@ -221,3 +221,59 @@ test.describe('rail mode — root navigation + Esc', () => {
         await expectFocusedPath(page, 'code');
     });
 });
+
+test.describe('rail mode — Arrow-Right into popover + in-popover navigation', () => {
+    test('Arrow-Right on root moves focus to first popover item', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+
+        await page.keyboard.press('ArrowRight');
+        await expectFocusedPath(page, 'code/branches');
+    });
+
+    test('Arrow-Right reopens popover after Esc', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('Escape');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await expectFocusedPath(page, 'code/branches');
+    });
+
+    test('Arrow-Down inside popover walks menu items', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');  // now on Branches
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/commits');
+
+        // Stop at last
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/commits');
+    });
+
+    test('Arrow-Up inside popover walks back and stops at first', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');     // Branches
+        await page.keyboard.press('ArrowDown');      // Commits
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'code/branches');
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'code/branches');
+    });
+});

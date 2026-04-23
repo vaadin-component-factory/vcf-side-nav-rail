@@ -94,6 +94,17 @@ function isRailActive(rail) {
  * sibling walk that descended into them would feel broken (per spec §4.4.2).
  */
 function visibleItems(rail, target) {
+    // Focus inside a popover: walk siblings at the same nesting level. Popovers
+    // may host nested subtrees (Branches/Commits, Users → Active/Archived), so
+    // we restrict the walk to the focused item's immediate parent.
+    const overlay = target && target.closest && target.closest('vaadin-popover-overlay');
+    if (overlay) {
+        const levelParent = target.parentElement;
+        if (levelParent) {
+            return [...levelParent.querySelectorAll(':scope > vaadin-side-nav-item')];
+        }
+    }
+
     const railMode = isRailActive(rail);
 
     // Rail mode + focus on a root item → walk root items only.
@@ -146,6 +157,13 @@ function parentItem(item, rail) {
 }
 
 function moveFocusRight(item) {
+    // Rail-root case: open the popover (if closed) and move focus into it.
+    // This is the universal "into the popover" action in rail mode.
+    if (item.hasAttribute('root-item') && isItemRailMode(item)) {
+        moveFocusRightOnRailRoot(item);
+        return;
+    }
+    // Normal-mode / popover-nested behaviour: expand-or-descend.
     if (!hasChildren(item)) {
         return;
     }
@@ -155,6 +173,58 @@ function moveFocusRight(item) {
         const child = firstChild(item);
         if (child) focusItem(child);
     }
+}
+
+function isItemRailMode(item) {
+    const rail = item.closest('vaadin-side-nav');
+    return rail ? isRailActive(rail) : false;
+}
+
+function moveFocusRightOnRailRoot(item) {
+    if (!hasChildren(item)) {
+        return;
+    }
+
+    // Fast path: popover is open and already populated → move focus
+    // synchronously so a following ArrowDown lands inside the popover.
+    let overlay = findOpenPopoverForTarget(item);
+    if (overlay) {
+        const first = overlay.querySelector('vaadin-side-nav-item');
+        if (first) {
+            focusItem(first);
+            return;
+        }
+    } else {
+        // Popover is closed (e.g., user pressed Esc earlier). Reopen it via
+        // the associated <vaadin-popover>: Flow creates one per rail-root
+        // with children, and toggling .opened reattaches the overlay.
+        const popover = findPopoverForTarget(item);
+        if (!popover) return;
+        popover.opened = true;
+    }
+
+    // Slow path: overlay isn't attached or its slotted content hasn't been
+    // populated yet. Poll until the first menu item shows up, then focus it.
+    focusFirstPopoverItemWhenReady(item);
+}
+
+function focusFirstPopoverItemWhenReady(item, attempt = 0) {
+    const overlay = findOpenPopoverForTarget(item);
+    const first = overlay && overlay.querySelector('vaadin-side-nav-item');
+    if (first) {
+        focusItem(first);
+        return;
+    }
+    if (attempt >= 30) {
+        // ~500ms total — give up silently; user can retry.
+        return;
+    }
+    requestAnimationFrame(() => focusFirstPopoverItemWhenReady(item, attempt + 1));
+}
+
+function findPopoverForTarget(item) {
+    return [...document.querySelectorAll('vaadin-popover')]
+        .find(p => p.target === item) || null;
 }
 
 function moveFocusLeft(item, rail) {
