@@ -173,3 +173,51 @@ test.describe('normal mode — Arrow-Right/Left', () => {
         await expectFocusedPath(page, 'dashboard');
     });
 });
+
+test.describe('rail mode — root navigation + Esc', () => {
+    test('Arrow-Down walks root items only, skipping hidden children', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code');
+
+        // In normal mode this step would depend on expansion, but in rail mode
+        // the nested subtree is skipped even though DOM children exist.
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+    });
+
+    test('Esc closes the auto-opened popover but keeps focus on root', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        // Popover auto-opens on focus because setOpenOnFocus is enabled in rail mode.
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+
+        await page.keyboard.press('Escape');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expectFocusedPath(page, 'code');
+    });
+
+    test('Esc from inside popover closes it and returns focus to root', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'code');
+        // Focus into popover — Task 8 implements Arrow-Right as the keyboard route in.
+        // For now we move focus manually inside the popover and verify Esc behavior.
+        await page.locator('vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"]')
+            .evaluate((el: HTMLElement) => {
+                const a = el.shadowRoot?.querySelector('a') as HTMLElement | null;
+                (a ?? el).focus();
+            });
+        await expectFocusedPath(page, 'code/branches');
+
+        await page.keyboard.press('Escape');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expectFocusedPath(page, 'code');
+    });
+});

@@ -57,6 +57,11 @@ function handleKeydown(event, rail) {
             event.preventDefault();
             moveFocusLeft(item, rail);
             break;
+        case 'Escape':
+            if (handleEscape(item, rail)) {
+                event.preventDefault();
+            }
+            break;
     }
 }
 
@@ -66,16 +71,37 @@ function resolveItem(el) {
 }
 
 function isItemInScope(item, rail) {
-    // For Task 5: only items directly inside the rail tree. Popover scoping
-    // is added in Task 8.
-    return rail.contains(item);
+    if (rail.contains(item)) return true;
+    // Focus inside a popover overlay counts if the popover's target is a rail-root.
+    const overlay = item.closest('vaadin-popover-overlay');
+    if (overlay && overlay.positionTarget && rail.contains(overlay.positionTarget)) {
+        return true;
+    }
+    return false;
+}
+
+function isRailActive(rail) {
+    const theme = rail.getAttribute('theme') || '';
+    return theme.split(/\s+/).includes('rail');
 }
 
 /**
  * Returns all visible items in document order: items whose ancestors are all
  * expanded. Root items of the rail are always visible.
+ *
+ * In rail mode with focus on a root item, we walk root items only — nested
+ * items remain in the DOM but are visually hidden under the rail, so a
+ * sibling walk that descended into them would feel broken (per spec §4.4.2).
  */
-function visibleItems(rail) {
+function visibleItems(rail, target) {
+    const railMode = isRailActive(rail);
+
+    // Rail mode + focus on a root item → walk root items only.
+    if (railMode && target && target.hasAttribute('root-item')) {
+        return [...rail.querySelectorAll(':scope > vaadin-side-nav-item[root-item]')];
+    }
+
+    // Default: visible walk across all items whose ancestors are expanded.
     const all = [...rail.querySelectorAll('vaadin-side-nav-item')];
     return all.filter(item => {
         let parent = item.parentElement;
@@ -90,7 +116,7 @@ function visibleItems(rail) {
 }
 
 function moveFocusSibling(current, rail, direction) {
-    const items = visibleItems(rail);
+    const items = visibleItems(rail, current);
     const idx = items.indexOf(current);
     if (idx < 0) return;
     const next = items[idx + direction];
@@ -140,6 +166,37 @@ function moveFocusLeft(item, rail) {
     if (parent) {
         focusItem(parent);
     }
+}
+
+/**
+ * Handles Escape: closes an open popover and returns focus to the owning
+ * rail-root. Two cases:
+ *   A) focus is inside a popover overlay → close it, focus the position target.
+ *   B) focus is on a rail-root with an open popover → close it, keep focus.
+ * Returns true if the event was handled (caller preventDefaults).
+ */
+function handleEscape(item, rail) {
+    const overlay = item.closest('vaadin-popover-overlay');
+    if (overlay) {
+        const owner = overlay.positionTarget;
+        overlay.opened = false;
+        if (owner) focusItem(owner);
+        return true;
+    }
+    if (item.hasAttribute('root-item')) {
+        const popoverOverlay = findOpenPopoverForTarget(item);
+        if (popoverOverlay) {
+            popoverOverlay.opened = false;
+            focusItem(item);
+            return true;
+        }
+    }
+    return false;
+}
+
+function findOpenPopoverForTarget(rootItem) {
+    return [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
+        .find(o => o.positionTarget === rootItem) || null;
 }
 
 /**
