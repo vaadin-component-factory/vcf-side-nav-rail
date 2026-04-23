@@ -277,3 +277,83 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
         await expectFocusedPath(page, 'code/branches');
     });
 });
+
+test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => {
+    test('Arrow-Right on collapsed nested parent expands it (focus stays)', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        // Wait for auto-opened popover — first run can be slow after server warmup,
+        // and pressing ArrowRight before the overlay is open re-enters the rail-root
+        // branch on the next press instead of expanding the popover item.
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await page.keyboard.press('ArrowRight');  // into popover — focus on Users
+
+        await page.keyboard.press('ArrowRight');
+        const users = page.locator(
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"]');
+        await expect(users).toHaveJSProperty('expanded', true);
+        await expectFocusedPath(page, 'admin/users');
+    });
+
+    test('Arrow-Right on expanded nested parent descends to first child', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await page.keyboard.press('ArrowRight');  // Users
+        await page.keyboard.press('ArrowRight');  // expanded
+        await page.keyboard.press('ArrowRight');  // descend to Active
+
+        await expectFocusedPath(page, 'admin/users/active');
+    });
+
+    test('Arrow-Left on expanded nested parent collapses it', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await page.keyboard.press('ArrowRight');  // Users
+        await page.keyboard.press('ArrowRight');  // Users expanded
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"]'))
+            .toHaveJSProperty('expanded', false);
+        await expectFocusedPath(page, 'admin/users');
+    });
+
+    test('Arrow-Left on nested child focuses popover-parent', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await page.keyboard.press('ArrowRight');  // Users
+        await page.keyboard.press('ArrowRight');  // expanded
+        await page.keyboard.press('ArrowRight');  // on Active
+
+        await page.keyboard.press('ArrowLeft');
+        // Active is a leaf — Arrow-Left moves to popover-parent Users.
+        await expectFocusedPath(page, 'admin/users');
+    });
+
+    test('Arrow-Left on top-level popover item closes popover + focuses rail-root', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await page.locator('#toggle-rail').click();
+
+        await focusItem(page, 'admin');
+        // Wait for auto-opened popover — first run can be slow after server warmup,
+        // and pressing ArrowRight before the overlay is open re-enters the rail-root
+        // branch on the next press instead of expanding the popover item.
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await page.keyboard.press('ArrowRight');  // into popover, on Users (top-level)
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expectFocusedPath(page, 'admin');
+    });
+});

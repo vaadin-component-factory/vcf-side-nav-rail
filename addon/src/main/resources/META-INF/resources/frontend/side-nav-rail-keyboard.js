@@ -228,14 +228,47 @@ function findPopoverForTarget(item) {
 }
 
 function moveFocusLeft(item, rail) {
+    // 1. Expanded item → collapse (applies in rail tree AND inside popover).
     if (item.expanded && hasChildren(item)) {
         item.expanded = false;
         return;
     }
+
+    // 2. Inside a popover: two sub-cases.
+    const overlay = item.closest('vaadin-popover-overlay');
+    if (overlay) {
+        const popoverParent = parentItemWithin(item, overlay);
+        if (popoverParent) {
+            // Nested popover item → focus popover-parent.
+            focusItem(popoverParent);
+            return;
+        }
+        // Top-level popover item → close popover, return focus to owning rail-root.
+        const owner = overlay.positionTarget;
+        overlay.opened = false;
+        if (owner) focusItem(owner);
+        return;
+    }
+
+    // 3. Normal rail tree → parent item.
     const parent = parentItem(item, rail);
     if (parent) {
         focusItem(parent);
     }
+}
+
+/**
+ * Returns the nearest vaadin-side-nav-item ancestor of the given item, stopping at
+ * the given scope (usually a popover overlay). Returns null if the item is already
+ * at the top level of the scope.
+ */
+function parentItemWithin(item, scope) {
+    let p = item.parentElement;
+    while (p && p !== scope) {
+        if (p.localName === 'vaadin-side-nav-item') return p;
+        p = p.parentElement;
+    }
+    return null;
 }
 
 /**
