@@ -154,6 +154,29 @@ test.describe('normal mode — Arrow-Right/Left', () => {
             .toHaveJSProperty('expanded', false);
     });
 
+    test('keyboard-driven collapse does NOT open the popover', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        // Park the mouse somewhere that is definitely not over the nav.
+        await page.mouse.move(0, 0);
+
+        // Expand programmatically to avoid hover side effects.
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+        await focusItem(page, 'code');
+
+        await page.keyboard.press('ArrowLeft');
+
+        // Item collapsed — but no popover must appear; the user is keyboarding,
+        // not hovering with the mouse. This distinguishes Arrow-Left from the
+        // mouse-driven chevron click (which DOES open the popover so the user
+        // keeps access to the children without re-hovering).
+        await expect(page.locator('vaadin-side-nav-item[path="code"]'))
+            .toHaveJSProperty('expanded', false);
+        // Give the expanded-changed round-trip some time even though we expect nothing.
+        await page.waitForTimeout(500);
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+    });
+
     test('Arrow-Left on child moves focus to parent', async ({ page }) => {
         await page.goto('/keyboard-navigation');
 

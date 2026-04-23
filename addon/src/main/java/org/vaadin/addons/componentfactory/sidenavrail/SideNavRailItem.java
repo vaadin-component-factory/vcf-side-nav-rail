@@ -305,9 +305,12 @@ public class SideNavRailItem extends SideNavItem {
      * every inline-expand toggle. Effects:
      * <ul>
      *   <li>expand ➜ the popover is now redundant — {@code applyPopoverGating} closes it;
-     *   <li>collapse ➜ the children are hidden again; since the user's cursor is still
-     *       on the item (they just clicked the toggle), open the popover explicitly.
-     *       Vaadin's hover trigger would otherwise wait for the next {@code mouseenter}.
+     *   <li>collapse ➜ the children are hidden again; if the user's cursor is still
+     *       on the item (they just clicked the chevron), open the popover explicitly
+     *       because Vaadin's hover trigger would otherwise wait for the next
+     *       {@code mouseenter}. The hover guard also distinguishes a mouse collapse
+     *       from a keyboard collapse (Arrow-Left in §9.2) — the latter should not
+     *       pop the popover because the user is deliberately inline-navigating.
      * </ul>
      * The explicit open only fires on a {@code true → false} transition. The event
      * also fires once at initial attach with the same value the item already had;
@@ -336,9 +339,18 @@ public class SideNavRailItem extends SideNavItem {
             applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
 
             if (wasExpanded && !nowExpanded && popover.isOpenOnHover()) {
-                popover.open();
+                // Only auto-open the popover if the mouse is actually over the item.
+                // For keyboard-driven collapse (Arrow-Left) the pointer is elsewhere
+                // and the popover would be an unwanted surprise. Default to true when
+                // the event data is missing — preserves behaviour in Karibu unit tests
+                // that don't simulate the DOM side of the event.
+                boolean stillHovering = !e.getEventData().hasKey("element.matches(':hover')")
+                        || e.getEventData().getBoolean("element.matches(':hover')");
+                if (stillHovering) {
+                    popover.open();
+                }
             }
-        });
+        }).addEventData("element.matches(':hover')");
     }
 
     /**
