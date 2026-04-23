@@ -16,9 +16,11 @@
 
 package org.vaadin.addons.componentfactory.sidenavrail;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -54,6 +56,7 @@ import com.vaadin.flow.shared.Registration;
  * responsive breakpoint handling are the application's concern.
  */
 @CssImport("./side-nav-rail.css")
+@JsModule("./side-nav-rail-keyboard.js")
 public class SideNavRail extends SideNav {
 
     private static final String RAIL_THEME = "rail";
@@ -83,6 +86,18 @@ public class SideNavRail extends SideNav {
      */
     public SideNavRail(String label) {
         super(label);
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // The JS module registers itself on window.vaadinAddonsSideNavRail at
+        // @JsModule import time (see side-nav-rail-keyboard.js). We call the
+        // global directly instead of a dynamic import() because dynamic imports
+        // inside executeJs do not resolve reliably in Vaadin's production bundle.
+        attachEvent.getUI().getPage().executeJs(
+                "window.vaadinAddonsSideNavRail.initKeyboardNavigation($0);",
+                getElement());
     }
 
     /**
