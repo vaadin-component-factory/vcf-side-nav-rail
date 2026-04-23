@@ -16,7 +16,7 @@
 
 ## Implementation status
 
-> **Status (2026-04-22):** MVP + phase 2 + phase 9.1 complete, with a post-§9.1 tooltip-implementation refactor. Reactor `./mvnw clean verify` is green — **67/67** addon unit tests + **24/24** Playwright E2E tests pass.
+> **Status (2026-04-23):** MVP + phase 2 + phase 9.1 complete (incl. post-§9.1 tooltip-implementation refactor), merged into `main`. Reactor `./mvnw clean verify` is green — **67/67** addon unit tests + **25/25** Playwright E2E tests pass.
 >
 > The spec has been updated in-place to reflect the final shape of the code. This plan document is kept as the historical record of *how* the work got there.
 >

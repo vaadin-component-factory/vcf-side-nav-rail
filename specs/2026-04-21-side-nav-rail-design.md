@@ -1,7 +1,7 @@
 # SideNav Rail — Design Spec (MVP, Iteration 1)
 
-**Date:** 2026-04-21
-**Status:** Design, awaiting final user review
+**Date:** 2026-04-21 (design), 2026-04-23 (last sync with implementation)
+**Status:** Implemented through §9.1 (user-facing polish). Live on `main`.
 **Source:** [`initial.md`](./initial.md) (authoritative), customer email PDF (background context, not authoritative)
 **Target platform:** Vaadin 24, Lumo theme
 **License:** Apache 2.0
