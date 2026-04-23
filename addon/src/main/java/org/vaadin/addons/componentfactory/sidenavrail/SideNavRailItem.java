@@ -62,6 +62,11 @@ public class SideNavRailItem extends SideNavItem {
     private boolean expandedListenerWired = false;
     private boolean lastKnownExpanded = false;
 
+    /** Test-only accessor: do not call from production code. */
+    public Popover getPopoverForTesting() {
+        return popover;
+    }
+
     /** Non-navigating container item. Click does nothing; useful as a parent for children. */
     public SideNavRailItem(String label) {
         super(label);
@@ -367,6 +372,8 @@ public class SideNavRailItem extends SideNavItem {
 
         populatePopover();
 
+        popover.addOpenedChangeListener(e -> syncAriaExpanded(e.isOpened()));
+
         if (owner != null) {
             applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
         } else {
@@ -434,15 +441,55 @@ public class SideNavRailItem extends SideNavItem {
         }
     }
 
+    /**
+     * Applies §4.4.5 ARIA attributes: {@code aria-haspopup="menu"} on items with children
+     * while rail mode is active; cleared otherwise. {@code aria-expanded} is seeded to
+     * "false" and then tracked via {@link #syncAriaExpanded(boolean)} as the popover
+     * opens/closes. Package-private — called by {@link SideNavRail#setRailMode(boolean)}.
+     */
+    void applyAriaAttributes(boolean railMode) {
+        boolean hasChildren = !getItems().isEmpty();
+        if (railMode && hasChildren) {
+            getElement().setAttribute("aria-haspopup", "menu");
+            if (!getElement().hasAttribute("aria-expanded")) {
+                getElement().setAttribute("aria-expanded", "false");
+            }
+        } else {
+            getElement().removeAttribute("aria-haspopup");
+            getElement().removeAttribute("aria-expanded");
+        }
+    }
+
+    /**
+     * Updates {@code aria-expanded} to reflect the given popover state. Called from
+     * the popover's {@code opened-changed} listener (see {@link #ensurePopover()}).
+     * Public so tests can drive it directly without the real DOM event; not intended
+     * for production callers.
+     */
+    public void syncAriaExpanded(boolean open) {
+        if (getElement().hasAttribute("aria-haspopup")) {
+            getElement().setAttribute("aria-expanded", String.valueOf(open));
+        }
+    }
+
     private void populatePopover() {
         popover.removeAll();
         renderHeaderIfConfigured();
 
         SideNav nested = new SideNav();
         for (SideNavItem child : getItems()) {
-            nested.addItem(copyOf(child));
+            SideNavItem copy = copyOf(child);
+            tagAsMenuItem(copy);
+            nested.addItem(copy);
         }
         popover.add(nested);
+    }
+
+    private static void tagAsMenuItem(SideNavItem item) {
+        item.getElement().setAttribute("role", "menuitem");
+        for (SideNavItem sub : item.getItems()) {
+            tagAsMenuItem(sub);
+        }
     }
 
     /**

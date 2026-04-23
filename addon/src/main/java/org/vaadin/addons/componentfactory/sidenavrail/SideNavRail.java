@@ -101,6 +101,7 @@ public class SideNavRail extends SideNav {
         }
         updatePopoverGating();
         applyTooltips();
+        applyAriaToRootItems();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -306,6 +307,14 @@ public class SideNavRail extends SideNav {
         }
     }
 
+    private void applyAriaToRootItems() {
+        for (SideNavItem child : getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                rail.applyAriaAttributes(railMode);
+            }
+        }
+    }
+
     /**
      * Sets or clears the tooltip attribute on a single root item based on the current
      * rail-mode, {@link RailTooltipMode}, and native-vs-custom toggle. Always wipes
@@ -361,6 +370,9 @@ public class SideNavRail extends SideNav {
         for (SideNavItem item : items) {
             markAsRootItem(item);
             applyTooltipFor(item);
+            if (item instanceof SideNavRailItem rail) {
+                rail.applyAriaAttributes(railMode);
+            }
         }
     }
 
@@ -376,6 +388,9 @@ public class SideNavRail extends SideNav {
         super.addItemAsFirst(item);
         markAsRootItem(item);
         applyTooltipFor(item);
+        if (item instanceof SideNavRailItem rail) {
+            rail.applyAriaAttributes(railMode);
+        }
     }
 
     static void requireRailItem(SideNavItem item) {
