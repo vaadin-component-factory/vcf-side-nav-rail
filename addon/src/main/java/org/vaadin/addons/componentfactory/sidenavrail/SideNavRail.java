@@ -103,6 +103,7 @@ public class SideNavRail extends SideNav {
         applyTooltips();
         applyAriaToRootItems();
         applyFocusTriggerToRootItems();
+        applyNestedTabindex();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -321,6 +322,25 @@ public class SideNavRail extends SideNav {
             if (child instanceof SideNavRailItem rail) {
                 rail.applyFocusTrigger(railMode);
             }
+        }
+    }
+
+    private void applyNestedTabindex() {
+        for (SideNavItem root : getItems()) {
+            for (SideNavItem nested : root.getItems()) {
+                applyNestedTabindexRecursive(nested);
+            }
+        }
+    }
+
+    private void applyNestedTabindexRecursive(SideNavItem item) {
+        if (railMode) {
+            item.getElement().setAttribute("tabindex", "-1");
+        } else {
+            item.getElement().removeAttribute("tabindex");
+        }
+        for (SideNavItem child : item.getItems()) {
+            applyNestedTabindexRecursive(child);
         }
     }
 
