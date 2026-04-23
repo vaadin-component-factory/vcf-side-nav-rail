@@ -29,7 +29,7 @@ public class KeyboardNavigationView extends VerticalLayout {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
 
-        SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Commits", "/code/commits"));

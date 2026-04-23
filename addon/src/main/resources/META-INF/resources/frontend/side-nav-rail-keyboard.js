@@ -33,8 +33,74 @@ export function initKeyboardNavigation(rail) {
 }
 
 function handleKeydown(event, rail) {
-    // Tasks 5–9 fill in per-key handlers. For Task 4 this is a pure no-op —
-    // the smoke test only verifies the attribute is set after init runs.
+    // document.activeElement lands on the inner <a> of vaadin-side-nav-item, not the
+    // custom element itself. Walk up to the nearest side-nav-item to find our scope.
+    const item = resolveItem(document.activeElement);
+    if (!item || !isItemInScope(item, rail)) {
+        return;
+    }
+
+    switch (event.key) {
+        case 'ArrowDown':
+            event.preventDefault();
+            moveFocusSibling(item, rail, +1);
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            moveFocusSibling(item, rail, -1);
+            break;
+    }
+}
+
+function resolveItem(el) {
+    if (!el || !el.closest) return null;
+    return el.closest('vaadin-side-nav-item');
+}
+
+function isItemInScope(item, rail) {
+    // For Task 5: only items directly inside the rail tree. Popover scoping
+    // is added in Task 8.
+    return rail.contains(item);
+}
+
+/**
+ * Returns all visible items in document order: items whose ancestors are all
+ * expanded. Root items of the rail are always visible.
+ */
+function visibleItems(rail) {
+    const all = [...rail.querySelectorAll('vaadin-side-nav-item')];
+    return all.filter(item => {
+        let parent = item.parentElement;
+        while (parent && parent !== rail) {
+            if (parent.localName === 'vaadin-side-nav-item' && !parent.expanded) {
+                return false;
+            }
+            parent = parent.parentElement;
+        }
+        return true;
+    });
+}
+
+function moveFocusSibling(current, rail, direction) {
+    const items = visibleItems(rail);
+    const idx = items.indexOf(current);
+    if (idx < 0) return;
+    const next = items[idx + direction];
+    if (next) {
+        focusItem(next);
+    }
+    // else: stop at boundary (no-op)
+}
+
+/**
+ * Moves focus to a side-nav-item. Vaadin renders the item's anchor inside the
+ * shadow root, so focusing the custom element directly is a no-op. We have to
+ * reach into shadowRoot to find the <a>. Fall back to the custom element as a
+ * last resort; that shouldn't happen for routed items but keeps us defensive.
+ */
+function focusItem(item) {
+    const anchor = item.shadowRoot?.querySelector('a') || item.querySelector('a');
+    (anchor || item).focus();
 }
 
 // Register as a global so Flow's Page.executeJs can invoke us without a

@@ -1,4 +1,36 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+/**
+ * Helper: focuses the outer <vaadin-side-nav-item> via element.focus(). The
+ * custom element delegates to its inner <a>, so document.activeElement lands
+ * on the anchor. Using page.locator().focus() times out on these elements
+ * because Playwright's focusability probe doesn't detect delegatesFocus well.
+ */
+async function focusItem(page: Page, path: string): Promise<void> {
+    await page.locator(`vaadin-side-nav-item[path="${path}"]`).evaluate(
+        (el: HTMLElement) => {
+            // Vaadin's <vaadin-side-nav-item> renders its anchor inside shadow DOM.
+            // Focusing the custom element itself does not move document.activeElement;
+            // we have to reach into shadowRoot to find the <a>.
+            const anchor = (el.shadowRoot?.querySelector('a')
+                ?? el.querySelector('a')) as HTMLElement | null;
+            (anchor ?? el).focus();
+        });
+}
+
+/**
+ * Assert that the active element resolves (via closest()) to a
+ * vaadin-side-nav-item with the given path attribute.
+ */
+async function expectFocusedPath(page: Page, expected: string): Promise<void> {
+    await expect.poll(async () => {
+        return await page.evaluate(() => {
+            const active = document.activeElement;
+            const item = active?.closest?.('vaadin-side-nav-item');
+            return item ? item.getAttribute('path') : null;
+        });
+    }, { timeout: 5_000 }).toBe(expected);
+}
 
 test.describe('keyboard navigation adapter', () => {
     test('adapter marks the rail as keyboard-ready on attach', async ({ page }) => {
@@ -6,5 +38,72 @@ test.describe('keyboard navigation adapter', () => {
 
         await expect(page.locator('#rail')).toHaveAttribute(
             'data-keyboard-ready', '1', { timeout: 5_000 });
+    });
+});
+
+test.describe('normal mode — Arrow-Up/Down', () => {
+    test('Arrow-Down walks root items in order and stops at end', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await focusItem(page, 'dashboard');
+        await expectFocusedPath(page, 'dashboard');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+
+        // At the last item — stop, don't wrap.
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+    });
+
+    test('Arrow-Up walks backward and stops at first', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        await focusItem(page, 'admin');
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'code');
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'dashboard');
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'dashboard');
+    });
+
+    test('Arrow-Down walks into expanded children (visible subtree)', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        // Expand Code.
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/branches');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/commits');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+    });
+
+    test('Arrow-Down skips collapsed subtrees', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+
+        // Code collapsed by default — children must be skipped.
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code');
+
+        await page.keyboard.press('ArrowDown');
+        // Jumps directly to Admin without visiting code/branches.
+        await expectFocusedPath(page, 'admin');
     });
 });
