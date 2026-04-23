@@ -70,12 +70,33 @@ vaadin-side-nav vaadin-side-nav-item::part(toggle-button) {
   transition:
     opacity
       var(--side-nav-rail-transition-duration)
+      var(--side-nav-rail-transition-easing),
+    width
+      var(--side-nav-rail-transition-duration)
       var(--side-nav-rail-transition-easing);
 }
 
+/*
+ * In rail mode the chevron is invisible *and* takes no layout space: otherwise
+ * the focused anchor (icon-wide) would be followed by a 30px gap where the
+ * hidden chevron still sits, making the focus ring look clipped compared to
+ * leaf items. Collapsing width/padding gives the same focus-ring box for all
+ * rail items. Also drop the content's inline-end padding (which exists to make
+ * room for the chevron in normal mode) so the anchor on parent items stretches
+ * to the same width as leaf items.
+ */
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(toggle-button) {
   opacity: 0;
   pointer-events: none;
+  width: 0;
+  min-width: 0;
+  padding-inline: 0;
+  margin-inline: 0;
+  overflow: hidden;
+}
+
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item::part(content) {
+  padding-inline-end: 0;
 }
 
 /*
