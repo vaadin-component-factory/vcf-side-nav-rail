@@ -1,7 +1,7 @@
 # SideNav Rail — Design Spec (MVP, Iteration 1)
 
 **Date:** 2026-04-21 (design), 2026-04-23 (last sync with implementation)
-**Status:** Implemented through §9.1 (user-facing polish). Live on `main`.
+**Status:** Implemented through §9.1 (user-facing polish). §9.2 (accessibility) in design — branch `phase9.2/accessibility`.
 **Source:** [`initial.md`](./initial.md) (authoritative), customer email PDF (background context, not authoritative)
 **Target platform:** Vaadin 24, Lumo theme
 **License:** Apache 2.0
@@ -309,6 +309,7 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 - Implementation: the Vaadin `Popover` component (Flow), one instance per `SideNavRailItem` that has children, lazily created on first `onAttach`.
 - Target: the root element of the associated `SideNavRailItem`.
 - Trigger: `setOpenOnHover(true)` gated by `applyPopoverGating(mode, railMode)`; re-evaluated on rail-mode toggle, popover-mode change, and the item's `expanded-changed` DOM event. When the gate flips to ineligible while the popover is open, `popover.close()` is called so it disappears immediately.
+- Focus trigger (rail mode only): with §9.2 the popover additionally opens on keyboard focus of its target root item (`setOpenOnFocus(true)`). Outside rail mode, focus-triggered opening is not used (popovers stay hover-only in normal mode, consistent with the inline-expand UX). See [§4.4.4](#444-focus-entry-and-exit).
 - Timing: default `setHoverDelay(200)`, `setHideDelay(300)` (Lumo-typical). Configurable at the nav level via `SideNavRail.setPopoverHoverDelay(int)` and `setPopoverHideDelay(int)` — new values propagate to every existing popover immediately and seed new ones created after the change.
 - Position: default `PopoverPosition.END_TOP` (top-aligned, to the inline-end of the item). Configurable via `SideNavRail.setPopoverPosition(PopoverPosition)` — new values propagate live to existing popovers, and any non-null `PopoverPosition` value is accepted (rails pinned to the inline-end of a layout typically use `START_TOP`, etc.).
 - Overlay role: `setOverlayRole("menu")`.
@@ -323,12 +324,75 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 - Inline expansion state of individual items is left untouched; in rail mode it is only suppressed visually via CSS, and is restored to its previous state when `setRailMode(false)` is called.
 - Re-attach case: on component reuse or navigation, `isRailMode()` retains its last server-side value — no automatic reset.
 
+### 4.4 Keyboard navigation
+
+The rail is fully keyboard-navigable in both modes. Arrow keys drive focus and expand/collapse; Tab stays functional as a conservative fallback (walks root items; nested children follow DOM order — Vaadin default). The implementation lives in a small client-side JS module (`frontend/side-nav-rail-keyboard.js`) that installs one delegated `keydown` listener on the `<vaadin-side-nav>` root. No custom web component, no new Java API.
+
+**Rationale for client-side handling.** Keyboard navigation must feel immediate; a Flow server-roundtrip per arrow-key press introduces unacceptable latency. The JS adapter is event-handler glue only — it does not define new custom elements and does not replace any Vaadin component. See [§9.6](#96-explicitly-not-planned) for the boundary.
+
+**Focus-stop at list boundaries** (no wrap). Consistent behaviour between root-level and nested-level arrow navigation matters more than WAI-ARIA menubar's wrap convention — users mentally model "arrow keys walk within the current level".
+
+**Arrow-key handling short-circuits the browser's default scroll** via `preventDefault()` only when focus is inside the nav. Normal page scrolling via wheel, Space, Page-Up/Down, etc. stays unaffected.
+
+#### 4.4.1 Normal mode (rail off)
+
+Focus on any `vaadin-side-nav-item`:
+
+| Key | Action |
+|---|---|
+| Arrow-Down | Move focus to next **visible** item (skips collapsed subtrees). Stop at last. |
+| Arrow-Up | Move focus to previous visible item. Stop at first. |
+| Arrow-Right | If item has children and is collapsed: expand. If already expanded: move focus to first child. Else (leaf): no-op. |
+| Arrow-Left | If item is expanded: collapse. Else (collapsed or leaf): move focus to parent item. At top level: no-op. |
+| Enter / Space | Activate link (native browser behaviour on `<a href="…">`). |
+
+"Visible items" = items whose ancestors are all expanded. Collapsed subtrees are skipped from the arrow-key walk.
+
+#### 4.4.2 Rail mode — focus on a root item
+
+| Key | Action |
+|---|---|
+| Arrow-Down | Next root item. Stop at last. |
+| Arrow-Up | Previous root item. Stop at first. |
+| Arrow-Right | Universal "into the popover": open popover if closed, then move focus to first popover menu item. |
+| Arrow-Left | No-op (no parent above a root item). |
+| Enter / Space | Activate link (native). |
+| Esc | Close popover if open. Focus stays on root item. |
+
+Popover auto-opens on focus (`Popover.setOpenOnFocus(true)` — see §4.2). Arrow-Right on a first-focus therefore typically moves focus into an already-open popover. If the user closed the popover with Esc, Arrow-Right reopens it.
+
+#### 4.4.3 Rail mode — focus inside a popover
+
+| Key | Action |
+|---|---|
+| Arrow-Down | Next popover menu item at the current level. Stop at last. |
+| Arrow-Up | Previous popover menu item at the current level. Stop at first. |
+| Arrow-Right | If item has sub-items and is collapsed: expand. If expanded: move focus to first sub-item. Else (leaf): no-op. |
+| Arrow-Left | If item's sub-items are expanded: collapse. Else if the item is nested: move focus to its popover-parent. Else (top level of the popover): close popover and return focus to the owning rail-root item (flow-preserving alternative to Esc). |
+| Enter / Space | Activate link (native). |
+| Esc | Close popover and return focus to rail-root item. Always works at any depth — "panic key" guarantee. |
+
+#### 4.4.4 Focus entry and exit
+
+- **Mouse click / hover** on a rail-root: unchanged. Popover opens on hover; focus is not moved.
+- **Tab onto a rail-root**: focus lands on the item, popover auto-opens via `setOpenOnFocus`. Focus stays on the item (Arrow-Right moves it in).
+- **Tab-away from a rail-root** with an open popover: popover closes (Vaadin's `closeOnFocusOut` default).
+- **Tab from inside a popover**: focus moves to the next element in document order (typically the next rail-root item); popover closes.
+
+#### 4.4.5 ARIA attributes
+
+- `<vaadin-side-nav>` root role: unchanged — Vaadin's default `role="navigation"` (Landmark). We deliberately do **not** switch to `role="menubar"`: that would alter screen-reader announcements for every SideNav user of the component and lock us into stricter WAI-ARIA menubar semantics (which we don't fully match — e.g., `menubar` prescribes wrap on arrow navigation).
+- Root items with children, while rail mode is active: `aria-haspopup="menu"` + `aria-expanded` synchronized with the popover's open/close state. Both attributes are cleared on leaving rail mode.
+- Popover overlay: `role="menu"` is already set on the overlay (see §4.2). Popover menu items receive `role="menuitem"` via the client adapter.
+- Active route: `aria-current="page"` — Vaadin sets this natively on route matches; no additional work.
+
 ## 5. Styling
 
 ### 5.1 Marker attributes
 
 - `theme="rail"` on the `<vaadin-side-nav>` root marks rail mode. We deliberately do **not** use `[collapsed]` — the latter is already owned by Vaadin's native label-collapse feature (active when `SideNav.setCollapsible(true)` and the user clicks the header).
 - `[root-item]` on a `<vaadin-side-nav-item>` marks a direct child of the rail (top-level navigation). The addon sets the attribute automatically in `SideNavRail.addItem` / `addItemAsFirst` and does not style it itself — it is a hook for consumer CSS that wants to distinguish root items from nested ones. Typical use (e.g. for the active-descendant indicator in [§9.1](#91-phase-2--user-facing-polish)):
+- `aria-haspopup="menu"` and `aria-expanded` on root items with children while rail mode is active (see [§4.4.5](#445-aria-attributes)). Both are addon-managed: set on rail-mode enter + popover open/close, cleared on rail-mode exit. They are not public styling hooks but are documented here as observable DOM state for testing and assistive-tech debugging.
 
   ```css
   /* highlight the root item's icon when any descendant route is active */
@@ -539,10 +603,14 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 
 ### 9.2 Phase 2 — accessibility
 
-- Keyboard navigation in rail mode (Tab, arrow keys, Esc closes popover).
-- Correct ARIA roles and attributes (`aria-haspopup`, `aria-expanded`).
-- Screen reader labels for items in rail mode.
-- Focus management on popover open/close.
+Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviour and [§4.4.5](#445-aria-attributes) for ARIA.
+
+- ~~Keyboard navigation in rail mode (Tab, arrow keys, Esc closes popover).~~ **Designed** as full keyboard navigation in **both** modes (normal + rail). Arrow-Up/Down walks the current level (stop at boundaries), Arrow-Right expands or moves into sub-items / popover, Arrow-Left collapses or returns. Tab is preserved as a conservative fallback. See [§4.4](#44-keyboard-navigation).
+- ~~Correct ARIA roles and attributes (`aria-haspopup`, `aria-expanded`).~~ **Designed** — addon-managed on root items while rail mode is active, cleared on exit. `role="navigation"` (the Vaadin default) is kept over `role="menubar"` to avoid altering screen-reader announcements for existing users. See [§4.4.5](#445-aria-attributes) and [§5.1](#51-marker-attributes).
+- ~~Screen reader labels for items in rail mode.~~ **Covered by the existing DOM:** labels stay in the item DOM (collapsed to `max-width: 0`, not `display: none` — see [§5.2](#52-css-module)), so screen readers still announce them. Verified as part of keyboard-nav E2E tests; no Java API added.
+- ~~Focus management on popover open/close.~~ **Designed** — see [§4.4.4](#444-focus-entry-and-exit). Popover auto-opens on focus, closes on focus-out (Vaadin default `closeOnFocusOut`); Esc returns focus to the rail-root. Arrow-Right moves focus into the popover; Arrow-Left at popover top level exits it.
+
+**Implementation approach:** a new client-side JS module `frontend/side-nav-rail-keyboard.js` with one delegated `keydown` listener on the `<vaadin-side-nav>` root. No new Java API, no custom web component — see [§9.6](#96-explicitly-not-planned) for the boundary.
 
 ### 9.3 Phase 2 — touch/mobile
 
@@ -566,7 +634,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 - Built-in collapse button (`initial.md`: *"The collapsible side nav will not automatically add a collapse button"*).
 - Auto-collapse on viewport resize.
 - Auto-hide like the `AppLayout` drawer.
-- A custom TypeScript / web component — stays pure Java + CSS.
+- A custom TypeScript / web component — stays pure Java + CSS. The keyboard adapter introduced for [§9.2](#92-phase-2--accessibility) is a small event-handler JS module (`side-nav-rail-keyboard.js`), not a custom element; it registers delegated listeners on the stock `<vaadin-side-nav>` and does not replace any Vaadin component.
 
 ## 10. Verified during implementation
 
