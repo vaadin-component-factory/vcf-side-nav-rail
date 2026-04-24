@@ -485,13 +485,22 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Updates {@code aria-expanded} to reflect the given popover state. Called from
-     * the popover's {@code opened-changed} listener (see {@link #ensurePopover()}).
-     * Public so tests can drive it directly without the real DOM event; not intended
-     * for production callers.
+     * Updates {@code aria-expanded} to reflect the given popover state, and
+     * re-applies {@code aria-haspopup="menu"}. Called from the popover's
+     * {@code opened-changed} listener (see {@link #ensurePopover()}).
+     *
+     * <p>The {@code aria-haspopup="menu"} re-apply is needed because the stock
+     * {@code <vaadin-side-nav-item>} web component overwrites the attribute to
+     * the generic {@code "true"} whenever the popover opens or closes. Our
+     * §4.4.5 contract mandates the more specific {@code "menu"} value, so we
+     * put it back on every transition.
+     *
+     * <p>Public so tests can drive it directly without the real DOM event; not
+     * intended for production callers.
      */
     public void syncAriaExpanded(boolean open) {
         if (getElement().hasAttribute("aria-haspopup")) {
+            getElement().setAttribute("aria-haspopup", "menu");
             getElement().setAttribute("aria-expanded", String.valueOf(open));
         }
     }

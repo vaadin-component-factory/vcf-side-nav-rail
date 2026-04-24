@@ -29,7 +29,40 @@ export function initKeyboardNavigation(rail) {
     }
     ATTACHED.add(rail);
     document.addEventListener('keydown', (e) => handleKeydown(e, rail), true);
+    installHaspopupGuard(rail);
     rail.setAttribute('data-keyboard-ready', '1');
+}
+
+/**
+ * Guards `aria-haspopup="menu"` against Vaadin's internal
+ * `<vaadin-side-nav-item>` render logic, which otherwise overrides the value
+ * back to the generic `"true"` whenever its popover opens. §4.4.5 of the
+ * design spec mandates the specific `"menu"` value, so we re-apply it from a
+ * MutationObserver each time we see a foreign override in rail mode.
+ *
+ * @param {HTMLElement} rail — the <vaadin-side-nav> root element
+ */
+function installHaspopupGuard(rail) {
+    const obs = new MutationObserver((muts) => {
+        for (const m of muts) {
+            if (m.type !== 'attributes' || m.attributeName !== 'aria-haspopup') continue;
+            const target = m.target;
+            if (!(target instanceof Element) || target.localName !== 'vaadin-side-nav-item') continue;
+            // Only touch rail-mode root items our Java side marked — the
+            // presence of the attribute is the marker (applyAriaAttributes
+            // removes it on rail-off).
+            if (!target.hasAttribute('aria-haspopup')) continue;
+            if (target.getAttribute('aria-haspopup') !== 'menu') {
+                target.setAttribute('aria-haspopup', 'menu');
+            }
+        }
+    });
+    // Observe the whole rail subtree so newly-added root items are covered too.
+    obs.observe(rail, {
+        attributes: true,
+        attributeFilter: ['aria-haspopup'],
+        subtree: true,
+    });
 }
 
 function handleKeydown(event, rail) {
