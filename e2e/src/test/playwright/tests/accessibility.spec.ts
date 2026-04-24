@@ -111,4 +111,28 @@ test.describe('rail on, popover open (Code)', () => {
         await expect(overlay).toHaveCount(1);
         await expect(overlay).toHaveAttribute('role', 'menu');
     });
+
+    test('rail on, popover open (Code) — flat children have role=menuitem', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        await focusRailItem(page, 'code');
+        const overlay = page.locator('vaadin-popover-overlay[opened]');
+        await expect(overlay).toHaveCount(1);
+
+        // Locators MUST be scoped to the overlay: the rail DOM still contains
+        // these items with tabindex="-1" and no role, so an unscoped selector
+        // could hit the wrong copy and produce a false green.
+        for (const path of ['code/branches', 'code/commits']) {
+            const item = overlay.locator(`vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveCount(1);
+            await expect(item).toHaveAttribute('role', 'menuitem');
+        }
+
+        // The Code root itself is the popover's target and is NOT duplicated
+        // inside the overlay — verify the overlay does not contain it.
+        await expect(
+            overlay.locator('vaadin-side-nav-item[path="code"]')
+        ).toHaveCount(0);
+    });
 });
