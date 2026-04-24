@@ -44,13 +44,14 @@ export function initKeyboardNavigation(rail) {
  */
 function installHaspopupGuard(rail) {
     const obs = new MutationObserver((muts) => {
+        // Only guard while rail mode is active — in normal mode Vaadin's
+        // native aria-haspopup="true" on parent items is the expected value
+        // and we must not override it.
+        if (!isRailActive(rail)) return;
         for (const m of muts) {
             if (m.type !== 'attributes' || m.attributeName !== 'aria-haspopup') continue;
             const target = m.target;
             if (!(target instanceof Element) || target.localName !== 'vaadin-side-nav-item') continue;
-            // Only touch rail-mode root items our Java side marked — the
-            // presence of the attribute is the marker (applyAriaAttributes
-            // removes it on rail-off).
             if (!target.hasAttribute('aria-haspopup')) continue;
             if (target.getAttribute('aria-haspopup') !== 'menu') {
                 target.setAttribute('aria-haspopup', 'menu');

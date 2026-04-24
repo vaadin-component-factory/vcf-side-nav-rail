@@ -499,10 +499,18 @@ public class SideNavRailItem extends SideNavItem {
      * intended for production callers.
      */
     public void syncAriaExpanded(boolean open) {
-        if (getElement().hasAttribute("aria-haspopup")) {
-            getElement().setAttribute("aria-haspopup", "menu");
-            getElement().setAttribute("aria-expanded", String.valueOf(open));
+        // Only relevant while the owning rail is in rail mode. Using the
+        // mode as the gate (rather than "aria-haspopup is present") matters
+        // because the stock <vaadin-side-nav-item> natively sets
+        // aria-haspopup="true" on any parent item, even in normal mode —
+        // gating on the attribute's mere presence would flip the value
+        // to "menu" in normal mode, which §4.1 forbids.
+        SideNavRail owner = findOwnerRail();
+        if (owner == null || !owner.isRailMode()) {
+            return;
         }
+        getElement().setAttribute("aria-haspopup", "menu");
+        getElement().setAttribute("aria-expanded", String.valueOf(open));
     }
 
     private void populatePopover() {
