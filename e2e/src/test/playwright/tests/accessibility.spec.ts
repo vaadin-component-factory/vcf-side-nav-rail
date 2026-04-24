@@ -25,4 +25,18 @@ test.describe('rail off — baseline', () => {
             await expect(item).not.toHaveAttribute('aria-expanded', /.*/);
         }
     });
+
+    test('rail off — nested items have no tabindex', async ({ page }) => {
+        await page.goto('/accessibility');
+
+        const nestedPaths = [
+            'code/branches', 'code/commits',
+            'admin/users', 'admin/users/active', 'admin/users/archived',
+            'admin/roles',
+        ];
+        for (const path of nestedPaths) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).not.toHaveAttribute('tabindex', /.*/);
+        }
+    });
 });
