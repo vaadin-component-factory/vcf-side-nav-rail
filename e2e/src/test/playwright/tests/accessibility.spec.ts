@@ -168,3 +168,21 @@ test.describe('rail on, popover open (Admin)', () => {
         ).toHaveCount(0);
     });
 });
+
+test.describe('popover close — aria-expanded resets', () => {
+    test('popover closed again — aria-expanded returns to false', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        await focusRailItem(page, 'code');
+        const overlay = page.locator('vaadin-popover-overlay[opened]');
+        await expect(overlay).toHaveCount(1);
+
+        await page.keyboard.press('Escape');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+
+        const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
+        await expect(code).toHaveAttribute('aria-expanded', 'false');
+        await expect(code).toHaveAttribute('aria-haspopup', 'menu');
+    });
+});
