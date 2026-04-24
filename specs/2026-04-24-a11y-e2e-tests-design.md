@@ -37,8 +37,9 @@ All assertions are made against the rendered DOM via Playwright locators. Select
 
 Initial state after navigating to `/accessibility`:
 
-- Root items (`Dashboard`, `Code`, `Admin`) have **no** `aria-haspopup` attribute.
-- Root items have **no** `aria-expanded` attribute.
+- **Leaf root** (`Dashboard`): has **no** `aria-haspopup` attribute and **no** `aria-expanded` attribute.
+- **Parent roots** (`Code`, `Admin`): may carry `aria-haspopup="true"` — the stock `<vaadin-side-nav-item>` web component sets this natively whenever an item has children, and we cannot (and should not) fight it in normal mode. What we assert is the *negative*: the value is **not** `"menu"` in normal mode. `"menu"` is the addon's rail-mode-specific override (see §4.2), and its presence outside rail mode would be a regression.
+- Parent roots have **no** `aria-expanded` attribute (Vaadin does not set it; the addon only sets it in rail mode).
 - Nested items (`Branches`, `Commits`, `Users`, `Active`, `Archived`, `Roles`) have **no** `tabindex` attribute. (The §9.2 implementation `removeAttribute("tabindex")` on rail-off, and never sets one in normal mode.)
 
 ### 4.2 Rail mode on — popover closed
@@ -81,7 +82,7 @@ After closing the popover by pressing `Escape` (deterministic; focus-out also cl
 
 After clicking `#toggle-rail` a second time:
 
-- `Code` and `Admin` no longer have `aria-haspopup` or `aria-expanded` (attributes removed, not just set to empty).
+- `Code` and `Admin` no longer have `aria-haspopup="menu"` — the addon's override is removed. Vaadin may re-apply its native `"true"` value (see §4.1); what matters is the *negative*: the value is not `"menu"` after rail-off. Same for `aria-expanded`: the addon does not carry it outside rail mode.
 - Nested items no longer have `tabindex="-1"`.
 
 ### 4.6 Rail mode toggled back on — re-apply
