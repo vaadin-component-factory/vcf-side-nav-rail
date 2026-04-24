@@ -150,6 +150,27 @@ vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
 }
 
 /*
+ * Bump the abbreviation letter to match the visual weight of the Lumo icons
+ * around it. The avatar itself keeps its LUMO_SMALL 24x24 size; only the
+ * letter inside is scaled up via the abbr SVG's font-size.
+ */
+vaadin-avatar.side-nav-rail-letter-avatar::part(abbr) {
+  font-size: var(--lumo-font-size-l);
+}
+
+/*
+ * When the item (or any descendant) is the current route, tint the letter with
+ * the Lumo primary color — matches the behaviour of real Lumo icons, which
+ * inherit the primary color via :host([current]) in the base theme. The SVG
+ * text inside the avatar's abbr part uses fill:currentColor, so setting color
+ * on the ::part(abbr) element propagates to the glyph.
+ */
+vaadin-side-nav-item[current] > vaadin-avatar.side-nav-rail-letter-avatar::part(abbr),
+vaadin-side-nav-item:has([current]) > vaadin-avatar.side-nav-rail-letter-avatar::part(abbr) {
+  color: var(--lumo-primary-color);
+}
+
+/*
  * Rail-mode tooltip. Pure CSS — a ::after pseudo-element on the item, fed by the
  * data-rail-tooltip attribute that SideNavRail sets based on RailTooltipMode. We
  * deliberately don't use Vaadin's tooltip here: vaadin-tooltip-mixin auto-dismisses

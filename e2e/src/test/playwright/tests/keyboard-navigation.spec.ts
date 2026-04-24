@@ -275,7 +275,12 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
         await page.locator('#toggle-rail').click();
 
         await focusItem(page, 'code');
+        // Wait until the auto-open popover is visible — pressing ArrowRight before
+        // the overlay has populated would make the adapter fall through to the
+        // rail-root reopen path and lose focus context.
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
         await page.keyboard.press('ArrowRight');  // now on Branches
+        await expectFocusedPath(page, 'code/branches');
 
         await page.keyboard.press('ArrowDown');
         await expectFocusedPath(page, 'code/commits');
@@ -290,8 +295,11 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
         await page.locator('#toggle-rail').click();
 
         await focusItem(page, 'code');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
         await page.keyboard.press('ArrowRight');     // Branches
+        await expectFocusedPath(page, 'code/branches');
         await page.keyboard.press('ArrowDown');      // Commits
+        await expectFocusedPath(page, 'code/commits');
 
         await page.keyboard.press('ArrowUp');
         await expectFocusedPath(page, 'code/branches');
@@ -305,7 +313,9 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
         await page.locator('#toggle-rail').click();
 
         await focusItem(page, 'admin');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
         await page.keyboard.press('ArrowRight');  // into popover — on Users
+        await expectFocusedPath(page, 'admin/users');
         await page.keyboard.press('ArrowRight');  // Users expanded; focus still on Users
 
         // Arrow-Down from an expanded Users should descend into its first child
