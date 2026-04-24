@@ -220,3 +220,30 @@ test.describe('rail toggled off — cleanup', () => {
         }
     });
 });
+
+test.describe('rail off → on again — re-apply', () => {
+    test('rail off → on again — contracts re-apply', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click(); // on
+        await page.locator('#toggle-rail').click(); // off
+        await page.locator('#toggle-rail').click(); // on again
+
+        // Roots with children: ARIA restored
+        for (const path of ['code', 'admin']) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).toHaveAttribute('aria-expanded', 'false');
+        }
+
+        // Nested items: tabindex restored
+        const nestedPaths = [
+            'code/branches', 'code/commits',
+            'admin/users', 'admin/users/active', 'admin/users/archived',
+            'admin/roles',
+        ];
+        for (const path of nestedPaths) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveAttribute('tabindex', '-1');
+        }
+    });
+});
