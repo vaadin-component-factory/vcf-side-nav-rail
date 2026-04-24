@@ -40,3 +40,22 @@ test.describe('rail off — baseline', () => {
         }
     });
 });
+
+test.describe('rail on, popover closed', () => {
+    test('rail on, popover closed — roots with children get aria-haspopup=menu, leaf untouched', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        // Roots with children
+        for (const path of ['code', 'admin']) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).toHaveAttribute('aria-expanded', 'false');
+        }
+
+        // Leaf
+        const dashboard = page.locator('#rail vaadin-side-nav-item[path="dashboard"]');
+        await expect(dashboard).not.toHaveAttribute('aria-haspopup', /.*/);
+        await expect(dashboard).not.toHaveAttribute('aria-expanded', /.*/);
+    });
+});
