@@ -186,3 +186,21 @@ test.describe('popover close — aria-expanded resets', () => {
         await expect(code).toHaveAttribute('aria-haspopup', 'menu');
     });
 });
+
+test.describe('rail toggled off — cleanup', () => {
+    test('rail toggled off — aria-haspopup="menu" / aria-expanded="true" cleared', async ({ page }) => {
+        // §4.5: after rail-off, the addon's rail-mode-specific "menu"
+        // override must be gone. Vaadin may still carry its native
+        // aria-haspopup="true" / aria-expanded="false" on parents — we
+        // only assert the negative (no "menu" / no "true").
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click(); // on
+        await page.locator('#toggle-rail').click(); // off again
+
+        for (const path of ['code', 'admin']) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).not.toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).not.toHaveAttribute('aria-expanded', 'true');
+        }
+    });
+});
