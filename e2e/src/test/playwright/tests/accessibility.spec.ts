@@ -87,3 +87,28 @@ test.describe('rail on, popover closed', () => {
         }
     });
 });
+
+test.describe('rail on, popover open (Code)', () => {
+    test('rail on, popover open (Code) — aria-expanded=true on focused root', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        await focusRailItem(page, 'code');
+        // Popover auto-opens on focus in rail mode (setOpenOnFocus=true).
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(1);
+
+        const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
+        await expect(code).toHaveAttribute('aria-expanded', 'true');
+        await expect(code).toHaveAttribute('aria-haspopup', 'menu');
+    });
+
+    test('rail on, popover open (Code) — overlay has role=menu', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        await focusRailItem(page, 'code');
+        const overlay = page.locator('vaadin-popover-overlay[opened]');
+        await expect(overlay).toHaveCount(1);
+        await expect(overlay).toHaveAttribute('role', 'menu');
+    });
+});
