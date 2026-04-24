@@ -16,13 +16,26 @@ async function focusRailItem(page: Page, path: string): Promise<void> {
 }
 
 test.describe('rail off — baseline', () => {
-    test('rail off — roots have no aria-haspopup / aria-expanded', async ({ page }) => {
+    test('rail off — leaf root has no aria-haspopup / aria-expanded', async ({ page }) => {
         await page.goto('/accessibility');
 
-        for (const path of ['dashboard', 'code', 'admin']) {
+        const dashboard = page.locator('#rail vaadin-side-nav-item[path="dashboard"]');
+        await expect(dashboard).not.toHaveAttribute('aria-haspopup', /.*/);
+        await expect(dashboard).not.toHaveAttribute('aria-expanded', /.*/);
+    });
+
+    test('rail off — parent roots have no aria-haspopup="menu" and no aria-expanded="true"', async ({ page }) => {
+        // Vaadin's <vaadin-side-nav-item> natively sets aria-haspopup="true"
+        // AND aria-expanded="false" on items with children, regardless of
+        // rail mode. We cannot fight those in normal mode; we only assert
+        // the negative — the addon's rail-mode-specific "menu" / "true"
+        // values must NOT be present outside rail mode.
+        await page.goto('/accessibility');
+
+        for (const path of ['code', 'admin']) {
             const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
-            await expect(item).not.toHaveAttribute('aria-haspopup', /.*/);
-            await expect(item).not.toHaveAttribute('aria-expanded', /.*/);
+            await expect(item).not.toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).not.toHaveAttribute('aria-expanded', 'true');
         }
     });
 
