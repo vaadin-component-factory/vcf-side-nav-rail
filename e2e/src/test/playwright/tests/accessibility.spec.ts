@@ -58,4 +58,19 @@ test.describe('rail on, popover closed', () => {
         await expect(dashboard).not.toHaveAttribute('aria-haspopup', /.*/);
         await expect(dashboard).not.toHaveAttribute('aria-expanded', /.*/);
     });
+
+    test('rail on, popover closed — nested items have tabindex=-1', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        const nestedPaths = [
+            'code/branches', 'code/commits',
+            'admin/users', 'admin/users/active', 'admin/users/archived',
+            'admin/roles',
+        ];
+        for (const path of nestedPaths) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveAttribute('tabindex', '-1');
+        }
+    });
 });
