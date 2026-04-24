@@ -154,7 +154,7 @@ vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
  * around it. The avatar itself keeps its LUMO_SMALL 24x24 size; only the
  * letter inside is scaled up via the abbr SVG's font-size.
  */
-vaadin-avatar.side-nav-rail-letter-avatar::part(abbr) {
+vaadin-avatar.side-nav-rail-letter-avatar {
   font-size: var(--lumo-font-size-l);
 }
 
