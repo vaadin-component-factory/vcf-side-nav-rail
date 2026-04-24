@@ -203,4 +203,20 @@ test.describe('rail toggled off — cleanup', () => {
             await expect(item).not.toHaveAttribute('aria-expanded', 'true');
         }
     });
+
+    test('rail toggled off — tabindex cleared', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click(); // on
+        await page.locator('#toggle-rail').click(); // off again
+
+        const nestedPaths = [
+            'code/branches', 'code/commits',
+            'admin/users', 'admin/users/active', 'admin/users/archived',
+            'admin/roles',
+        ];
+        for (const path of nestedPaths) {
+            const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).not.toHaveAttribute('tabindex', /.*/);
+        }
+    });
 });
