@@ -136,3 +136,35 @@ test.describe('rail on, popover open (Code)', () => {
         ).toHaveCount(0);
     });
 });
+
+test.describe('rail on, popover open (Admin)', () => {
+    test('rail on, popover open (Admin) — deeply nested children have role=menuitem', async ({ page }) => {
+        await page.goto('/accessibility');
+        await page.locator('#toggle-rail').click();
+
+        await focusRailItem(page, 'admin');
+        const overlay = page.locator('vaadin-popover-overlay[opened]');
+        await expect(overlay).toHaveCount(1);
+        await expect(overlay).toHaveAttribute('role', 'menu');
+
+        // role="menuitem" is applied recursively at populate time by
+        // SideNavRailItem.tagAsMenuItem() — expansion state of `users` does
+        // not matter for this assertion.
+        const nestedPaths = [
+            'admin/users',
+            'admin/users/active',
+            'admin/users/archived',
+            'admin/roles',
+        ];
+        for (const path of nestedPaths) {
+            const item = overlay.locator(`vaadin-side-nav-item[path="${path}"]`);
+            await expect(item).toHaveCount(1);
+            await expect(item).toHaveAttribute('role', 'menuitem');
+        }
+
+        // Admin root itself is not duplicated into the overlay.
+        await expect(
+            overlay.locator('vaadin-side-nav-item[path="admin"]')
+        ).toHaveCount(0);
+    });
+});
