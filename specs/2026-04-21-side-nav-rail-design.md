@@ -614,8 +614,7 @@ Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviou
 
 ### 9.3 Phase 2 — touch/mobile
 
-- Touch behaviour (no hover trigger).
-- Either tap-to-open or an explicit desktop-only declaration.
+~~Touch behaviour (no hover trigger). Either tap-to-open or an explicit desktop-only declaration.~~ **Dropped** — not part of the original customer requirements (`initial.md`), and `AppLayout` remains the recommended approach for mobile navigation. Moved to [§9.6](#96-explicitly-not-planned).
 
 ### 9.4 Phase 2 — tests
 
@@ -634,6 +633,7 @@ Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviou
 - Built-in collapse button (`initial.md`: *"The collapsible side nav will not automatically add a collapse button"*).
 - Auto-collapse on viewport resize.
 - Auto-hide like the `AppLayout` drawer.
+- Touch/mobile adaptations (tap-to-open, no-hover variant). Not in `initial.md`; `AppLayout` remains the recommended mobile-navigation approach. Moved here from [§9.3](#93-phase-2--touchmobile).
 - A custom TypeScript / web component — stays pure Java + CSS. The keyboard adapter introduced for [§9.2](#92-phase-2--accessibility) is a small event-handler JS module (`side-nav-rail-keyboard.js`), not a custom element; it registers delegated listeners on the stock `<vaadin-side-nav>` and does not replace any Vaadin component.
 
 ## 10. Verified during implementation
