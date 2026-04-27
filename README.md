@@ -110,7 +110,24 @@ By default Vaadin's `<vaadin-side-nav-item>` auto-expands when a descendant rout
 rail.setChildrenOnlyInPopover(true);  // default: false
 ```
 
-The chevron toggle on parents is suppressed too, since it would have nothing to reveal in the rail itself. Turning the flag back off restores the default tree appearance with whatever expanded state the items had accumulated.
+The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small Lumo angle-right glyph next to parents. The same indicator appears automatically in **rail mode** for any parent — children there are always popover-only by design, so the cue is always relevant.
+
+Customizable via CSS custom properties:
+
+```css
+vaadin-side-nav {
+    /* glyph: any value valid for CSS `content`, default Lumo angle-right */
+    --side-nav-rail-popover-indicator-content: var(--lumo-icons-angle-right);
+    /* color, default `var(--lumo-tertiary-text-color)` */
+    --side-nav-rail-popover-indicator-color: var(--lumo-tertiary-text-color);
+    /* normal mode size, default `var(--lumo-font-size-l)` */
+    --side-nav-rail-popover-indicator-size: var(--lumo-font-size-l);
+    /* rail mode size, default 0.625rem (kept tiny so the rail does not widen) */
+    --side-nav-rail-popover-indicator-rail-size: 0.625rem;
+}
+```
+
+Turning `setChildrenOnlyInPopover(false)` restores the default tree appearance with whatever expanded state the items had accumulated.
 
 ### Rail-mode tooltip
 

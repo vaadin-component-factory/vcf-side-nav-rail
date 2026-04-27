@@ -112,24 +112,32 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
 }
 
 /*
- * Submenu affordance for popover-only mode in normal mode: the native chevron
- * toggle is hidden (above), but parent items still need a visual cue that
- * hovering reveals more, otherwise they look like ordinary leaf items. A small
- * Lumo angle-right glyph rendered on the host's ::before. Skipped in rail
- * mode — icon-only tiles are too narrow for a chevron, and the icon's hover
- * affordance is already enough to discover the popover.
+ * Submenu affordance: the native chevron toggle is hidden whenever the rail
+ * is in rail mode (above) or in popover-only mode (above). In both cases
+ * parent items would otherwise look like leaf items, so we render a small
+ * Lumo angle-right glyph on the host's ::before. Two flavours:
+ *
+ *   - Normal mode + popover-only       → full-size chevron at label's inline-end.
+ *   - Rail mode (always for parents)   → tiny corner badge; rail mode hides
+ *                                        the inline tree natively, so any
+ *                                        parent's children only live in the
+ *                                        popover regardless of inline-children-
+ *                                        hidden.
  *
  * Uses ::before because ::after is reserved for the rail-mode tooltip, which
- * shares the same host element.
+ * shares the same host element. The chevron is non-interactive
+ * (pointer-events: none) — it is purely visual; the popover itself is the
+ * hover/focus target.
  *
  * Customizable via CSS custom properties:
  *
- *   --side-nav-rail-popover-indicator-content (default: var(--lumo-icons-angle-right))
- *   --side-nav-rail-popover-indicator-color   (default: var(--lumo-tertiary-text-color))
- *   --side-nav-rail-popover-indicator-size    (default: var(--lumo-font-size-l))
+ *   --side-nav-rail-popover-indicator-content   (default: var(--lumo-icons-angle-right))
+ *   --side-nav-rail-popover-indicator-color     (default: var(--lumo-tertiary-text-color))
+ *   --side-nav-rail-popover-indicator-size      (normal mode default: var(--lumo-font-size-l))
+ *   --side-nav-rail-popover-indicator-rail-size (rail mode default:   0.625rem)
  */
-vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
-        vaadin-side-nav-item[has-children] {
+vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item[has-children],
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[has-children] {
     position: relative;
 }
 vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
@@ -142,6 +150,18 @@ vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
     right: var(--lumo-space-s, 0.5rem);
     top: 50%;
     transform: translateY(-50%);
+    line-height: 1;
+    pointer-events: none;
+}
+vaadin-side-nav[theme~="rail"]
+        vaadin-side-nav-item[has-children]::before {
+    content: var(--side-nav-rail-popover-indicator-content, var(--lumo-icons-angle-right));
+    font-family: "lumo-icons";
+    font-size: var(--side-nav-rail-popover-indicator-rail-size, 0.625rem);
+    color: var(--side-nav-rail-popover-indicator-color, var(--lumo-tertiary-text-color));
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
     line-height: 1;
     pointer-events: none;
 }
