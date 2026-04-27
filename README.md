@@ -4,35 +4,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 [![Vaadin Directory](https://img.shields.io/vaadin-directory/v/vcf-side-nav-rail.svg)](https://vaadin.com/directory/component/vcf-side-nav-rail)
 
-## Modes
-
-The rail can be toggled between full-width labels and a compact icon-only column.
-
-![Rail off vs rail on](docs/screenshots/1-modes.png)
-
-## Hover popovers
-
-Items with children expose their submenu through a hover popover. Available in **both** modes — in normal mode the popover sits alongside inline expansion; in rail mode it's the only way to reach the children at all, since the rail itself only shows icons.
-
-![Hover popover, normal vs rail](docs/screenshots/2-popovers.png)
-
-In normal mode you can still expand a parent inline with a click; the popover and inline expansion don't fight each other.
-
 ![Children inline vs in popover](docs/screenshots/3-children.png)
-
-Sub-trees inside the popover behave like a regular `SideNav` — there's no second-level popover. Nested parents expand inline within the popover.
-
-![Nested expansion inside popover](docs/screenshots/4-nested.png)
-
-## Current-page highlighting
-
-The active route is highlighted with the Lumo primary color. In rail mode, the matching root icon picks up the same accent.
-
-![Current root, normal vs rail](docs/screenshots/5-active-root.png)
-
-When the current page is several levels deep, the highlight propagates: in normal mode the chain is auto-expanded down to the leaf; in rail mode the rail-side root carries the indicator and the popover (when open) shows the highlighted leaf.
-
-![Current sub-sub item, normal vs rail](docs/screenshots/6-active-deep.png)
 
 ## Features
 
@@ -82,14 +54,59 @@ Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
 add(toggle, rail);
 ```
 
-## API overview
+## Configuration
 
-- **`SideNavRail`** — the navigation container, an extension of `<vaadin-side-nav>` with rail-mode behaviour layered on top. Configures popover behaviour (`PopoverMode`), tooltip strategy (`RailTooltipMode`), and popover header text (`PopoverParentLabelMode`). Fires `RailModeChangedEvent` on every rail-mode toggle.
-- **`SideNavRailItem`** — type-safe `<vaadin-side-nav-item>` subclass. Constructors accept `(label)`, `(label, path)`, or `(label, path, icon)`. Items can carry an optional `Avatar` instead of an icon.
-- **`PopoverMode`** — controls when popovers render. `ALL_COLLAPSED_ITEMS` (default), `ONLY_ROOT_COLLAPSED_ITEMS`, or `ONLY_RAIL_MODE`.
-- **`PopoverParentLabelMode`** — controls whether the parent's label appears as a header inside the popover (`NONE`, `INLINE`, `BOLD`). Default `NONE`.
-- **`RailTooltipMode`** — controls which root items get a tooltip in rail mode. `NONE`, `ONLY_WITHOUT_CHILDREN`, or `ALL` (default). Use `setRailTooltipNative(true)` to swap the CSS pseudo-element for the browser-native `title` tooltip.
-- **`RailModeChangedEvent`** — `ComponentEvent<SideNavRail>` carrying the new rail-mode boolean.
+The defaults match the customer-requested behaviour of the original `SideNavRail` and need no extra code. Each of the following knobs is opt-in.
+
+### Popover behaviour
+
+`PopoverMode` controls when the hover popover appears for items with children. Three values:
+
+- `ALL_COLLAPSED_ITEMS` (default) — popover for every collapsed parent, regardless of depth or rail mode.
+- `ONLY_ROOT_COLLAPSED_ITEMS` — popover only for direct rail-children that are collapsed; nested levels behave like a stock `SideNav`.
+- `ONLY_RAIL_MODE` — popovers only when rail mode is active; normal mode opens children inline on click.
+
+```java
+rail.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
+```
+
+### Popover header
+
+`PopoverParentLabelMode` controls whether the parent's label appears at the top of its own popover — useful when the popover is the only place that label is visible (rail mode).
+
+```java
+rail.setPopoverParentLabelMode(PopoverParentLabelMode.BOLD);
+// NONE (default), INLINE, BOLD
+```
+
+### Rail-mode tooltip
+
+`RailTooltipMode` decides which rail icons surface their label as a tooltip on hover and on keyboard focus. The tooltip is a CSS pseudo-element that coexists with popovers — use `setRailTooltipNative(true)` to fall back to the browser-native `title` attribute.
+
+```java
+rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
+// NONE, ONLY_WITHOUT_CHILDREN, ALL (default)
+
+rail.setRailTooltipNative(true);  // swap pseudo-element for title attribute
+```
+
+### Reacting to mode changes
+
+`RailModeChangedEvent` fires on every actual `setRailMode(...)` transition (no-ops do not fire). Carries the new boolean.
+
+```java
+rail.addRailModeChangedListener(e ->
+        log.info("rail mode now {}", e.isRailMode()));
+```
+
+### Items without an icon
+
+A `SideNavRailItem` constructed without a prefix component gets a Lumo letter-avatar built from the label automatically (so the rail still has an icon column). Pass any `Component` as prefix to override:
+
+```java
+new SideNavRailItem("Profile", "/profile");                      // → "P" letter-avatar
+new SideNavRailItem("Profile", "/profile", new Avatar("Jane"));  // → custom avatar
+```
 
 Full Javadoc is published with each release alongside the addon JAR.
 
