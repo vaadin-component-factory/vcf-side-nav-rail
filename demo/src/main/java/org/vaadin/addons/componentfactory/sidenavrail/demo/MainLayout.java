@@ -85,7 +85,12 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         nav.addItem(dashboard, code, operate, admin);
 
         Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
-                e -> nav.setRailMode(!nav.isRailMode()));
+                e -> {
+                    boolean railMode = !nav.isRailMode();
+                    nav.setRailMode(railMode);
+                    e.getSource().setIcon((railMode ? VaadinIcon.CHEVRON_RIGHT_SMALL : VaadinIcon.CHEVRON_LEFT_SMALL).create());
+                });
+
 
         VerticalLayout sidebar = new VerticalLayout(toggle, nav);
         sidebar.setPadding(false);
@@ -93,7 +98,6 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         sidebar.setWidth(null);
         sidebar.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
 
-        contentArea.setSizeFull();
         contentArea.getStyle().set("padding", "var(--lumo-space-m)");
 
         HorizontalLayout body = new HorizontalLayout(sidebar, contentArea);
