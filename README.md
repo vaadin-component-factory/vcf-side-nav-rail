@@ -12,7 +12,7 @@ The rail can be toggled between full-width labels and a compact icon-only column
 
 ## Hover popovers
 
-Items with children expose their submenu through a hover popover. Available in **both** modes — in normal mode, alongside inline expansion; in rail mode it's the only way the labels surface.
+Items with children expose their submenu through a hover popover. Available in **both** modes — in normal mode the popover sits alongside inline expansion; in rail mode it's the only way to reach the children at all, since the rail itself only shows icons.
 
 ![Hover popover, normal vs rail](docs/screenshots/2-popovers.png)
 
