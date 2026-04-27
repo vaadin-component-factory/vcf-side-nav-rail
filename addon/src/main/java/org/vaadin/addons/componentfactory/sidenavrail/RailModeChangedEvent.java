@@ -39,7 +39,12 @@ public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
         this.railMode = railMode;
     }
 
-    /** The new rail-mode value after the change. */
+    /**
+     * The new rail-mode value after the change.
+     *
+     * @return {@code true} if the rail just switched into rail mode, {@code false} if
+     *     it switched back to normal mode
+     */
     public boolean isRailMode() {
         return railMode;
     }

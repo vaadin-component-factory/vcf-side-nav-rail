@@ -22,6 +22,7 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.dom.Element;
@@ -62,36 +63,78 @@ public class SideNavRailItem extends SideNavItem {
     private boolean expandedListenerWired = false;
     private boolean lastKnownExpanded = false;
 
-    /** Test-only accessor: do not call from production code. */
+    /**
+     * Test-only accessor: do not call from production code. The popover is created
+     * lazily on first attach for items with children, so this returns {@code null}
+     * before the item is attached or for leaf items.
+     *
+     * @return the underlying {@link Popover}, or {@code null} if none has been created
+     */
     public Popover getPopoverForTesting() {
         return popover;
     }
 
-    /** Non-navigating container item. Click does nothing; useful as a parent for children. */
+    /**
+     * Non-navigating container item. Click does nothing; useful as a parent for children.
+     *
+     * @param label the visible label of the item; may be {@code null} for an unlabelled
+     *     item, in which case the rail-mode letter-avatar fallback is suppressed
+     */
     public SideNavRailItem(String label) {
         super(label);
         wrapLabel();
     }
 
-    /** Item navigating to the given path (server- or client-side route). */
+    /**
+     * Item navigating to the given path (server- or client-side route).
+     *
+     * @param label the visible label of the item; may be {@code null}
+     * @param path the route path the item navigates to on click; may be {@code null}
+     *     for a non-navigating item
+     */
     public SideNavRailItem(String label, String path) {
         super(label, path);
         wrapLabel();
     }
 
-    /** Item navigating to the given Flow route class. */
+    /**
+     * Item navigating to the given Flow route class.
+     *
+     * @param label the visible label of the item; may be {@code null}
+     * @param view the Flow view class the item navigates to on click; must not be
+     *     {@code null}
+     */
     public SideNavRailItem(String label, Class<? extends Component> view) {
         super(label, view);
         wrapLabel();
     }
 
-    /** Item navigating to a path, with a prefix component rendered on the left (typically an icon). */
+    /**
+     * Item navigating to a path, with a prefix component rendered on the left
+     * (typically an icon).
+     *
+     * @param label the visible label of the item; may be {@code null}
+     * @param path the route path the item navigates to on click; may be {@code null}
+     *     for a non-navigating item
+     * @param prefixComponent the component rendered to the left of the label (typically
+     *     a {@code VaadinIcon} or an {@code Avatar}); may be {@code null}, in which
+     *     case the rail-mode letter-avatar fallback kicks in
+     */
     public SideNavRailItem(String label, String path, Component prefixComponent) {
         super(label, path, prefixComponent);
         wrapLabel();
     }
 
-    /** Item navigating to a Flow route class, with a prefix component on the left. */
+    /**
+     * Item navigating to a Flow route class, with a prefix component on the left.
+     *
+     * @param label the visible label of the item; may be {@code null}
+     * @param view the Flow view class the item navigates to on click; must not be
+     *     {@code null}
+     * @param prefixComponent the component rendered to the left of the label (typically
+     *     a {@code VaadinIcon} or an {@code Avatar}); may be {@code null}, in which
+     *     case the rail-mode letter-avatar fallback kicks in
+     */
     public SideNavRailItem(
             String label, Class<? extends Component> view, Component prefixComponent) {
         super(label, view, prefixComponent);
@@ -105,6 +148,8 @@ public class SideNavRailItem extends SideNavItem {
      * it in rail mode, and to refresh the auto-generated letter-avatar fallback (see
      * {@link #ensureLetterAvatar()}) so it matches the new label's first letter.
      * Idempotent across repeated calls.
+     *
+     * @param label the new label text; may be {@code null}
      */
     @Override
     public void setLabel(String label) {
@@ -145,6 +190,10 @@ public class SideNavRailItem extends SideNavItem {
      * letter-avatar fallback (otherwise a user-removed icon would leave the item
      * unmarked in rail mode). Passing a real component (icon, image, …) replaces the
      * avatar as usual — the override is a no-op in that case.
+     *
+     * @param prefix the new prefix component (typically a {@code VaadinIcon} or an
+     *     {@code Avatar}); pass {@code null} to fall back to the auto-generated letter
+     *     avatar
      */
     @Override
     public void setPrefixComponent(Component prefix) {
@@ -161,6 +210,7 @@ public class SideNavRailItem extends SideNavItem {
      * {@link SideNavItem} throws {@link IllegalArgumentException} — nested items need
      * the same label-wrap + popover-gating wiring the parent has.
      *
+     * @param items the {@link SideNavRailItem} children to append below this item
      * @throws IllegalArgumentException if any item is not a {@link SideNavRailItem}
      */
     @Override
@@ -174,6 +224,7 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * {@inheritDoc}
      *
+     * @param item the {@link SideNavRailItem} to prepend below this item
      * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
      *     see {@link #addItem(SideNavItem...)}
      */
@@ -418,6 +469,7 @@ public class SideNavRailItem extends SideNavItem {
         popover.setHoverDelay(hoverDelay);
         popover.setHideDelay(hideDelay);
         popover.setPosition(position);
+        popover.addThemeVariants(PopoverVariant.ARROW);
     }
 
     private SideNavRail findOwnerRail() {

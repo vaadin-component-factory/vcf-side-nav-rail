@@ -117,8 +117,8 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <doclint>none</doclint>
-                    <quiet>true</quiet>
+                    <doclint>all,-missing</doclint>
+                    <failOnWarnings>true</failOnWarnings>
                 </configuration>
                 <executions>
                     <execution>

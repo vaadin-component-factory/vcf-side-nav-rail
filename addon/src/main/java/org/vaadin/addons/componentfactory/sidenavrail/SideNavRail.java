@@ -83,6 +83,9 @@ public class SideNavRail extends SideNav {
      * Creates a rail with a header label. See
      * {@link SideNav#setLabel(String)} for the semantics — the label renders above the
      * item list and can be used to group multiple {@code SideNav} instances visually.
+     *
+     * @param label the header label rendered above the item list; may be {@code null}
+     *     for an unlabelled rail
      */
     public SideNavRail(String label) {
         super(label);
@@ -111,6 +114,9 @@ public class SideNavRail extends SideNav {
     /**
      * Switches the rail between normal mode and icon-only rail mode. No-op if the
      * state is unchanged; otherwise fires a {@link RailModeChangedEvent}.
+     *
+     * @param railMode {@code true} to enter rail mode (icon-only), {@code false} to
+     *     return to normal mode (full-width with labels)
      */
     public void setRailMode(boolean railMode) {
         if (this.railMode == railMode) {
@@ -130,7 +136,11 @@ public class SideNavRail extends SideNav {
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
-    /** Whether the rail is currently in icon-only mode. */
+    /**
+     * Whether the rail is currently in icon-only mode.
+     *
+     * @return {@code true} if the rail is in rail mode, {@code false} in normal mode
+     */
     public boolean isRailMode() {
         return railMode;
     }
@@ -138,6 +148,8 @@ public class SideNavRail extends SideNav {
     /**
      * The current popover mode. Default: {@link PopoverMode#ALL_COLLAPSED_ITEMS}.
      * See {@link PopoverMode} for the full behaviour matrix.
+     *
+     * @return the active {@link PopoverMode}; never {@code null}
      */
     public PopoverMode getPopoverMode() {
         return popoverMode;
@@ -147,6 +159,7 @@ public class SideNavRail extends SideNav {
      * Sets the popover mode. Rewires all child items' popover eligibility immediately
      * so open popovers that are no longer eligible close right away.
      *
+     * @param mode the new {@link PopoverMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setPopoverMode(PopoverMode mode) {
@@ -158,6 +171,8 @@ public class SideNavRail extends SideNav {
      * The current parent-label mode for popover headers. Default:
      * {@link PopoverParentLabelMode#NONE}. See {@link PopoverParentLabelMode} for the
      * rendering rules per value.
+     *
+     * @return the active {@link PopoverParentLabelMode}; never {@code null}
      */
     public PopoverParentLabelMode getPopoverParentLabelMode() {
         return popoverParentLabelMode;
@@ -167,6 +182,7 @@ public class SideNavRail extends SideNav {
      * Sets whether (and how) each popover renders a header identifying its parent item.
      * Rebuilds the content of all existing popovers so the change is visible immediately.
      *
+     * @param mode the new {@link PopoverParentLabelMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setPopoverParentLabelMode(PopoverParentLabelMode mode) {
@@ -179,15 +195,18 @@ public class SideNavRail extends SideNav {
      * The current rail-tooltip mode. Default: {@link RailTooltipMode#ALL}. Tooltips
      * are only shown while the rail is in rail mode; see {@link RailTooltipMode} for
      * the per-value semantics.
+     *
+     * @return the active {@link RailTooltipMode}; never {@code null}
      */
     public RailTooltipMode getRailTooltipMode() {
         return railTooltipMode;
     }
 
     /**
-     * Controls which root items surface their label as a native tooltip while the rail
-     * is in rail mode. Re-applies the tooltip state to every root item immediately.
+     * Controls which root items surface their label as a tooltip while the rail is in
+     * rail mode. Re-applies the tooltip state to every root item immediately.
      *
+     * @param mode the new {@link RailTooltipMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setRailTooltipMode(RailTooltipMode mode) {
@@ -201,6 +220,9 @@ public class SideNavRail extends SideNav {
      * {@code title} HTML attribute) rather than the addon's CSS pseudo-element.
      * Default: {@code false} (pseudo-element, Lumo-styled, immune to
      * {@code vaadin-tooltip-mixin}'s overlay dismissal).
+     *
+     * @return {@code true} if tooltips are rendered via the native {@code title}
+     *     attribute, {@code false} if via the addon's CSS pseudo-element
      */
     public boolean isRailTooltipNative() {
         return railTooltipNative;
@@ -214,15 +236,21 @@ public class SideNavRail extends SideNav {
      * browser-decided styling and position, so it won't react to
      * {@link #setPopoverHoverDelay(int)} and may look inconsistent with the rest of the
      * Vaadin UI — but it carries zero overlay-interaction risk and works everywhere
-     * {@code title} works, including assistive technologies.
+     * {@code title} works, including assistive technologies. Native tooltips do not
+     * appear on keyboard focus.
+     *
+     * @param useNative {@code true} to render tooltips via the browser's {@code title}
+     *     attribute, {@code false} to use the addon's CSS pseudo-element
      */
-    public void setRailTooltipNative(boolean native_) {
-        this.railTooltipNative = native_;
+    public void setRailTooltipNative(boolean useNative) {
+        this.railTooltipNative = useNative;
         applyTooltips();
     }
 
     /**
      * The hover delay (ms) before the popover opens. Default: 200&nbsp;ms (Lumo-typical).
+     *
+     * @return the hover delay in milliseconds
      */
     public int getPopoverHoverDelay() {
         return popoverHoverDelay;
@@ -232,6 +260,8 @@ public class SideNavRail extends SideNav {
      * Sets the hover delay (ms) before the popover opens. Applied to every existing
      * popover immediately. Negative values behave as Vaadin's {@code Popover} defines
      * them — the addon does not validate.
+     *
+     * @param hoverDelayMs the new hover delay in milliseconds
      */
     public void setPopoverHoverDelay(int hoverDelayMs) {
         this.popoverHoverDelay = hoverDelayMs;
@@ -241,6 +271,8 @@ public class SideNavRail extends SideNav {
     /**
      * The hide delay (ms) after the pointer leaves the target before the popover closes.
      * Default: 300&nbsp;ms (Lumo-typical).
+     *
+     * @return the hide delay in milliseconds
      */
     public int getPopoverHideDelay() {
         return popoverHideDelay;
@@ -249,6 +281,8 @@ public class SideNavRail extends SideNav {
     /**
      * Sets the hide delay (ms) after the pointer leaves the target before the popover
      * closes. Applied to every existing popover immediately.
+     *
+     * @param hideDelayMs the new hide delay in milliseconds
      */
     public void setPopoverHideDelay(int hideDelayMs) {
         this.popoverHideDelay = hideDelayMs;
@@ -259,6 +293,8 @@ public class SideNavRail extends SideNav {
      * The position the popover opens at relative to its item. Default:
      * {@link PopoverPosition#END_TOP} — top-aligned, to the inline-end of the item
      * (right in an LTR layout). Suitable for a rail pinned to the inline-start edge.
+     *
+     * @return the active {@link PopoverPosition}; never {@code null}
      */
     public PopoverPosition getPopoverPosition() {
         return popoverPosition;
@@ -267,6 +303,7 @@ public class SideNavRail extends SideNav {
     /**
      * Sets the popover position. Applied to every existing popover immediately.
      *
+     * @param position the new {@link PopoverPosition}; must not be {@code null}
      * @throws NullPointerException if {@code position} is {@code null}
      */
     public void setPopoverPosition(PopoverPosition position) {
@@ -396,7 +433,9 @@ public class SideNavRail extends SideNav {
      * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever
      * {@link #setRailMode(boolean)} actually changes the state (no-ops don't fire).
      *
-     * @return registration that can be used to remove the listener
+     * @param listener the listener to invoke on each rail-mode transition; must not be
+     *     {@code null}
+     * @return a {@link Registration} handle that can be used to remove the listener
      */
     public Registration addRailModeChangedListener(
             ComponentEventListener<RailModeChangedEvent> listener) {
@@ -411,6 +450,7 @@ public class SideNavRail extends SideNav {
      * popover lifecycle depend on {@code SideNavRailItem}'s overrides and cannot be
      * retrofitted onto a parent-class instance.
      *
+     * @param items the {@link SideNavRailItem} children to append to the rail
      * @throws IllegalArgumentException if any item is not a {@link SideNavRailItem}
      */
     @Override
@@ -431,6 +471,7 @@ public class SideNavRail extends SideNav {
     /**
      * {@inheritDoc}
      *
+     * @param item the {@link SideNavRailItem} to prepend to the rail
      * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
      *     see {@link #addItem(SideNavItem...)}
      */
