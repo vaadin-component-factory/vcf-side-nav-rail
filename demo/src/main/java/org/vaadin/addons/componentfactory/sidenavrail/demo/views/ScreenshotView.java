@@ -41,7 +41,7 @@ public class ScreenshotView extends HorizontalLayout {
         rail.addItem(
                 new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create()),
                 codeSection(),
-                new SideNavRailItem("Reports", "/reports", VaadinIcon.CHART.create()),
+                adminSection(),
                 new SideNavRailItem("Settings", "/settings", VaadinIcon.COG.create()));
 
         VerticalLayout content = new VerticalLayout();
@@ -59,5 +59,15 @@ public class ScreenshotView extends HorizontalLayout {
         code.addItem(new SideNavRailItem("Pull requests", "/code/pulls"));
         code.addItem(new SideNavRailItem("Releases", "/code/releases"));
         return code;
+    }
+
+    private static SideNavRailItem adminSection() {
+        SideNavRailItem admin = new SideNavRailItem("Admin", "/admin", VaadinIcon.SHIELD.create());
+        SideNavRailItem users = new SideNavRailItem("Users", "/admin/users");
+        users.addItem(new SideNavRailItem("Active", "/admin/users/active"));
+        users.addItem(new SideNavRailItem("Archived", "/admin/users/archived"));
+        admin.addItem(users);
+        admin.addItem(new SideNavRailItem("Roles", "/admin/roles"));
+        return admin;
     }
 }
