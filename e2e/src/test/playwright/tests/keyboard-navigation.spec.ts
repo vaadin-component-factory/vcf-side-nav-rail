@@ -35,6 +35,21 @@ async function expectFocusedPath(page: Page, expected: string): Promise<void> {
     }, { timeout: 5_000 }).toBe(expected);
 }
 
+/**
+ * Click `#toggle-rail` and wait until at least one <vaadin-popover> has the
+ * 'focus' value in its `trigger` property. setRailMode → applyFocusTrigger →
+ * setOpenOnFocus(true) is a server roundtrip; Playwright's click() resolves
+ * before that roundtrip completes, so a `focusItem` immediately afterwards
+ * can race the trigger update and miss the auto-open.
+ */
+async function enableRailMode(page: Page): Promise<void> {
+    await page.locator('#toggle-rail').click();
+    await page.waitForFunction(() => {
+        return [...document.querySelectorAll('vaadin-popover')]
+            .some((p: any) => Array.isArray(p.trigger) && p.trigger.includes('focus'));
+    }, undefined, { timeout: 10_000 });
+}
+
 test.describe('keyboard navigation adapter', () => {
     test('adapter marks the rail as keyboard-ready on attach', async ({ page }) => {
         await page.goto('/keyboard-navigation');
@@ -200,7 +215,7 @@ test.describe('normal mode — Arrow-Right/Left', () => {
 test.describe('rail mode — root navigation + Esc', () => {
     test('Arrow-Down walks root items only, skipping hidden children', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'dashboard');
         await page.keyboard.press('ArrowDown');
@@ -214,7 +229,7 @@ test.describe('rail mode — root navigation + Esc', () => {
 
     test('Esc closes the auto-opened popover but keeps focus on root', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         // Popover auto-opens on focus because setOpenOnFocus is enabled in rail mode.
@@ -227,7 +242,7 @@ test.describe('rail mode — root navigation + Esc', () => {
 
     test('Esc from inside popover closes it and returns focus to root', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         // Focus into popover — Task 8 implements Arrow-Right as the keyboard route in.
@@ -248,7 +263,7 @@ test.describe('rail mode — root navigation + Esc', () => {
 test.describe('rail mode — Arrow-Right into popover + in-popover navigation', () => {
     test('Arrow-Right on root moves focus to first popover item', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -259,7 +274,7 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
 
     test('Arrow-Right reopens popover after Esc', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         await page.keyboard.press('Escape');
@@ -272,7 +287,7 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
 
     test('Arrow-Down inside popover walks menu items', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         // Wait until the auto-open popover is visible — pressing ArrowRight before
@@ -292,7 +307,7 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
 
     test('Arrow-Up inside popover walks back and stops at first', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'code');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -310,7 +325,7 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
 
     test('Arrow-Down inside popover descends into expanded child subtree', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -335,7 +350,7 @@ test.describe('rail mode — Arrow-Right into popover + in-popover navigation', 
 test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => {
     test('Arrow-Right on collapsed nested parent expands it (focus stays)', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         // Wait for auto-opened popover — first run can be slow after server warmup,
@@ -353,7 +368,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
     test('Arrow-Right on expanded nested parent descends to first child', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -366,7 +381,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
     test('Arrow-Left on expanded nested parent collapses it', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -382,7 +397,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
     test('Arrow-Left on nested child focuses popover-parent', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
@@ -397,7 +412,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
     test('Arrow-Left on top-level popover item closes popover + focuses rail-root', async ({ page }) => {
         await page.goto('/keyboard-navigation');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusItem(page, 'admin');
         // Wait for auto-opened popover — first run can be slow after server warmup,

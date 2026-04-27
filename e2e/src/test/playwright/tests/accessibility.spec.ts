@@ -15,6 +15,21 @@ async function focusRailItem(page: Page, path: string): Promise<void> {
         });
 }
 
+/**
+ * Click `#toggle-rail` and wait until at least one <vaadin-popover> has the
+ * 'focus' value in its `trigger` property. setRailMode → applyFocusTrigger →
+ * setOpenOnFocus(true) is a server roundtrip; Playwright's click() resolves
+ * before that roundtrip completes, so a `focusRailItem` immediately afterwards
+ * can race the trigger update and miss the auto-open.
+ */
+async function enableRailMode(page: Page): Promise<void> {
+    await page.locator('#toggle-rail').click();
+    await page.waitForFunction(() => {
+        return [...document.querySelectorAll('vaadin-popover')]
+            .some((p: any) => Array.isArray(p.trigger) && p.trigger.includes('focus'));
+    }, undefined, { timeout: 10_000 });
+}
+
 test.describe('rail off — baseline', () => {
     test('rail off — leaf root has no aria-haspopup / aria-expanded', async ({ page }) => {
         await page.goto('/accessibility');
@@ -91,7 +106,7 @@ test.describe('rail on, popover closed', () => {
 test.describe('rail on, popover open (Code)', () => {
     test('rail on, popover open (Code) — aria-expanded=true on focused root', async ({ page }) => {
         await page.goto('/accessibility');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusRailItem(page, 'code');
         // Popover auto-opens on focus in rail mode (setOpenOnFocus=true).
@@ -104,7 +119,7 @@ test.describe('rail on, popover open (Code)', () => {
 
     test('rail on, popover open (Code) — overlay has role=menu', async ({ page }) => {
         await page.goto('/accessibility');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusRailItem(page, 'code');
         const overlay = page.locator('vaadin-popover-overlay[opened]');
@@ -114,7 +129,7 @@ test.describe('rail on, popover open (Code)', () => {
 
     test('rail on, popover open (Code) — flat children have role=menuitem', async ({ page }) => {
         await page.goto('/accessibility');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusRailItem(page, 'code');
         const overlay = page.locator('vaadin-popover-overlay[opened]');
@@ -140,7 +155,7 @@ test.describe('rail on, popover open (Code)', () => {
 test.describe('rail on, popover open (Admin)', () => {
     test('rail on, popover open (Admin) — deeply nested children have role=menuitem', async ({ page }) => {
         await page.goto('/accessibility');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusRailItem(page, 'admin');
         const overlay = page.locator('vaadin-popover-overlay[opened]');
@@ -172,7 +187,7 @@ test.describe('rail on, popover open (Admin)', () => {
 test.describe('popover close — aria-expanded resets', () => {
     test('popover closed again — aria-expanded returns to false', async ({ page }) => {
         await page.goto('/accessibility');
-        await page.locator('#toggle-rail').click();
+        await enableRailMode(page);
 
         await focusRailItem(page, 'code');
         const overlay = page.locator('vaadin-popover-overlay[opened]');
