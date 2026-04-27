@@ -24,7 +24,7 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vaadin.version>24.10.1</vaadin.version>
+        <vaadin.version>24.9.0</vaadin.version>
         <karibu.version>2.2.0</karibu.version>
         <junit.version>5.11.3</junit.version>
     </properties>
