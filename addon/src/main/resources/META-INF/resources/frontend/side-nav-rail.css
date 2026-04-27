@@ -24,7 +24,7 @@ vaadin-side-nav {
 }
 
 vaadin-side-nav[theme~="rail"] {
-    width: var(--lumo-size-l);
+    width: var(--side-nav-rail-width, var(--lumo-size-l));
 }
 
 /*
@@ -112,12 +112,12 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
 }
 
 /*
- * Submenu affordance: the native chevron toggle is hidden whenever the rail
+ * Subitem indicator: the native chevron toggle is hidden whenever the rail
  * is in rail mode (above) or in popover-only mode (above). In both cases
  * parent items would otherwise look like leaf items, so we render a small
  * Lumo angle-right glyph on the host's ::before. Two flavours:
  *
- *   - Normal mode + popover-only       → full-size chevron at label's inline-end.
+ *   - Normal mode + popover-only       → full-size glyph at label's inline-end.
  *   - Rail mode (always for parents)   → tiny corner badge; rail mode hides
  *                                        the inline tree natively, so any
  *                                        parent's children only live in the
@@ -125,16 +125,16 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
  *                                        hidden.
  *
  * Uses ::before because ::after is reserved for the rail-mode tooltip, which
- * shares the same host element. The chevron is non-interactive
+ * shares the same host element. The indicator is non-interactive
  * (pointer-events: none) — it is purely visual; the popover itself is the
  * hover/focus target.
  *
  * Customizable via CSS custom properties:
  *
- *   --side-nav-rail-popover-indicator-content   (default: var(--lumo-icons-angle-right))
- *   --side-nav-rail-popover-indicator-color     (default: var(--lumo-tertiary-text-color))
- *   --side-nav-rail-popover-indicator-size      (normal mode default: var(--lumo-font-size-l))
- *   --side-nav-rail-popover-indicator-rail-size (rail mode default:   0.625rem)
+ *   --side-nav-rail-subitem-indicator-content   (default: var(--lumo-icons-angle-right))
+ *   --side-nav-rail-subitem-indicator-color     (default: var(--lumo-tertiary-text-color))
+ *   --side-nav-rail-subitem-indicator-size      (normal mode default: var(--lumo-font-size-l))
+ *   --side-nav-rail-subitem-indicator-rail-size (rail mode default:   0.625rem)
  */
 vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item[has-children],
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[has-children] {
@@ -142,10 +142,10 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[has-children] {
 }
 vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
         vaadin-side-nav-item[has-children]::before {
-    content: var(--side-nav-rail-popover-indicator-content, var(--lumo-icons-angle-right));
+    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right));
     font-family: "lumo-icons";
-    font-size: var(--side-nav-rail-popover-indicator-size, var(--lumo-font-size-l));
-    color: var(--side-nav-rail-popover-indicator-color, var(--lumo-tertiary-text-color));
+    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-l));
+    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
     position: absolute;
     right: var(--lumo-space-s, 0.5rem);
     top: 50%;
@@ -155,10 +155,10 @@ vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
 }
 vaadin-side-nav[theme~="rail"]
         vaadin-side-nav-item[has-children]::before {
-    content: var(--side-nav-rail-popover-indicator-content, var(--lumo-icons-angle-right));
+    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right));
     font-family: "lumo-icons";
-    font-size: var(--side-nav-rail-popover-indicator-rail-size, 0.625rem);
-    color: var(--side-nav-rail-popover-indicator-color, var(--lumo-tertiary-text-color));
+    font-size: var(--side-nav-rail-subitem-indicator-rail-size, 0.625rem);
+    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
     position: absolute;
     right: 2px;
     bottom: 2px;
@@ -237,8 +237,13 @@ vaadin-side-nav-item:has([current]) > vaadin-avatar.side-nav-rail-letter-avatar:
  * Styling mirrors vaadin-tooltip-overlay — Lumo contrast-90pct background, base-color
  * text, border-radius-s, font-size-s. Configurable via custom properties:
  *
- *   --side-nav-rail-tooltip-hover-delay  (default 500ms, matches vaadin-tooltip)
+ *   --side-nav-rail-tooltip-hover-delay   (default 500ms, matches vaadin-tooltip)
  *   --side-nav-rail-tooltip-fade-duration (default 120ms, the fade itself)
+ *   --side-nav-rail-tooltip-background    (default var(--lumo-contrast-90pct))
+ *   --side-nav-rail-tooltip-color         (default var(--lumo-base-color))
+ *   --side-nav-rail-tooltip-padding       (default 0.1875em var(--lumo-space-xs))
+ *   --side-nav-rail-tooltip-border-radius (default var(--lumo-border-radius-s))
+ *   --side-nav-rail-tooltip-font-size     (default var(--lumo-font-size-s))
  */
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip] {
     position: relative;
@@ -257,11 +262,11 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
     z-index: 10000; /* above vaadin-popover-overlay (default ~1000) */
 
     /* Lumo tooltip-like appearance (mirrors vaadin-tooltip-overlay styling). */
-    background: var(--lumo-contrast-90pct);
-    color: var(--lumo-base-color);
-    padding: 0.1875em var(--lumo-space-xs, 0.25rem);
-    border-radius: var(--lumo-border-radius-s, 0.25em);
-    font-size: var(--lumo-font-size-s);
+    background: var(--side-nav-rail-tooltip-background, var(--lumo-contrast-90pct));
+    color: var(--side-nav-rail-tooltip-color, var(--lumo-base-color));
+    padding: var(--side-nav-rail-tooltip-padding, 0.1875em var(--lumo-space-xs, 0.25rem));
+    border-radius: var(--side-nav-rail-tooltip-border-radius, var(--lumo-border-radius-s, 0.25em));
+    font-size: var(--side-nav-rail-tooltip-font-size, var(--lumo-font-size-s));
     line-height: var(--lumo-line-height-xs, 1.2);
     white-space: nowrap;
     pointer-events: none;
