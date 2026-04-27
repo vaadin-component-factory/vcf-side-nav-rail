@@ -12,7 +12,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 - **Hover popovers** for items with children, configurable in scope.
 - **Full keyboard navigation** in both modes.
 - **Accessible by default** — ARIA roles and focus management handled for you.
-- **Tooltips** in rail mode that coexist with the popover without flickering.
+- **Tooltips** in rail mode for the icon-only state.
 - **Letter-avatar fallback** for items without an icon.
 - **Mode-change event** for downstream code that needs to react to the toggle.
 
@@ -81,7 +81,7 @@ rail.setPopoverParentLabelMode(PopoverParentLabelMode.BOLD);
 
 ### Rail-mode tooltip
 
-`RailTooltipMode` decides which rail icons surface their label as a tooltip on hover and on keyboard focus. The tooltip is a CSS pseudo-element that coexists with popovers — use `setRailTooltipNative(true)` to fall back to the browser-native `title` attribute.
+`RailTooltipMode` decides which rail icons surface their label as a tooltip on hover and on keyboard focus.
 
 ```java
 rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
@@ -89,6 +89,8 @@ rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
 
 rail.setRailTooltipNative(true);  // swap pseudo-element for title attribute
 ```
+
+> The default tooltip is implemented as a CSS pseudo-element rather than `<vaadin-tooltip>`, because Vaadin's native tooltip auto-dismisses itself whenever a peer overlay opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). That made the tooltip flicker as the popover appeared. Setting `setRailTooltipNative(true)` falls back to the browser's native `title` attribute, which doesn't have this issue but also can't be styled.
 
 ### Reacting to mode changes
 
