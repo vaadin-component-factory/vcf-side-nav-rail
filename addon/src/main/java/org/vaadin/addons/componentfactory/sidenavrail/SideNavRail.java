@@ -101,6 +101,14 @@ public class SideNavRail extends SideNav {
     }
 
     /**
+     * Switches the rail between normal mode and icon-only rail mode. Fires a {@link RailModeChangedEvent}.
+     */
+    public void toggleRailMode() {
+        setRailMode(!isRailMode());
+    }
+
+
+    /**
      * Switches the rail between normal mode and icon-only rail mode. No-op if the
      * state is unchanged; otherwise fires a {@link RailModeChangedEvent}.
      */

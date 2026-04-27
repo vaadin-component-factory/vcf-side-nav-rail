@@ -59,13 +59,17 @@ Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
 add(toggle, rail);
 ```
 
+Please note, that the component iself does NOT come with a built-in toggle button. This is because each application is designed differently and thus we do not want to affect or dictate any design decisions.
+Therefore you need to setup your own toggle button, which calls `setRailMode(boolean)` or `toggleRailMode()`. 
+
 ## Configuration
 
-The defaults match the customer-requested behaviour of the original `SideNavRail` and need no extra code. Each of the following knobs is opt-in.
+Most features can be configured to your needs. Please see the following sections for how to modify the `SideNavRail` settings:
 
 ### Popover behaviour
 
-`PopoverMode` controls when the hover popover appears for items with children. Three values:
+The `SideNavRail` shows sub items as a popover, when the rail mode is active. For consistent behavior, this feature is also available for the normal mode. With `PopoverMode` you can control
+when the hover popover shall appear:
 
 - `ALL_COLLAPSED_ITEMS` (default) — popover for every collapsed parent, regardless of depth or rail mode.
 - `ONLY_ROOT_COLLAPSED_ITEMS` — popover only for direct rail-children that are collapsed; nested levels behave like a stock `SideNav`.
@@ -77,31 +81,39 @@ rail.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
 
 ### Popover header
 
-`PopoverParentLabelMode` controls whether the parent's label appears at the top of its own popover — useful when the popover is the only place that label is visible (rail mode).
+With `PopoverParentLabelMode`, you control whether (and how) the parent's label should be shown as the header of the popup:
+
+- `NONE` (default) — no header.
+- `LABEL_ONLY` — header shows the parent's text label only.
+- `ICON_ONLY` — header shows a copy of the parent's prefix component (typically an icon) only.
+- `FULL` — header shows both the prefix component and the label, icon first.
 
 ```java
-rail.setPopoverParentLabelMode(PopoverParentLabelMode.BOLD);
-// NONE (default), INLINE, BOLD
+rail.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
 ```
 
 ### Rail-mode tooltip
 
-`RailTooltipMode` decides which rail icons surface their label as a tooltip on hover and on keyboard focus.
+Since the rail mode only shows icons, it can be hard for users to determine, what each icon represents. With the rail mode 
+tooltip, the component can be configured to show the respective item's label as a tooltip , when hovered / focused.
+
+`RailTooltipMode`:
+
+- `NONE` — no tooltips.
+- `ONLY_WITHOUT_CHILDREN` — only leaf items (which have no popover) get a tooltip.
+- `ALL` (default) — every root item gets a tooltip, regardless of whether it has children.
 
 ```java
 rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
-// NONE, ONLY_WITHOUT_CHILDREN, ALL (default)
-
-rail.setRailTooltipNative(true);  // swap pseudo-element for title attribute
 ```
 
-> The default tooltip is implemented as a CSS pseudo-element rather than `<vaadin-tooltip>`, because Vaadin's native tooltip auto-dismisses itself whenever a peer overlay opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). That made the tooltip flicker as the popover appeared.
+> The addon comes with its own tooltip implementation, since Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768).
 >
 > If you prefer browser-native tooltips instead, you can activate them via `setRailTooltipNative(true)`. Note that these cannot be styled and will also not appear when focusing the rail items using the keyboard.
 
 ### Reacting to mode changes
 
-`RailModeChangedEvent` fires on every actual `setRailMode(...)` transition (no-ops do not fire). Carries the new boolean.
+You can react to rail mode toggles, using a dedicated event listener (`addRailModeChangedListener(...)`). Whenever the rail mode is toggled, this event listener will be informed. 
 
 ```java
 rail.addRailModeChangedListener(e ->
@@ -110,14 +122,12 @@ rail.addRailModeChangedListener(e ->
 
 ### Items without an icon
 
-A `SideNavRailItem` constructed without a prefix component gets a Lumo letter-avatar built from the label automatically (so the rail still has an icon column). Pass any `Component` as prefix to override:
+A `SideNavRailItem` constructed without a prefix component gets a Lumo letter-avatar built from the label automatically so that the rail still has an icon to show. 
 
 ```java
 new SideNavRailItem("Profile", "/profile");                      // → "P" letter-avatar
 new SideNavRailItem("Profile", "/profile", new Avatar("Jane"));  // → custom avatar
 ```
-
-Full Javadoc is published with each release alongside the addon JAR.
 
 ## Building from source
 
@@ -133,7 +143,7 @@ Runs the addon's unit tests, the Karibu UI tests in `e2e/`, and the production-m
 ./mvnw -pl demo spring-boot:run
 ```
 
-The demo runs on [http://localhost:8080](http://localhost:8080) with hot reload enabled.
+The demo runs on [http://localhost:8080](http://localhost:8080).
 
 ## License
 
