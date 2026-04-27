@@ -35,7 +35,7 @@ class FocusTriggerTest {
         SideNavRail nav = railWithParent();
         UI.getCurrent().add(nav);
 
-        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopoverForTesting();
+        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopover().orElseThrow();
         assertFalse(popover.isOpenOnFocus());
     }
 
@@ -46,7 +46,7 @@ class FocusTriggerTest {
 
         nav.setRailMode(true);
 
-        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopoverForTesting();
+        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopover().orElseThrow();
         assertTrue(popover.isOpenOnFocus());
     }
 
@@ -58,7 +58,7 @@ class FocusTriggerTest {
         nav.setRailMode(true);
         nav.setRailMode(false);
 
-        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopoverForTesting();
+        Popover popover = ((SideNavRailItem) nav.getItems().get(0)).getPopover().orElseThrow();
         assertFalse(popover.isOpenOnFocus());
     }
 

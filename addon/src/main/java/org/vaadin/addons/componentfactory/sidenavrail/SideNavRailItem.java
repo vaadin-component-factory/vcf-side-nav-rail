@@ -64,14 +64,17 @@ public class SideNavRailItem extends SideNavItem {
     private boolean lastKnownExpanded = false;
 
     /**
-     * Test-only accessor: do not call from production code. The popover is created
-     * lazily on first attach for items with children, so this returns {@code null}
-     * before the item is attached or for leaf items.
+     * Returns the popover of this item, if one has been created. The popover is
+     * lazily attached on first attach for items with children — leaf items never
+     * have a popover, and any item returns an empty {@link Optional} until it
+     * has been attached for the first time.
      *
-     * @return the underlying {@link Popover}, or {@code null} if none has been created
+     * @return an {@link Optional} containing the underlying {@link Popover}, or
+     *     {@link Optional#empty()} if none has been created (leaf item, or item
+     *     not yet attached)
      */
-    public Popover getPopoverForTesting() {
-        return popover;
+    public Optional<Popover> getPopover() {
+        return Optional.ofNullable(popover);
     }
 
     /**

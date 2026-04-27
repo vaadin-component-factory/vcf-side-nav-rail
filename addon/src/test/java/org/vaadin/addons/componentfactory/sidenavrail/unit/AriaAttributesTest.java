@@ -137,7 +137,7 @@ class AriaAttributesTest {
 
         // Walk the popover's nested SideNav contents — every item should have role=menuitem.
         SideNavRailItem parent = (SideNavRailItem) nav.getItems().get(0);
-        com.vaadin.flow.component.popover.Popover popover = parent.getPopoverForTesting();
+        com.vaadin.flow.component.popover.Popover popover = parent.getPopover().orElseThrow();
         com.vaadin.flow.component.sidenav.SideNav nested =
                 (com.vaadin.flow.component.sidenav.SideNav) popover.getChildren()
                         .filter(c -> c instanceof com.vaadin.flow.component.sidenav.SideNav)
