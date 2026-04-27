@@ -12,7 +12,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 - **Hover popovers** for items with children, configurable in scope.
 - **Full keyboard navigation** in both modes.
 - **Accessible by default** — ARIA roles and focus management handled for you.
-- **Tooltips** in rail mode for the icon-only state.
+- **Tooltips** in rail mode on root items.
 - **Letter-avatar fallback** for items without an icon.
 - **Mode-change event** for downstream code that needs to react to the toggle.
 
