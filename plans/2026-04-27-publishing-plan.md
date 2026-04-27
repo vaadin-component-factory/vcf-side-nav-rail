@@ -1,3 +1,20 @@
+## Implementation status
+
+**Done (2026-04-27).** All 13 tasks complete. Addon at `1.0.0-SNAPSHOT`; `./mvnw -B -Pdirectory clean install` green across the four reactor modules. The upload ZIP `vcf-side-nav-rail-1.0.0-SNAPSHOT.zip` contains addon JAR + sources + javadoc + LICENSE + README, with the Vaadin Directory headers interpolated correctly in `META-INF/MANIFEST.MF`. README + RELEASING.md present at the repo root. Build (`build.yml`) and release (`release.yml`) GitHub Actions workflows in place. `ScreenshotView` in the demo plus six contrast-composite screenshots in `docs/screenshots/` driving the README walkthrough.
+
+Test counts on this branch:
+- 82 addon unit tests
+- e2e module: 1 Karibu UI test + 56 Playwright tests (52 from §9.4 + the keyboard-tooltip test added on this branch)
+
+Deviations from the plan-as-written:
+- **Spec/plan §3.1 `<manifestFile>` placement.** The spec attached the manifest to `maven-assembly-plugin`. ZIPs do not surface a manifest in a way Vaadin Directory can read. The user's directory profile additions instead use a filtered `META-INF/MANIFEST.MF` written *into* the ZIP via the assembly descriptor (`assembly/assembly.xml`) plus a profile-scoped `maven-jar-plugin` reconfig that adds `Vaadin-Package-Version` to the inner JAR's manifest. Cleaner — Vaadin Directory reads the ZIP manifest, the inner JAR has standard Maven defaults plus the package-version header.
+- **`Implementation-Vendor: n/a` on the inner JAR.** The directory-profile `<manifestEntries>` carries a literal `n/a` vendor (template-derived) which overrides the auto-derived `Vaadin Ltd.` from `<organization>`. Cosmetic only — Vaadin Directory reads the ZIP manifest where the value is correctly interpolated.
+- **Visual polish follow-ups.** Item label alignment and the rail-icon styling when an ancestor is current (vs the leaf itself being current) are deliberately deferred. See `plans/followups.md`.
+
+The first `1.0.0` release itself (the act of bumping the POM, tagging, uploading) is **not** part of this plan — it is executed by the maintainer per `RELEASING.md` once this branch lands on `main`.
+
+---
+
 # Publishing to Vaadin Directory Implementation Plan (§9.5)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
