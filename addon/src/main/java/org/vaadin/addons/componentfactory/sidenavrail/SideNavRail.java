@@ -60,6 +60,7 @@ import com.vaadin.flow.shared.Registration;
 public class SideNavRail extends SideNav {
 
     private static final String RAIL_THEME = "rail";
+    private static final String CHILDREN_ONLY_IN_POPOVER_THEME = "inline-children-hidden";
 
     private static final int DEFAULT_POPOVER_HOVER_DELAY_MS = 200;
     private static final int DEFAULT_POPOVER_HIDE_DELAY_MS = 300;
@@ -75,6 +76,7 @@ public class SideNavRail extends SideNav {
     private boolean railTooltipNative = false;
     private boolean popoverArrowVisible = true;
     private boolean railRootItemsMatchNested = false;
+    private boolean childrenOnlyInPopover = false;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -126,9 +128,9 @@ public class SideNavRail extends SideNav {
         }
         this.railMode = railMode;
         if (railMode) {
-            getElement().setAttribute("theme", RAIL_THEME);
+            getElement().getThemeList().add(RAIL_THEME);
         } else {
-            getElement().removeAttribute("theme");
+            getElement().getThemeList().remove(RAIL_THEME);
         }
         updatePopoverGating();
         applyTooltips();
@@ -339,6 +341,43 @@ public class SideNavRail extends SideNav {
     }
 
     /**
+     * Whether nested items are rendered only inside the hover popover, never inline
+     * below their parent. Default: {@code false} (children are visible inline and
+     * mirrored into the popover — Vaadin's standard behaviour).
+     *
+     * @return {@code true} if inline children are suppressed
+     */
+    public boolean isChildrenOnlyInPopover() {
+        return childrenOnlyInPopover;
+    }
+
+    /**
+     * Switches between the standard inline-and-popover layout for nested items
+     * ({@code false}, default) and a popover-only layout ({@code true}). When
+     * enabled, nested {@code <vaadin-side-nav-item>}s are CSS-hidden and the
+     * chevron toggle is suppressed, so the only path to a parent's children is
+     * the hover popover. Useful for navigation designs that want a flat,
+     * non-tree appearance in the rail itself.
+     *
+     * <p>Vaadin's auto-expand-on-route-match still fires server-side, but has no
+     * visual effect while this is on; switching the flag back to {@code false}
+     * restores the default tree appearance with whatever expanded state the
+     * items had accumulated.
+     *
+     * @param enabled {@code true} to hide inline children and route everything
+     *     through the popover, {@code false} to use the default layout
+     */
+    public void setChildrenOnlyInPopover(boolean enabled) {
+        this.childrenOnlyInPopover = enabled;
+        if (enabled) {
+            getElement().getThemeList().add(CHILDREN_ONLY_IN_POPOVER_THEME);
+        } else {
+            getElement().getThemeList().remove(CHILDREN_ONLY_IN_POPOVER_THEME);
+        }
+        updatePopoverGating();
+    }
+
+    /**
      * Whether root items get {@code matchNested = true} while rail mode is active.
      * Default: {@code false}.
      *
@@ -370,7 +409,7 @@ public class SideNavRail extends SideNav {
     }
 
     private void applyGatingRecursively(SideNavRailItem item) {
-        item.applyPopoverGating(popoverOn, railMode);
+        item.applyPopoverGating(popoverOn, railMode, childrenOnlyInPopover);
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 applyGatingRecursively(rail);

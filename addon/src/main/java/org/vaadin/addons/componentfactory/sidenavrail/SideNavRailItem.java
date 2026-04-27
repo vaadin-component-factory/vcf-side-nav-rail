@@ -388,9 +388,17 @@ public class SideNavRailItem extends SideNavItem {
             boolean nowExpanded = isExpanded();
             lastKnownExpanded = nowExpanded;
 
-            applyPopoverGating(owner.getPopoverOn(), owner.isRailMode());
+            applyPopoverGating(
+                    owner.getPopoverOn(),
+                    owner.isRailMode(),
+                    owner.isChildrenOnlyInPopover());
 
-            if (wasExpanded && !nowExpanded && popover.isOpenOnHover()) {
+            // In children-only-popover mode the chevron is CSS-hidden and
+            // the user cannot drive a mouse-click collapse, so auto-open
+            // is moot. Skip the executeJs roundtrip entirely.
+            if (wasExpanded && !nowExpanded
+                    && popover.isOpenOnHover()
+                    && !owner.isChildrenOnlyInPopover()) {
                 getElement().executeJs(
                                 "const r = $0.closest('vaadin-side-nav');"
                                         + " return r != null && r._sideNavRailLastHovered === $0;",
@@ -441,7 +449,10 @@ public class SideNavRailItem extends SideNavItem {
         popover.addOpenedChangeListener(e -> syncAriaExpanded(e.isOpened()));
 
         if (owner != null) {
-            applyPopoverGating(owner.getPopoverOn(), owner.isRailMode());
+            applyPopoverGating(
+                    owner.getPopoverOn(),
+                    owner.isRailMode(),
+                    owner.isChildrenOnlyInPopover());
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
@@ -501,12 +512,21 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Applies the open-eligibility of this item's popover based on the owning
-     * {@link SideNavRail}'s current {@link PopoverOn} and rail state. Package-private —
-     * external callers should use {@link SideNavRail#setPopoverOn(PopoverOn)} or
+     * {@link SideNavRail}'s current {@link PopoverOn}, rail state, and
+     * children-only-in-popover flag. Package-private — external callers should
+     * use {@link SideNavRail#setPopoverOn(PopoverOn)} or
      * {@link SideNavRail#setRailMode(boolean)} instead.
      */
-    void applyPopoverGating(PopoverOn mode, boolean railMode) {
+    void applyPopoverGating(PopoverOn mode, boolean railMode, boolean childrenOnlyInPopover) {
         if (popover == null) {
+            return;
+        }
+        // When inline children are CSS-hidden by childrenOnlyInPopover, the
+        // popover is the only way to access the children. The item's expanded
+        // state may still flip (Vaadin auto-expands on route match), but it
+        // has no visual effect, so the popover stays eligible regardless.
+        if (childrenOnlyInPopover) {
+            popover.setOpenOnHover(true);
             return;
         }
         // An inline-expanded item already shows its children in the outer nav, so a

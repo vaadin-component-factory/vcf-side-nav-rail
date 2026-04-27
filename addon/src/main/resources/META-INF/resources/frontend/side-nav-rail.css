@@ -98,6 +98,20 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[slot="children"] {
 }
 
 /*
+ * "Children only in popover" mode (SideNavRail#setChildrenOnlyInPopover(true)):
+ * nested items never render inline below their parent, even in normal mode —
+ * the hover popover is the only path. The chevron toggle is also suppressed
+ * because there is nothing it could meaningfully reveal in the rail itself.
+ */
+vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item[slot="children"] {
+    display: none;
+}
+vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(toggle-button) {
+    display: none;
+    pointer-events: none;
+}
+
+/*
  * Popover header (opt-in via SideNavRail#setPopoverParentLabelMode). Rendered as a
  * light-DOM div *inside* vaadin-popover-overlay, which teleports to <body> — the rail
  * theme selector above doesn't reach it, so these rules apply globally to the class.

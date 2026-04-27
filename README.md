@@ -102,6 +102,16 @@ By default each popover renders the small Lumo arrow that points back at its tar
 rail.setPopoverArrowVisible(false);  // default: true
 ```
 
+### Children only in popover
+
+By default Vaadin's `<vaadin-side-nav-item>` auto-expands when a descendant route matches, so navigating to e.g. `/admin/users/active` shows the chain inline below the parent. If you want a flat, popover-driven look — children appear only in the hover popover, never inline — turn this on:
+
+```java
+rail.setChildrenOnlyInPopover(true);  // default: false
+```
+
+The chevron toggle on parents is suppressed too, since it would have nothing to reveal in the rail itself. Turning the flag back off restores the default tree appearance with whatever expanded state the items had accumulated.
+
 ### Rail-mode tooltip
 
 Because rail mode shows only icons, users may not be able to tell what each icon represents. The rail-mode tooltip surfaces each root item's label on hover or keyboard focus. Tooltips apply to the root items of the rail only. 
