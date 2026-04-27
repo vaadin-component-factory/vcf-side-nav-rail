@@ -73,6 +73,8 @@ public class SideNavRail extends SideNav {
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
     private boolean railTooltipNative = false;
+    private boolean popoverArrowVisible = true;
+    private boolean railRootItemsMatchNested = false;
 
     /** Creates an unlabelled rail. */
     public SideNavRail() {
@@ -133,6 +135,7 @@ public class SideNavRail extends SideNav {
         applyAriaToRootItems();
         applyFocusTriggerToRootItems();
         applyNestedTabindex();
+        applyRailRootItemsMatchNested();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -312,6 +315,52 @@ public class SideNavRail extends SideNav {
         applyPopoverSettings();
     }
 
+    /**
+     * Whether each popover renders the small Lumo arrow pointing back at its target
+     * item. Default: {@code true} (arrow visible — applies the {@code arrow} theme
+     * variant of {@code <vaadin-popover>}).
+     *
+     * @return {@code true} if the arrow is shown, {@code false} if hidden
+     */
+    public boolean isPopoverArrowVisible() {
+        return popoverArrowVisible;
+    }
+
+    /**
+     * Sets whether each popover renders the small Lumo arrow pointing back at its
+     * target item. Applied to every existing popover immediately.
+     *
+     * @param visible {@code true} to show the arrow (default), {@code false} to hide
+     *     it (cleaner look when popovers are tightly packed against the rail)
+     */
+    public void setPopoverArrowVisible(boolean visible) {
+        this.popoverArrowVisible = visible;
+        applyPopoverSettings();
+    }
+
+    /**
+     * Whether root items get {@code matchNested = true} while rail mode is active.
+     * Default: {@code false}.
+     *
+     * @return {@code true} if the override is enabled
+     */
+    public boolean isRailRootItemsMatchNested() {
+        return railRootItemsMatchNested;
+    }
+
+    /**
+     * Automatically turns the {@code matchNested} feature on for every root item
+     * while rail mode is active, so users can visually identify which root branch
+     * the current page belongs to even when the active route lives several levels
+     * deep. The original value is restored when rail mode is left.
+     *
+     * @param enabled {@code true} to enable the override, {@code false} to disable
+     */
+    public void setRailRootItemsMatchNested(boolean enabled) {
+        this.railRootItemsMatchNested = enabled;
+        applyRailRootItemsMatchNested();
+    }
+
     private void updatePopoverGating() {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
@@ -355,7 +404,8 @@ public class SideNavRail extends SideNav {
     }
 
     private void applyPopoverSettingsRecursively(SideNavRailItem item) {
-        item.applyPopoverSettings(popoverHoverDelay, popoverHideDelay, popoverPosition);
+        item.applyPopoverSettings(
+                popoverHoverDelay, popoverHideDelay, popoverPosition, popoverArrowVisible);
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 applyPopoverSettingsRecursively(rail);
@@ -366,6 +416,22 @@ public class SideNavRail extends SideNav {
     private void applyTooltips() {
         for (SideNavItem child : getItems()) {
             applyTooltipFor(child);
+        }
+    }
+
+    /**
+     * Applies (or rolls back) the {@code matchNested} override on every root item
+     * based on the current ({@code railRootItemsMatchNested}, {@code railMode})
+     * pair. Override is active only when both are {@code true}; otherwise any
+     * snapshotted user value is restored. Per-item snapshotting lives on
+     * {@link SideNavRailItem}.
+     */
+    private void applyRailRootItemsMatchNested() {
+        boolean override = railRootItemsMatchNested && railMode;
+        for (SideNavItem child : getItems()) {
+            if (child instanceof SideNavRailItem rail) {
+                rail.applyRailMatchNestedOverride(override);
+            }
         }
     }
 
@@ -459,11 +525,15 @@ public class SideNavRail extends SideNav {
             requireRailItem(item);
         }
         super.addItem(items);
+        boolean overrideMatchNested = railRootItemsMatchNested && railMode;
         for (SideNavItem item : items) {
             markAsRootItem(item);
             applyTooltipFor(item);
             if (item instanceof SideNavRailItem rail) {
                 rail.applyAriaAttributes(railMode);
+                if (overrideMatchNested) {
+                    rail.applyRailMatchNestedOverride(true);
+                }
             }
         }
     }
@@ -483,6 +553,9 @@ public class SideNavRail extends SideNav {
         applyTooltipFor(item);
         if (item instanceof SideNavRailItem rail) {
             rail.applyAriaAttributes(railMode);
+            if (railRootItemsMatchNested && railMode) {
+                rail.applyRailMatchNestedOverride(true);
+            }
         }
     }
 

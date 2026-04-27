@@ -62,20 +62,7 @@ public class SideNavRailItem extends SideNavItem {
     private Popover popover;
     private boolean expandedListenerWired = false;
     private boolean lastKnownExpanded = false;
-
-    /**
-     * Returns the popover of this item, if one has been created. The popover is
-     * lazily attached on first attach for items with children — leaf items never
-     * have a popover, and any item returns an empty {@link Optional} until it
-     * has been attached for the first time.
-     *
-     * @return an {@link Optional} containing the underlying {@link Popover}, or
-     *     {@link Optional#empty()} if none has been created (leaf item, or item
-     *     not yet attached)
-     */
-    public Optional<Popover> getPopover() {
-        return Optional.ofNullable(popover);
-    }
+    private Boolean savedMatchNested = null;
 
     /**
      * Non-navigating container item. Click does nothing; useful as a parent for children.
@@ -435,6 +422,9 @@ public class SideNavRailItem extends SideNavItem {
         popover.setHoverDelay(owner != null ? owner.getPopoverHoverDelay() : 200);
         popover.setHideDelay(owner != null ? owner.getPopoverHideDelay() : 300);
         popover.setPosition(owner != null ? owner.getPopoverPosition() : resolveEndTopPosition());
+        if (owner == null || owner.isPopoverArrowVisible()) {
+            popover.addThemeVariants(PopoverVariant.ARROW);
+        }
 
         populatePopover();
 
@@ -460,19 +450,24 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Pushes updated hover/hide delays and position to the existing popover, if any.
-     * Called by {@link SideNavRail} when one of those settings changes so a live rail
-     * reflects the new values without needing a reattach. No-op when the popover has
-     * not been created yet.
+     * Pushes updated hover/hide delays, position, and arrow visibility to the existing
+     * popover, if any. Called by {@link SideNavRail} when one of those settings changes
+     * so a live rail reflects the new values without needing a reattach. No-op when
+     * the popover has not been created yet.
      */
-    void applyPopoverSettings(int hoverDelay, int hideDelay, PopoverPosition position) {
+    void applyPopoverSettings(
+            int hoverDelay, int hideDelay, PopoverPosition position, boolean arrowVisible) {
         if (popover == null) {
             return;
         }
         popover.setHoverDelay(hoverDelay);
         popover.setHideDelay(hideDelay);
         popover.setPosition(position);
-        popover.addThemeVariants(PopoverVariant.ARROW);
+        if (arrowVisible) {
+            popover.addThemeVariants(PopoverVariant.ARROW);
+        } else {
+            popover.removeThemeVariants(PopoverVariant.ARROW);
+        }
     }
 
     private SideNavRail findOwnerRail() {
@@ -536,6 +531,32 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             getElement().removeAttribute("aria-haspopup");
             getElement().removeAttribute("aria-expanded");
+        }
+    }
+
+    /**
+     * Applies (or rolls back) the {@link SideNavRail}-managed {@code matchNested}
+     * override on this item. Called by {@link SideNavRail} when rail-mode toggles or
+     * {@link SideNavRail#setRailRootItemsMatchNested(boolean)} flips the feature.
+     * Snapshots the user's own {@code matchNested} value on the first activation so
+     * deactivation restores it exactly — repeated activations do not overwrite the
+     * snapshot, so a mid-rail-mode {@code setMatchNested(...)} call by the user is
+     * still rolled back to whatever they had set before the rail mode entered.
+     * Package-private — addon-internal.
+     *
+     * @param active {@code true} to force {@code matchNested = true} (snapshotting
+     *     the current value if not yet snapshotted); {@code false} to restore the
+     *     snapshotted value, if any
+     */
+    void applyRailMatchNestedOverride(boolean active) {
+        if (active) {
+            if (savedMatchNested == null) {
+                savedMatchNested = isMatchNested();
+            }
+            setMatchNested(true);
+        } else if (savedMatchNested != null) {
+            setMatchNested(savedMatchNested);
+            savedMatchNested = null;
         }
     }
 
@@ -687,5 +708,19 @@ public class SideNavRailItem extends SideNavItem {
         } catch (IllegalArgumentException notFound) {
             return PopoverPosition.valueOf("END");
         }
+    }
+
+    /**
+     * Returns the popover of this item, if one has been created. The popover is
+     * lazily attached on first attach for items with children — leaf items never
+     * have a popover, and any item returns an empty {@link Optional} until it
+     * has been attached for the first time.
+     *
+     * @return an {@link Optional} containing the underlying {@link Popover}, or
+     *     {@link Optional#empty()} if none has been created (leaf item, or item
+     *     not yet attached)
+     */
+    public Optional<Popover> getPopover() {
+        return Optional.ofNullable(popover);
     }
 }

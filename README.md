@@ -94,6 +94,14 @@ rail.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
 rail.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
 ```
 
+### Popover arrow
+
+By default each popover renders the small Lumo arrow that points back at its target item. Toggle it off if you prefer a cleaner look — e.g. when popovers sit tightly against the rail and the arrow adds visual noise:
+
+```java
+rail.setPopoverArrowVisible(false);  // default: true
+```
+
 ### Rail-mode tooltip
 
 Because rail mode shows only icons, users may not be able to tell what each icon represents. The rail-mode tooltip surfaces each root item's label on hover or keyboard focus. Tooltips apply to the root items of the rail only. 
@@ -119,6 +127,16 @@ You can react to rail mode toggles, using a dedicated event listener (`addRailMo
 ```java
 rail.addRailModeChangedListener(e ->
         log.info("rail mode now {}", e.isRailMode()));
+```
+
+### Active marker on rail icons
+
+By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Setting `matchNested(true)` on each root item flips this: the root also counts as `current` when any descendant matches.
+
+`setRailRootItemsMatchNested(true)` opts into having the addon manage that flag automatically: while the rail is in rail mode, each root item's `matchNested` is forced to `true`; on leaving rail mode (or turning the feature back off), the original `matchNested` value the user had set is restored. Per-item snapshotting means a `setMatchNested(...)` call you made yourself is preserved across rail-mode cycles — the override is layered on top, never destructive.
+
+```java
+rail.setRailRootItemsMatchNested(true);  // default: false
 ```
 
 ### Items without an icon
