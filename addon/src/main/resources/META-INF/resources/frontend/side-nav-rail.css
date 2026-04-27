@@ -133,8 +133,12 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
  *
  *   --side-nav-rail-subitem-indicator-content   (default: var(--lumo-icons-angle-right))
  *   --side-nav-rail-subitem-indicator-color     (default: var(--lumo-tertiary-text-color))
- *   --side-nav-rail-subitem-indicator-size      (normal mode default: var(--lumo-font-size-l))
+ *   --side-nav-rail-subitem-indicator-size      (normal mode default: var(--lumo-font-size-m))
  *   --side-nav-rail-subitem-indicator-rail-size (rail mode default:   0.625rem)
+ *
+ * The normal-mode default is intentionally a touch smaller than the native
+ * toggle, so it reads as a passive "has children" hint rather than an
+ * interactive control.
  */
 vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item[has-children],
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[has-children] {
@@ -144,7 +148,7 @@ vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
         vaadin-side-nav-item[has-children]::before {
     content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right));
     font-family: "lumo-icons";
-    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-l));
+    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-m));
     color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
     position: absolute;
     right: var(--lumo-space-s, 0.5rem);
@@ -161,7 +165,8 @@ vaadin-side-nav[theme~="rail"]
     color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
     position: absolute;
     right: 2px;
-    bottom: 2px;
+    top: 50%;
+    transform: translateY(-50%);
     line-height: 1;
     pointer-events: none;
 }
