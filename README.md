@@ -8,13 +8,13 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 ## Features
 
-- **Rail mode toggle** — flip between full-width and icon-only at runtime via `setRailMode(boolean)`.
-- **Hover popovers** for items with children, configurable per-component (`PopoverMode.ALL_COLLAPSED_ITEMS`, `ONLY_ROOT_COLLAPSED_ITEMS`, `ONLY_RAIL_MODE`).
-- **Full keyboard navigation** in both modes — arrow keys to walk the tree, `Enter` to navigate, `Esc` to close popovers, `Tab` for sequential traversal.
-- **ARIA contracts** maintained automatically: `aria-haspopup="menu"`, `aria-expanded`, `role="menuitem"` on popover items.
-- **CSS pseudo-element tooltips** that coexist with popovers (Vaadin's native tooltip flickers when peer overlays open; ours doesn't). Surfaces on hover *and* keyboard focus.
-- **Letter-avatar fallback** for items without an icon — first letter of the label, Lumo-styled.
-- **Lifecycle event** (`RailModeChangedEvent`) for downstream code that needs to react to the toggle.
+- **Rail mode toggle** — flip the nav between full-width and icon-only at runtime.
+- **Hover popovers** for items with children, configurable in scope.
+- **Full keyboard navigation** in both modes.
+- **Accessible by default** — ARIA roles and focus management handled for you.
+- **Tooltips** in rail mode that coexist with the popover without flickering.
+- **Letter-avatar fallback** for items without an icon.
+- **Mode-change event** for downstream code that needs to react to the toggle.
 
 ## Compatibility
 
