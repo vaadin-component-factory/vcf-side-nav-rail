@@ -20,7 +20,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -29,7 +29,7 @@ public class PopoverAllCollapsedItemsView extends VerticalLayout {
 
     public PopoverAllCollapsedItemsView() {
         SideNavRail rail = new SideNavRail();
-        rail.setPopoverMode(PopoverMode.ALL_COLLAPSED_ITEMS);
+        rail.setPopoverOn(PopoverOn.ALL_COLLAPSED_ITEMS);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(

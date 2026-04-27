@@ -66,7 +66,7 @@ public class SideNavRail extends SideNav {
     private static final PopoverPosition DEFAULT_POPOVER_POSITION = PopoverPosition.END_TOP;
 
     private boolean railMode = false;
-    private PopoverMode popoverMode = PopoverMode.ALL_COLLAPSED_ITEMS;
+    private PopoverOn popoverOn = PopoverOn.ALL_COLLAPSED_ITEMS;
     private PopoverParentLabelMode popoverParentLabelMode = PopoverParentLabelMode.NONE;
     private RailTooltipMode railTooltipMode = RailTooltipMode.ALL;
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
@@ -149,24 +149,24 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current popover mode. Default: {@link PopoverMode#ALL_COLLAPSED_ITEMS}.
-     * See {@link PopoverMode} for the full behaviour matrix.
+     * The current popover mode. Default: {@link PopoverOn#ALL_COLLAPSED_ITEMS}.
+     * See {@link PopoverOn} for the full behaviour matrix.
      *
-     * @return the active {@link PopoverMode}; never {@code null}
+     * @return the active {@link PopoverOn}; never {@code null}
      */
-    public PopoverMode getPopoverMode() {
-        return popoverMode;
+    public PopoverOn getPopoverOn() {
+        return popoverOn;
     }
 
     /**
      * Sets the popover mode. Rewires all child items' popover eligibility immediately
      * so open popovers that are no longer eligible close right away.
      *
-     * @param mode the new {@link PopoverMode}; must not be {@code null}
+     * @param mode the new {@link PopoverOn}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
-    public void setPopoverMode(PopoverMode mode) {
-        this.popoverMode = java.util.Objects.requireNonNull(mode, "PopoverMode must not be null");
+    public void setPopoverOn(PopoverOn mode) {
+        this.popoverOn = java.util.Objects.requireNonNull(mode, "PopoverOn must not be null");
         updatePopoverGating();
     }
 
@@ -370,7 +370,7 @@ public class SideNavRail extends SideNav {
     }
 
     private void applyGatingRecursively(SideNavRailItem item) {
-        item.applyPopoverGating(popoverMode, railMode);
+        item.applyPopoverGating(popoverOn, railMode);
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 applyGatingRecursively(rail);

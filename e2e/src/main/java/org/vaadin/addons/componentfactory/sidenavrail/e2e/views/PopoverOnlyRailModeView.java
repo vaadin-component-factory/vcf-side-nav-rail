@@ -20,7 +20,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -29,7 +29,7 @@ public class PopoverOnlyRailModeView extends VerticalLayout {
 
     public PopoverOnlyRailModeView() {
         SideNavRail rail = new SideNavRail();
-        rail.setPopoverMode(PopoverMode.ONLY_RAIL_MODE);
+        rail.setPopoverOn(PopoverOn.ONLY_RAIL_MODE);
         rail.setId("rail");
 
         SideNavRailItem code = new SideNavRailItem(

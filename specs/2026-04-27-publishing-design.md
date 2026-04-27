@@ -168,7 +168,7 @@ The resulting `addon/target/vcf-side-nav-rail-X.Y.Z-directory.zip` is what gets 
 5. **Compatibility** — Vaadin 24.9 or later, Java 17+. (Audience is assumed to be familiar with Vaadin basics — no Vaadin Core explainers in the README.)
 6. **Installation** — `<dependency>` snippet pointing at the Directory-published version.
 7. **Quick start** — ≤ 25-line code example: create `SideNavRail`, add a few `SideNavRailItem`s, wire a toggle button.
-8. **API overview** — short prose paragraph per main type: `SideNavRail`, `SideNavRailItem`, the four enums (`PopoverMode`, `PopoverParentLabelMode`, `RailTooltipMode`), and `RailModeChangedEvent`. Anything deeper goes in javadoc, not the README.
+8. **API overview** — short prose paragraph per main type: `SideNavRail`, `SideNavRailItem`, the four enums (`PopoverOn`, `PopoverParentLabelMode`, `RailTooltipMode`), and `RailModeChangedEvent`. Anything deeper goes in javadoc, not the README.
 9. **Building from source / Running the demo** — `./mvnw clean verify` and `./mvnw -pl demo spring-boot:run`.
 10. **License** — Apache-2.0 + link to `LICENSE`.
 11. **Contributing** — short paragraph: open an issue first; PRs welcome.

@@ -25,11 +25,11 @@ import com.vaadin.flow.component.popover.Popover;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-class PopoverModeTest {
+class PopoverOnTest {
 
     @BeforeEach
     void setUp() {
@@ -44,22 +44,22 @@ class PopoverModeTest {
     @Test
     void defaultModeIsAllCollapsedItems() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(PopoverMode.ALL_COLLAPSED_ITEMS, nav.getPopoverMode());
+        assertEquals(PopoverOn.ALL_COLLAPSED_ITEMS, nav.getPopoverOn());
     }
 
     @Test
     void modeCanBeChanged() {
         SideNavRail nav = new SideNavRail();
-        nav.setPopoverMode(PopoverMode.ONLY_RAIL_MODE);
-        assertEquals(PopoverMode.ONLY_RAIL_MODE, nav.getPopoverMode());
-        nav.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
-        assertEquals(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS, nav.getPopoverMode());
+        nav.setPopoverOn(PopoverOn.ONLY_RAIL_MODE);
+        assertEquals(PopoverOn.ONLY_RAIL_MODE, nav.getPopoverOn());
+        nav.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
+        assertEquals(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS, nav.getPopoverOn());
     }
 
     @Test
     void settingNullIsRejected() {
         SideNavRail nav = new SideNavRail();
-        assertThrows(NullPointerException.class, () -> nav.setPopoverMode(null));
+        assertThrows(NullPointerException.class, () -> nav.setPopoverOn(null));
     }
 
     @Test
@@ -78,7 +78,7 @@ class PopoverModeTest {
     @Test
     void onlyRailMode_disablesHoverUntilRailEngaged() {
         SideNavRail nav = new SideNavRail();
-        nav.setPopoverMode(PopoverMode.ONLY_RAIL_MODE);
+        nav.setPopoverOn(PopoverOn.ONLY_RAIL_MODE);
         SideNavRailItem parent = new SideNavRailItem("Code");
         parent.addItem(new SideNavRailItem("Branches", "/branches"));
         nav.addItem(parent);
@@ -100,7 +100,7 @@ class PopoverModeTest {
     @Test
     void onlyRootCollapsedItems_rootItemIsEligible() {
         SideNavRail nav = new SideNavRail();
-        nav.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
+        nav.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
         SideNavRailItem root = new SideNavRailItem("Code");
         root.addItem(new SideNavRailItem("Branches", "/branches"));
         nav.addItem(root);
@@ -114,7 +114,7 @@ class PopoverModeTest {
     @Test
     void onlyRootCollapsedItems_nestedItemIsNotEligible() {
         SideNavRail nav = new SideNavRail();
-        nav.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
+        nav.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 
         SideNavRailItem root = new SideNavRailItem("Code");
         SideNavRailItem branches = new SideNavRailItem("Branches", "/branches");
@@ -147,7 +147,7 @@ class PopoverModeTest {
                 "Nested item eligible in default mode");
 
         // Switching to ONLY_ROOT_COLLAPSED_ITEMS must disqualify it.
-        nav.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
+        nav.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
         assertEquals(false, nestedPopover.isOpenOnHover(),
                 "Nested item no longer eligible after mode switch");
     }

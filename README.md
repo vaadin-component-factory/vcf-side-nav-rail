@@ -71,14 +71,14 @@ Most features can be configured to your needs. Please see the following sections
 
 ### Popover behaviour
 
-The rail shows sub-items as a hover popover when the rail is in rail mode. For consistency, the same popover is also available in normal mode. `PopoverMode` controls when it appears:
+The rail shows sub-items as a hover popover when the rail is in rail mode. For consistency, the same popover is also available in normal mode. `PopoverOn` controls when it appears:
 
 - `ALL_COLLAPSED_ITEMS` (default) — popover for every collapsed parent, regardless of depth or rail mode.
 - `ONLY_ROOT_COLLAPSED_ITEMS` — popover only for direct rail-children that are collapsed; nested levels behave like a stock `SideNav`.
 - `ONLY_RAIL_MODE` — popovers only when rail mode is active; normal mode opens children inline on click.
 
 ```java
-rail.setPopoverMode(PopoverMode.ONLY_ROOT_COLLAPSED_ITEMS);
+rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 ```
 
 ### Popover header

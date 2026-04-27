@@ -27,7 +27,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
@@ -37,7 +37,7 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
  * Plain layout frame instead of {@code AppLayout} — the rail mode is the point
  * of the demo and an AppLayout drawer + navbar adds chrome that obscures the
  * effect. A thin top navbar hosts a {@link Select} for live-switching the
- * rail's {@link PopoverMode}; the sidebar with the rail sits below it.
+ * rail's {@link PopoverOn}; the sidebar with the rail sits below it.
  */
 @Layout
 public class MainLayout extends VerticalLayout implements RouterLayout {
@@ -116,15 +116,15 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
                 .set("font-weight", "600")
                 .set("font-size", "var(--lumo-font-size-l)");
 
-        Select<PopoverMode> modeSelect = new Select<>();
+        Select<PopoverOn> modeSelect = new Select<>();
         modeSelect.setId("popover-mode-select");
         modeSelect.setLabel("Popover mode");
-        modeSelect.setItems(PopoverMode.values());
+        modeSelect.setItems(PopoverOn.values());
         modeSelect.setItemLabelGenerator(MainLayout::humanize);
-        modeSelect.setValue(nav.getPopoverMode());
+        modeSelect.setValue(nav.getPopoverOn());
         modeSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                nav.setPopoverMode(e.getValue());
+                nav.setPopoverOn(e.getValue());
             }
         });
 
@@ -173,7 +173,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         return navbar;
     }
 
-    private static String humanize(PopoverMode mode) {
+    private static String humanize(PopoverOn mode) {
         return switch (mode) {
             case ALL_COLLAPSED_ITEMS -> "All collapsed items";
             case ONLY_ROOT_COLLAPSED_ITEMS -> "Only root collapsed items";

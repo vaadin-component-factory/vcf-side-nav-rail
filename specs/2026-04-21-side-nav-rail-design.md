@@ -16,7 +16,7 @@ This spec describes **Iteration 1 (MVP)**. Further iterations are intentionally 
 **In scope:**
 - Two new public components, `SideNavRail` and `SideNavRailItem`, as subclasses of the Vaadin standard components.
 - A togglable rail mode exposed as a Java API (no built-in toggle button — applications integrate their own, as `initial.md` mandates).
-- A hover popover for items with children, gated by a configurable `PopoverMode`.
+- A hover popover for items with children, gated by a configurable `PopoverOn`.
 - Styling implemented purely through CSS on the existing `<vaadin-side-nav>` web component — no custom element of our own.
 - A two-tier test pyramid (Karibu + Playwright) inside the addon module, triggered by `mvn verify`.
 
@@ -42,7 +42,7 @@ Three Maven modules plus the reactor:
 │       │   ├── SideNavRail.java
 │       │   ├── SideNavRailItem.java
 │       │   ├── RailModeChangedEvent.java
-│       │   └── PopoverMode.java
+│       │   └── PopoverOn.java
 │       ├── main/resources/META-INF/resources/frontend/
 │       │   └── side-nav-rail.css                (included via @CssImport)
 │       └── test/java/…/sidenavrail/unit/        (Karibu unit tests; see §7)
@@ -97,8 +97,8 @@ public class SideNavRail extends SideNav {
     public boolean isRailMode();
 
     /** Controls when the hover popover appears for items with children. Default: ALL_COLLAPSED_ITEMS. */
-    public void setPopoverMode(PopoverMode mode);
-    public PopoverMode getPopoverMode();
+    public void setPopoverOn(PopoverOn mode);
+    public PopoverOn getPopoverOn();
 
     /** Whether (and how) each popover renders a header for its parent. Default: NONE (opt-in). */
     public void setPopoverParentLabelMode(PopoverParentLabelMode mode);
@@ -168,12 +168,12 @@ public class SideNavRailItem extends SideNavItem {
 
 **Letter-avatar fallback:** if an item has a non-blank label but no prefix component, `onAttach` (and every subsequent `setLabel` / `setPrefixComponent(null)`) auto-generates a `vaadin-avatar` (`LUMO_SMALL`, 24×24) with the first letter of the label (uppercase) as its abbreviation. The avatar carries the marker class `side-nav-rail-letter-avatar`; CSS hides it in normal mode and shows it in rail mode so the item doesn't collapse to a blank tile. A user-provided prefix always wins — the addon only fills an empty slot and never overwrites a real icon.
 
-### 3.3 `PopoverMode`
+### 3.3 `PopoverOn`
 
 Three values, each describing which set of items is eligible for the hover popover:
 
 ```java
-public enum PopoverMode {
+public enum PopoverOn {
     /** Every non-expanded item with children, any depth, any nav state. Default. */
     ALL_COLLAPSED_ITEMS,
     /** Only direct children of the SideNavRail (top level). Nested items never get a popover. */
@@ -283,9 +283,9 @@ Fires on every call to `setRailMode(...)` that actually changes the state (no-op
 1. The whole nav is in **rail mode** — all labels and inline children are suppressed.
 2. A specific parent item is **inline-closed** in normal mode — that item's children are hidden while the rest of the nav is fully visible.
 
-`PopoverMode` picks which of these two cases triggers the hover popover, and whether the rule applies to every item with children or only to root items (direct children of the rail):
+`PopoverOn` picks which of these two cases triggers the hover popover, and whether the rule applies to every item with children or only to root items (direct children of the rail):
 
-| `PopoverMode` | Popover appears when… |
+| `PopoverOn` | Popover appears when… |
 |---|---|
 | `ALL_COLLAPSED_ITEMS` *(default)* | …*any* parent item's children are hidden — whether because the nav is in rail mode or because the item is inline-closed in normal mode. Applies at every depth. |
 | `ONLY_ROOT_COLLAPSED_ITEMS` | …same condition as `ALL_COLLAPSED_ITEMS`, but restricted to **root items** (direct children of the `SideNavRail`). Nested parents never open a popover, even when their children are hidden. |
@@ -525,7 +525,7 @@ The test pyramid is split across two modules: the addon holds browser-free unit 
 ```
 addon/src/test/java/org/vaadin/addons/componentfactory/sidenavrail/unit/
 ├── RailModeStateTest.java        setRailMode/isRailMode + event firing
-├── PopoverModeTest.java           PopoverMode accessors + gating tests
+├── PopoverOnTest.java           PopoverOn accessors + gating tests
 ├── LabelWrapTest.java             <span class="label"> wrap invariants
 └── PopoverLifecycleTest.java      popover attach/copy semantics
 (JUnit + Karibu, browser-free, bound to `test` phase.)
@@ -586,7 +586,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 | Test | Level | Covers |
 |---|---|---|
 | `RailModeStateTest` | Unit | `setRailMode`/`isRailMode`, event firing, theme attribute application |
-| `PopoverModeTest` | Unit | `setPopoverMode`/`getPopoverMode`, default value, effect of the mode on popover lifecycle |
+| `PopoverOnTest` | Unit | `setPopoverOn`/`getPopoverOn`, default value, effect of the mode on popover lifecycle |
 | `LabelWrapTest` | Unit | Label gets wrapped in `<span class="label">`, structural neutrality |
 | `basic.spec.ts` | E2E | Nav renders, rail mode toggle visible, icon stays, labels disappear |
 | `popover-collapsed-item.spec.ts` | E2E | Default mode: popover appears for inline-closed items in normal mode AND in rail mode |

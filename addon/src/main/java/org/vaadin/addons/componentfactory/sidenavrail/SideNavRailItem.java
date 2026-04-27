@@ -42,8 +42,8 @@ import java.util.Optional;
  *       can hide it. A bare text node cannot be targeted by CSS.
  *   <li>Items that have children lazily attach a {@link Popover} on first attach. The
  *       popover's hover-trigger eligibility is gated by the owning
- *       {@link SideNavRail}'s {@link PopoverMode} and rail state — see
- *       {@link SideNavRail#setPopoverMode(PopoverMode)} for the full behaviour matrix.
+ *       {@link SideNavRail}'s {@link PopoverOn} and rail state — see
+ *       {@link SideNavRail#setPopoverOn(PopoverOn)} for the full behaviour matrix.
  * </ul>
  *
  * <p>Typical usage:
@@ -388,7 +388,7 @@ public class SideNavRailItem extends SideNavItem {
             boolean nowExpanded = isExpanded();
             lastKnownExpanded = nowExpanded;
 
-            applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+            applyPopoverGating(owner.getPopoverOn(), owner.isRailMode());
 
             if (wasExpanded && !nowExpanded && popover.isOpenOnHover()) {
                 getElement().executeJs(
@@ -441,7 +441,7 @@ public class SideNavRailItem extends SideNavItem {
         popover.addOpenedChangeListener(e -> syncAriaExpanded(e.isOpened()));
 
         if (owner != null) {
-            applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
+            applyPopoverGating(owner.getPopoverOn(), owner.isRailMode());
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
@@ -493,7 +493,7 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Whether this item is a direct child of the owning {@link SideNavRail} rather than
-     * nested inside another item. Used to gate {@link PopoverMode#ONLY_ROOT_COLLAPSED_ITEMS}.
+     * nested inside another item. Used to gate {@link PopoverOn#ONLY_ROOT_COLLAPSED_ITEMS}.
      */
     private boolean isRootItem() {
         return getParent().map(p -> p instanceof SideNavRail).orElse(false);
@@ -501,11 +501,11 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Applies the open-eligibility of this item's popover based on the owning
-     * {@link SideNavRail}'s current {@link PopoverMode} and rail state. Package-private —
-     * external callers should use {@link SideNavRail#setPopoverMode(PopoverMode)} or
+     * {@link SideNavRail}'s current {@link PopoverOn} and rail state. Package-private —
+     * external callers should use {@link SideNavRail#setPopoverOn(PopoverOn)} or
      * {@link SideNavRail#setRailMode(boolean)} instead.
      */
-    void applyPopoverGating(PopoverMode mode, boolean railMode) {
+    void applyPopoverGating(PopoverOn mode, boolean railMode) {
         if (popover == null) {
             return;
         }
