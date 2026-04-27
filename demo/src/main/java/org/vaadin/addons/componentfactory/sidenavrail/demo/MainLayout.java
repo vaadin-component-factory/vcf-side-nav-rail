@@ -158,8 +158,15 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         nativeTooltipCheckbox.addValueChangeListener(
                 e -> nav.setRailTooltipNative(Boolean.TRUE.equals(e.getValue())));
 
+        Checkbox childrenOnlyInPopoverCheckbox = new Checkbox("Children only in popover");
+        childrenOnlyInPopoverCheckbox.setId("children-only-in-popover");
+        childrenOnlyInPopoverCheckbox.setValue(nav.isChildrenOnlyInPopover());
+        childrenOnlyInPopoverCheckbox.addValueChangeListener(
+                e -> nav.setChildrenOnlyInPopover(Boolean.TRUE.equals(e.getValue())));
+
         HorizontalLayout selects = new HorizontalLayout(
-                modeSelect, parentLabelSelect, tooltipSelect, nativeTooltipCheckbox);
+                modeSelect, parentLabelSelect, tooltipSelect,
+                nativeTooltipCheckbox, childrenOnlyInPopoverCheckbox);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
 
