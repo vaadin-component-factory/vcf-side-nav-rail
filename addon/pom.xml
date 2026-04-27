@@ -8,7 +8,7 @@
 
     <groupId>org.vaadin.addons.componentfactory</groupId>
     <artifactId>vcf-side-nav-rail</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>SideNav Rail</name>
@@ -20,6 +20,27 @@
             <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:vaadin-component-factory/side-nav-rail.git</connection>
+        <developerConnection>scm:git:git@github.com:vaadin-component-factory/side-nav-rail.git</developerConnection>
+        <url>https://github.com/vaadin-component-factory/side-nav-rail</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <organization>
+        <name>Vaadin Ltd.</name>
+        <url>https://vaadin.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Vaadin Component Factory</name>
+            <email>componentfactory@vaadin.com</email>
+            <organization>Vaadin Ltd.</organization>
+            <organizationUrl>https://vaadin.com</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
