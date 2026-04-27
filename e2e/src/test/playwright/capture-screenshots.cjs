@@ -6,10 +6,12 @@
  * Produces 4 side-by-side composite PNGs in /workspace/docs/screenshots/
  * via Playwright (capture) + ImageMagick `convert +append` (composite):
  *
- *   1-modes.png     — rail off vs rail on (no popovers)
- *   2-popovers.png  — hover popover in normal mode vs rail mode
- *   3-children.png  — children inline (normal expand) vs in popover (rail)
- *   4-nested.png    — nested children expanded inside the popover (rail)
+ *   1-modes.png       — rail off vs rail on (no popovers)
+ *   2-popovers.png    — hover popover in normal mode vs rail mode
+ *   3-children.png    — children inline (normal expand) vs in popover (rail)
+ *   4-nested.png      — nested children expanded inside the popover (rail)
+ *   5-active-root.png — current root item highlighted, normal vs rail
+ *   6-active-deep.png — current sub-sub item highlighted, normal vs rail
  *
  * Usage: start the demo (./mvnw -pl demo spring-boot:run) and from this
  * directory run `node capture-screenshots.cjs`. Re-run after design
@@ -64,6 +66,22 @@ async function collapseAll(page) {
         }
     });
     await page.waitForTimeout(300);
+}
+
+async function setCurrent(page, currentPath) {
+    // Vaadin matches current via window.location.pathname; we don't navigate
+    // (would route us into MainLayout), so we set the attribute manually.
+    // Same visual effect as the natural match.
+    await page.evaluate((path) => {
+        for (const it of document.querySelectorAll('vaadin-side-nav-item')) {
+            it.removeAttribute('current');
+        }
+        if (path) {
+            const target = document.querySelector(`vaadin-side-nav-item[path="${path}"]`);
+            if (target) target.setAttribute('current', '');
+        }
+    }, currentPath);
+    await page.waitForTimeout(200);
 }
 
 async function closeAnyPopover(page) {
@@ -172,6 +190,63 @@ async function shot(page, name, clip) {
     // into the output directory under its final name.
     fs.copyFileSync(path.join(TMP, 'd-rail.png'), path.join(OUT, '4-nested.png'));
     console.log('copied 4-nested.png');
+
+    // ---------- E — current root highlighted, normal vs rail ----------
+    await closeAnyPopover(page);
+    await setRail(page, false);
+    await collapseAll(page);
+    await setCurrent(page, 'code');
+    // No hover (would open popover); make sure mouse is parked away.
+    await page.mouse.move(700, 250);
+    await page.waitForTimeout(300);
+    await shot(page, 'e-normal.png', { x: 0, y: 0, width: 280, height: 280 });
+
+    await setRail(page, true);
+    await page.waitForTimeout(300);
+    await shot(page, 'e-rail.png', { x: 0, y: 0, width: 80, height: 280 });
+
+    composite('e-normal.png', 'e-rail.png', '5-active-root.png');
+
+    // ---------- F — current sub-sub highlighted, normal vs rail ----------
+    await setCurrent(page, null);
+    await closeAnyPopover(page);
+    await setRail(page, false);
+    await collapseAll(page);
+    // Expand the nav chain Admin -> Users so Active is visible inline.
+    await expandItem(page, '#screenshot-rail', 'admin');
+    await expandItem(page, '#screenshot-rail', 'admin/users');
+    await setCurrent(page, 'admin/users/active');
+    await page.mouse.move(700, 250);
+    await page.waitForTimeout(300);
+    await shot(page, 'f-normal.png', { x: 0, y: 0, width: 280, height: 380 });
+
+    // Rail mode: open Admin's popover, expand Users inside, mark Active current.
+    await collapseAll(page);
+    await setCurrent(page, null);
+    await setRail(page, true);
+    await page.locator('vaadin-side-nav-item[path="admin"]').hover();
+    await page.waitForSelector('vaadin-popover-overlay[opened]', { timeout: 5000 });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+        const overlay = document.querySelector('vaadin-popover-overlay[opened]');
+        const users = overlay.querySelector('vaadin-side-nav-item[path="admin/users"]');
+        users.expanded = true;
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+        const overlay = document.querySelector('vaadin-popover-overlay[opened]');
+        // The Admin root itself is also the current ancestor — mark it on the
+        // rail-side icon so consumers see the "you are deep in Admin" cue.
+        document.querySelector('vaadin-side-nav-item[path="admin"]')
+            .setAttribute('current', '');
+        // Inside the popover, mark the leaf that is actually the current page.
+        const active = overlay.querySelector('vaadin-side-nav-item[path="admin/users/active"]');
+        if (active) active.setAttribute('current', '');
+    });
+    await page.waitForTimeout(300);
+    await shot(page, 'f-rail.png', { x: 0, y: 0, width: 380, height: 380 });
+
+    composite('f-normal.png', 'f-rail.png', '6-active-deep.png');
 
     await browser.close();
 })();
