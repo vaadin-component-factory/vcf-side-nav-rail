@@ -30,7 +30,37 @@ export function initKeyboardNavigation(rail) {
     ATTACHED.add(rail);
     document.addEventListener('keydown', (e) => handleKeydown(e, rail), true);
     installHaspopupGuard(rail);
+    installHoverTracker(rail);
     rail.setAttribute('data-keyboard-ready', '1');
+}
+
+/**
+ * Tracks the currently mouse-hovered <vaadin-side-nav-item> on the rail and
+ * exposes it as `rail._sideNavRailLastHovered`. The server reads this via
+ * Element.executeJs() when handling an `expanded-changed` event to decide
+ * whether to auto-open the popover after an inline-collapse. Mouse-driven
+ * collapse (chevron click while hovering) opens the popover; keyboard-driven
+ * collapse (Arrow-Left, focus elsewhere) does not.
+ *
+ * `mouseover` (delegated, bubbles) is preferred over per-item `mouseenter`
+ * so a single listener at the rail covers every item — including ones that
+ * are added later. `mouseleave` on the rail clears the marker so the
+ * server-side check returns false when the pointer has left the rail.
+ *
+ * @param {HTMLElement} rail — the <vaadin-side-nav> root element
+ */
+function installHoverTracker(rail) {
+    rail.addEventListener('mouseover', (e) => {
+        const target = e.target;
+        if (!target || !target.closest) return;
+        const item = target.closest('vaadin-side-nav-item');
+        if (item && rail.contains(item)) {
+            rail._sideNavRailLastHovered = item;
+        }
+    });
+    rail.addEventListener('mouseleave', () => {
+        rail._sideNavRailLastHovered = null;
+    });
 }
 
 /**

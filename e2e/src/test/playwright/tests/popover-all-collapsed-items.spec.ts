@@ -78,4 +78,42 @@ test.describe('popover in ALL_COLLAPSED_ITEMS mode', () => {
 
     await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
   });
+
+  test('popover does not auto-open when the collapse is not driven by mouse hover',
+      async ({ page }) => {
+    // Counterpart to "popover reopens when the user collapses the item
+    // inline again": when the inline-collapse is triggered without the
+    // mouse being over the item (keyboard, programmatic, focus-driven),
+    // the popover must stay closed. Otherwise the popover would surprise
+    // the user during keyboard-driven inline navigation.
+    //
+    // The addon's auto-open path queries `rail._sideNavRailLastHovered`
+    // via Element.executeJs from the server's expanded-changed listener;
+    // since no mouseover has fired on the rail in this test, that field
+    // is null and the open is suppressed.
+    await page.goto('/all-collapsed-items');
+    await page.waitForLoadState('networkidle');
+
+    // Park the mouse outside the rail so no mouseover fires while we
+    // toggle the item programmatically.
+    await page.mouse.move(2000, 2000);
+
+    const parent = page.locator('#rail vaadin-side-nav-item').first();
+
+    // Drive expand → collapse via the web-component's `expanded` property
+    // directly. This fires the same expanded-changed events that a click
+    // would, but without any mouseover on the rail.
+    await parent.evaluate((el: HTMLElement & { expanded: boolean }) => {
+      el.expanded = true;
+    });
+    await page.waitForTimeout(200);
+    await parent.evaluate((el: HTMLElement & { expanded: boolean }) => {
+      el.expanded = false;
+    });
+
+    // Wait long enough for the server's executeJs roundtrip to complete
+    // and (incorrectly) call popover.open() if the suppression failed.
+    await page.waitForTimeout(1500);
+    await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+  });
 });

@@ -347,16 +347,27 @@ public class SideNavRailItem extends SideNavItem {
      * <ul>
      *   <li>expand ➜ the popover is now redundant — {@code applyPopoverGating} closes it;
      *   <li>collapse ➜ the children are hidden again; if the user's cursor is still
-     *       on the item (they just clicked the chevron), open the popover explicitly
-     *       because Vaadin's hover trigger would otherwise wait for the next
-     *       {@code mouseenter}. The hover guard also distinguishes a mouse collapse
-     *       from a keyboard collapse (Arrow-Left in §9.2) — the latter should not
-     *       pop the popover because the user is deliberately inline-navigating.
+     *       on the item (they just clicked the chevron with the mouse), open the
+     *       popover explicitly because Vaadin's hover trigger would otherwise wait
+     *       for the next {@code mouseenter}. The hover guard distinguishes a mouse
+     *       collapse from a keyboard collapse (Arrow-Left in §9.2) — the latter
+     *       should not pop the popover because the user is deliberately
+     *       inline-navigating.
      * </ul>
      * The explicit open only fires on a {@code true → false} transition. The event
      * also fires once at initial attach with the same value the item already had;
      * without the transition guard that initial fire would pop every item's popover
      * open on page load.
+     *
+     * <p>The hover check is asynchronous: the client-side hover tracker installed
+     * by {@code side-nav-rail-keyboard.js#installHoverTracker(rail)} maintains
+     * {@code rail._sideNavRailLastHovered}; we read that via
+     * {@link com.vaadin.flow.dom.Element#executeJs}, and only call
+     * {@code popover.open()} from the {@code .then(...)} callback if the item
+     * itself is still the hovered one. The async hop adds one Vaadin-push
+     * roundtrip but keeps the addon free of any direct JSON-API dependency
+     * (the previous {@code addEventData("element.matches(':hover')")} approach
+     * crossed the elemental.json → Jackson API boundary between Vaadin majors).
      */
     private void wireExpandedListener() {
         if (expandedListenerWired) {
@@ -380,18 +391,17 @@ public class SideNavRailItem extends SideNavItem {
             applyPopoverGating(owner.getPopoverMode(), owner.isRailMode());
 
             if (wasExpanded && !nowExpanded && popover.isOpenOnHover()) {
-                // Only auto-open the popover if the mouse is actually over the item.
-                // For keyboard-driven collapse (Arrow-Left) the pointer is elsewhere
-                // and the popover would be an unwanted surprise. Default to true when
-                // the event data is missing — preserves behaviour in Karibu unit tests
-                // that don't simulate the DOM side of the event.
-                boolean stillHovering = !e.getEventData().hasKey("element.matches(':hover')")
-                        || e.getEventData().getBoolean("element.matches(':hover')");
-                if (stillHovering) {
-                    popover.open();
-                }
+                getElement().executeJs(
+                                "const r = $0.closest('vaadin-side-nav');"
+                                        + " return r != null && r._sideNavRailLastHovered === $0;",
+                                getElement())
+                        .then(Boolean.class, stillHovering -> {
+                            if (Boolean.TRUE.equals(stillHovering)) {
+                                popover.open();
+                            }
+                        });
             }
-        }).addEventData("element.matches(':hover')");
+        });
     }
 
     /**
