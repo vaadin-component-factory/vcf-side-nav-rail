@@ -90,7 +90,9 @@ rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
 rail.setRailTooltipNative(true);  // swap pseudo-element for title attribute
 ```
 
-> The default tooltip is implemented as a CSS pseudo-element rather than `<vaadin-tooltip>`, because Vaadin's native tooltip auto-dismisses itself whenever a peer overlay opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). That made the tooltip flicker as the popover appeared. Setting `setRailTooltipNative(true)` falls back to the browser's native `title` attribute, which doesn't have this issue but also can't be styled.
+> The default tooltip is implemented as a CSS pseudo-element rather than `<vaadin-tooltip>`, because Vaadin's native tooltip auto-dismisses itself whenever a peer overlay opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). That made the tooltip flicker as the popover appeared.
+>
+> If you prefer browser-native tooltips instead, you can activate them via `setRailTooltipNative(true)`. Note that these cannot be styled and will also not appear when focusing the rail items using the keyboard.
 
 ### Reacting to mode changes
 
