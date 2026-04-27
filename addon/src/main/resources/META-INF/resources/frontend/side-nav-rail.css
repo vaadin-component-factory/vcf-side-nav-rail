@@ -218,7 +218,12 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
 }
 
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:hover::after,
-vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:focus-visible::after {
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:focus-within::after {
+  /* :focus-within (not :focus-visible) — focus delegates to the inner <a> in
+     vaadin-side-nav-item's shadow root; :focus-visible only matches the
+     focused element itself, and :has(:focus-visible) does not pierce shadow
+     boundaries. :focus-within crosses shadow DOM, which is what we need.
+     The mouse-click case is already covered by :hover. */
   opacity: 1;
   transition-delay: var(--side-nav-rail-tooltip-hover-delay, 500ms);
 }

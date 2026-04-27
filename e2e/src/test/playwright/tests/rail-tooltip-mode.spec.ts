@@ -65,6 +65,33 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         expect(await tooltipOpacity(page, 'dashboard')).toBe(1);
     });
 
+    test('ALL tooltip becomes visible on keyboard focus (pseudo-element opacity)', async ({ page }) => {
+        await page.goto('/rail-tooltip-mode');
+        await page.locator('#toggle-rail').click();
+        await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
+
+        expect(await tooltipOpacity(page, 'dashboard')).toBe(0);
+
+        // Switch the page into keyboard input modality so :focus-visible engages
+        // when we deliver focus programmatically. Without a prior keyboard event
+        // the modality stays at "none" and Chromium does not match :focus-visible.
+        await page.keyboard.press('Tab');
+
+        // Focus the rail item's inner anchor (matches the keyboard adapter's
+        // focusItem() — a host-level :focus-visible alone never matches because
+        // focus lands on a descendant, not on the custom element).
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').evaluate(
+            (el: HTMLElement) => {
+                const anchor = (el.shadowRoot?.querySelector('a')
+                    ?? el.querySelector('a')) as HTMLElement;
+                anchor.focus();
+            });
+
+        // Same 500ms hover-delay + 120ms fade as the hover path.
+        await page.waitForTimeout(800);
+        expect(await tooltipOpacity(page, 'dashboard')).toBe(1);
+    });
+
     test('ONLY_WITHOUT_CHILDREN skips items with children', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#mode-without-children').click();

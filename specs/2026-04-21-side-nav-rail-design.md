@@ -240,6 +240,15 @@ Configurable via CSS custom properties:
 - `--side-nav-rail-tooltip-hover-delay` (default `500ms`)
 - `--side-nav-rail-tooltip-fade-duration` (default `120ms`)
 
+**Trigger:** the tooltip becomes visible on either pointer **hover** *or*
+keyboard **focus** of the item. The focus path uses `:focus-within` so it crosses
+shadow-DOM boundaries — focus on a `vaadin-side-nav-item` lands on the inner
+`<a>` inside its shadow root, which a host-level `:focus-visible` would not match,
+and `:has(:focus-visible)` does not pierce shadow boundaries. `:focus-within` does.
+Both trigger paths share the same hover-delay and fade timings; the native
+browser `title` tooltip (used when `setRailTooltipNative(true)`) only appears on
+hover and is therefore unsuited as a sole accessibility affordance.
+
 **Why pseudo-element instead of `vaadin-tooltip`:** Vaadin's native tooltip
 auto-dismisses itself whenever a peer overlay opens — `vaadin-tooltip-mixin`
 listens on `document.body` for `vaadin-overlay-open` events (see
@@ -466,7 +475,8 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
   opacity: 0;
   transition: opacity var(--side-nav-rail-tooltip-fade-duration, 120ms);
 }
-vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:hover::after {
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:hover::after,
+vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]:focus-within::after {
   opacity: 1;
   transition-delay: var(--side-nav-rail-tooltip-hover-delay, 500ms);
 }
