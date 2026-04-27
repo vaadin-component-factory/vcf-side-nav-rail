@@ -8,12 +8,12 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 ## Features
 
-- **Rail mode toggle** — flip the nav between full-width and icon-only at runtime.
+- **Rail mode toggle** — flip the nav between full-width and rail mode.
 - **Hover popovers** for items with children, configurable in scope.
-- **Full keyboard navigation** in both modes.
+- **Full keyboard navigation** — use arrow keys to navigate through items.
 - **Accessible by default** — ARIA roles and focus management handled for you.
-- **Tooltips** in rail mode on root items.
-- **Letter-avatar fallback** for items without an icon.
+- **Tooltips** on root items (rail mode).
+- **Letter-avatar fallback** for items without an icon (rail mode).
 - **Mode-change event** for downstream code that needs to react to the toggle.
 
 ## Compatibility
@@ -48,8 +48,13 @@ code.addItem(new SideNavRailItem("Pull requests", "/code/pulls"));
 
 rail.addItem(dashboard, code);
 
-Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
-        e -> rail.setRailMode(!rail.isRailMode()));
+Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
+    boolean railMode = !rail.isRailMode();
+    rail.setRailMode(railMode);
+    e.getSource().setIcon((railMode
+            ? VaadinIcon.CHEVRON_RIGHT_SMALL
+            : VaadinIcon.CHEVRON_LEFT_SMALL).create());
+});
 
 add(toggle, rail);
 ```
