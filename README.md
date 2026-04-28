@@ -247,6 +247,26 @@ The popover renders as a `<vaadin-popover>` overlay attached to `<body>`, so it 
 | --- | --- |
 | `vaadin-side-nav-item[has-children]::before` | The subitem indicator itself. Non-interactive. |
 
+#### Self-current vs ancestor-current items
+
+`<vaadin-side-nav-item>` exposes a single `[current]` attribute that is set both when the item itself matches the current route and — with `matchNested` enabled (see [Active marker on rail icons](#active-marker-on-rail-icons)) — when any descendant matches. The two cases are not exposed as separate attributes, but they can be told apart in pure CSS via `:has()`:
+
+| Selector | Matches |
+| --- | --- |
+| `vaadin-side-nav-item[current]:not(:has(vaadin-side-nav-item[current]))` | Self-current — the item's own path matches the URL. |
+| `vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])` | Ancestor-current — `[current]` is set only because a descendant matches. |
+
+Use this to give ancestor-current parents a subtler treatment than the leaf they're highlighting on behalf of. For example, to drop the active background and keep the default text color on parents that aren't themselves the active route:
+
+```css
+vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])::part(content) {
+    background-color: transparent;
+    color: var(--lumo-body-text-color);
+}
+```
+
+`:has()` is supported in all browsers Vaadin 24 targets (Chrome 105+, Safari 15.4+, Firefox 121+).
+
 ### Further reading
 
 - [Vaadin SideNav — styling reference](https://vaadin.com/docs/latest/components/side-nav/styling) — the parts, slots and properties of the underlying component, all of which apply here too.
