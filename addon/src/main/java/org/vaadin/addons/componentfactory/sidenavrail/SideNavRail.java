@@ -428,8 +428,7 @@ public class SideNavRail extends SideNav {
     }
 
     private void updatePopoverGating() {
-        forEachRailItemRecursive(
-                item -> item.applyPopoverGating(popoverOn, railMode, childrenOnlyInPopover));
+        forEachRailItemRecursive(SideNavRailItem::applyPopoverGating);
     }
 
     private void rebuildPopoverContents() {
@@ -437,8 +436,7 @@ public class SideNavRail extends SideNav {
     }
 
     private void applyPopoverSettings() {
-        forEachRailItemRecursive(item -> item.applyPopoverSettings(
-                popoverHoverDelay, popoverHideDelay, popoverPosition, popoverArrowVisible));
+        forEachRailItemRecursive(SideNavRailItem::applyPopoverSettings);
     }
 
     private void applyTooltips() {

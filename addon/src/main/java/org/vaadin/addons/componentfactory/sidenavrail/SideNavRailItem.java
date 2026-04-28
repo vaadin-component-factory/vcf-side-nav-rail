@@ -400,10 +400,7 @@ public class SideNavRailItem extends SideNavItem {
             boolean nowExpanded = isExpanded();
             lastKnownExpanded = nowExpanded;
 
-            applyPopoverGating(
-                    owner.getPopoverOn(),
-                    owner.isRailMode(),
-                    owner.isChildrenOnlyInPopover());
+            applyPopoverGating();
 
             // In children-only-popover mode the chevron is CSS-hidden and
             // the user cannot drive a mouse-click collapse, so auto-open
@@ -450,10 +447,12 @@ public class SideNavRailItem extends SideNavItem {
         // picks up timings/position configured earlier. Fall back to Lumo-typical
         // defaults for popovers living outside a rail (rare but supported).
         if (owner != null) {
-            applyPopoverSettings(owner.getPopoverHoverDelay(), owner.getPopoverHideDelay(),
-                    owner.getPopoverPosition(), owner.isPopoverArrowVisible());
+            applyPopoverSettings();
         } else {
-            applyPopoverSettings(200, 300, PopoverPosition.END_TOP, true);
+            popover.setHoverDelay(200);
+            popover.setHideDelay(300);
+            popover.setPosition(PopoverPosition.END_TOP);
+            popover.addThemeVariants(PopoverVariant.ARROW);
         }
 
         populatePopover();
@@ -461,10 +460,7 @@ public class SideNavRailItem extends SideNavItem {
         popover.addOpenedChangeListener(e -> syncAriaExpanded(e.isOpened()));
 
         if (owner != null) {
-            applyPopoverGating(
-                    owner.getPopoverOn(),
-                    owner.isRailMode(),
-                    owner.isChildrenOnlyInPopover());
+            applyPopoverGating();
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
@@ -480,17 +476,20 @@ public class SideNavRailItem extends SideNavItem {
      * Pushes updated hover/hide delays, position, and arrow visibility to the existing
      * popover, if any. Called by {@link SideNavRail} when one of those settings changes
      * so a live rail reflects the new values without needing a reattach. No-op when
-     * the popover has not been created yet.
+     * the popover has not been created yet or when the item has no owning rail.
      */
-    void applyPopoverSettings(
-            int hoverDelay, int hideDelay, PopoverPosition position, boolean arrowVisible) {
+    void applyPopoverSettings() {
         if (popover == null) {
             return;
         }
-        popover.setHoverDelay(hoverDelay);
-        popover.setHideDelay(hideDelay);
-        popover.setPosition(position);
-        if (arrowVisible) {
+        SideNavRail owner = findOwnerRail();
+        if (owner == null) {
+            return;
+        }
+        popover.setHoverDelay(owner.getPopoverHoverDelay());
+        popover.setHideDelay(owner.getPopoverHideDelay());
+        popover.setPosition(owner.getPopoverPosition());
+        if (owner.isPopoverArrowVisible()) {
             popover.addThemeVariants(PopoverVariant.ARROW);
         } else {
             popover.removeThemeVariants(PopoverVariant.ARROW);
@@ -523,15 +522,20 @@ public class SideNavRailItem extends SideNavItem {
      * use {@link SideNavRail#setPopoverOn(PopoverOn)} or
      * {@link SideNavRail#setRailMode(boolean)} instead.
      */
-    void applyPopoverGating(PopoverOn mode, boolean railMode, boolean childrenOnlyInPopover) {
+    void applyPopoverGating() {
         if (popover == null) {
             return;
         }
+        SideNavRail owner = findOwnerRail();
+        if (owner == null) {
+            return;
+        }
+        boolean railMode = owner.isRailMode();
         // When inline children are CSS-hidden by childrenOnlyInPopover, the
         // popover is the only way to access the children. The item's expanded
         // state may still flip (Vaadin auto-expands on route match), but it
         // has no visual effect, so the popover stays eligible regardless.
-        if (childrenOnlyInPopover) {
+        if (owner.isChildrenOnlyInPopover()) {
             popover.setOpenOnHover(true);
             return;
         }
@@ -539,7 +543,7 @@ public class SideNavRailItem extends SideNavItem {
         // popover would be redundant. In rail mode the inline-expand is visually
         // suppressed anyway, so the popover is still wanted.
         boolean eligible =
-                switch (mode) {
+                switch (owner.getPopoverOn()) {
                     case ALL_COLLAPSED_ITEMS -> railMode || !isExpanded();
                     case ONLY_ROOT_COLLAPSED_ITEMS ->
                             isRootItem() && (railMode || !isExpanded());
