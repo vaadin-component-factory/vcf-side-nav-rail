@@ -293,7 +293,25 @@ public class SideNavRailItem extends SideNavItem {
         ownerRail = lookupOwnerRail();
         ensureLetterAvatar();
         ensurePopover();
+        // Re-apply owner-driven popover state on every attach. ensurePopover is a
+        // no-op when the popover already exists (after a detach/reattach cycle),
+        // but rail-side settings may have changed during the detach window —
+        // re-syncing here keeps the popover consistent with the live owner state.
+        refreshPopoverFromOwner();
         wireExpandedListener();
+    }
+
+    private void refreshPopoverFromOwner() {
+        if (popover == null) {
+            return;
+        }
+        SideNavRail owner = findOwnerRail();
+        if (owner == null) {
+            return;  // standalone — defaults were set at creation
+        }
+        popover.setOpenOnFocus(owner.isRailMode());
+        applyPopoverSettings();
+        applyPopoverGating();
     }
 
     @Override
