@@ -30,6 +30,7 @@ import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
+import org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -164,9 +165,22 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         childrenOnlyInPopoverCheckbox.addValueChangeListener(
                 e -> nav.setChildrenOnlyInPopover(Boolean.TRUE.equals(e.getValue())));
 
+        Select<RootMatchNested> rootMatchNestedSelect = new Select<>();
+        rootMatchNestedSelect.setId("root-match-nested-select");
+        rootMatchNestedSelect.setLabel("Root matchNested");
+        rootMatchNestedSelect.setItems(RootMatchNested.values());
+        rootMatchNestedSelect.setItemLabelGenerator(MainLayout::humanize);
+        rootMatchNestedSelect.setValue(nav.getRootMatchNested());
+        rootMatchNestedSelect.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                nav.setRootMatchNested(e.getValue());
+            }
+        });
+
         HorizontalLayout selects = new HorizontalLayout(
                 modeSelect, parentLabelSelect, tooltipSelect,
-                nativeTooltipCheckbox, childrenOnlyInPopoverCheckbox);
+                nativeTooltipCheckbox, childrenOnlyInPopoverCheckbox,
+                rootMatchNestedSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
 
@@ -202,6 +216,14 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             case NONE -> "None";
             case ONLY_WITHOUT_CHILDREN -> "Only without children";
             case ALL -> "All root items";
+        };
+    }
+
+    private static String humanize(RootMatchNested mode) {
+        return switch (mode) {
+            case NONE -> "Off";
+            case ONLY_RAIL -> "Only in rail mode";
+            case ALL -> "Always";
         };
     }
 
