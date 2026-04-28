@@ -75,7 +75,7 @@ public class SideNavRail extends SideNav {
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
     private boolean railTooltipNative = false;
     private boolean popoverArrowVisible = true;
-    private boolean railRootItemsMatchNested = false;
+    private RootMatchNested rootMatchNested = RootMatchNested.NONE;
     private boolean childrenOnlyInPopover = false;
 
     /** Creates an unlabelled rail. */
@@ -137,7 +137,7 @@ public class SideNavRail extends SideNav {
         applyAriaToRootItems();
         applyFocusTriggerToRootItems();
         applyNestedTabindex();
-        applyRailRootItemsMatchNested();
+        applyRootMatchNested();
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -378,26 +378,28 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Whether root items get {@code matchNested = true} while rail mode is active.
-     * Default: {@code false}.
+     * The current {@link RootMatchNested} mode. Default: {@link RootMatchNested#NONE}.
+     * See {@link RootMatchNested} for the per-value semantics.
      *
-     * @return {@code true} if the override is enabled
+     * @return the active {@link RootMatchNested}; never {@code null}
      */
-    public boolean isRailRootItemsMatchNested() {
-        return railRootItemsMatchNested;
+    public RootMatchNested getRootMatchNested() {
+        return rootMatchNested;
     }
 
     /**
-     * Automatically turns the {@code matchNested} feature on for every root item
-     * while rail mode is active, so users can visually identify which root branch
-     * the current page belongs to even when the active route lives several levels
-     * deep. The original value is restored when rail mode is left.
+     * Sets the {@link RootMatchNested} mode. The override is applied (or rolled back)
+     * on every root item immediately, snapshotting the original {@code matchNested}
+     * value the first time it is forced so the user-set value can be restored when
+     * the override is disabled again.
      *
-     * @param enabled {@code true} to enable the override, {@code false} to disable
+     * @param mode the new {@link RootMatchNested}; must not be {@code null}
+     * @throws NullPointerException if {@code mode} is {@code null}
      */
-    public void setRailRootItemsMatchNested(boolean enabled) {
-        this.railRootItemsMatchNested = enabled;
-        applyRailRootItemsMatchNested();
+    public void setRootMatchNested(RootMatchNested mode) {
+        this.rootMatchNested = java.util.Objects.requireNonNull(
+                mode, "RootMatchNested must not be null");
+        applyRootMatchNested();
     }
 
     private void updatePopoverGating() {
@@ -460,18 +462,28 @@ public class SideNavRail extends SideNav {
 
     /**
      * Applies (or rolls back) the {@code matchNested} override on every root item
-     * based on the current ({@code railRootItemsMatchNested}, {@code railMode})
-     * pair. Override is active only when both are {@code true}; otherwise any
-     * snapshotted user value is restored. Per-item snapshotting lives on
-     * {@link SideNavRailItem}.
+     * based on the current ({@link RootMatchNested}, {@code railMode}) pair.
+     * Per-item snapshotting lives on {@link SideNavRailItem}.
      */
-    private void applyRailRootItemsMatchNested() {
-        boolean override = railRootItemsMatchNested && railMode;
+    private void applyRootMatchNested() {
+        boolean override = isRootMatchNestedActive();
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
                 rail.applyRailMatchNestedOverride(override);
             }
         }
+    }
+
+    /**
+     * Whether the {@link RootMatchNested} override should currently be active given
+     * the configured mode and the current rail-mode state.
+     */
+    private boolean isRootMatchNestedActive() {
+        return switch (rootMatchNested) {
+            case NONE -> false;
+            case ONLY_RAIL -> railMode;
+            case ALL -> true;
+        };
     }
 
     private void applyAriaToRootItems() {
@@ -564,7 +576,7 @@ public class SideNavRail extends SideNav {
             requireRailItem(item);
         }
         super.addItem(items);
-        boolean overrideMatchNested = railRootItemsMatchNested && railMode;
+        boolean overrideMatchNested = isRootMatchNestedActive();
         for (SideNavItem item : items) {
             markAsRootItem(item);
             applyTooltipFor(item);
@@ -592,7 +604,7 @@ public class SideNavRail extends SideNav {
         applyTooltipFor(item);
         if (item instanceof SideNavRailItem rail) {
             rail.applyAriaAttributes(railMode);
-            if (railRootItemsMatchNested && railMode) {
+            if (isRootMatchNestedActive()) {
                 rail.applyRailMatchNestedOverride(true);
             }
         }

@@ -567,7 +567,7 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * Applies (or rolls back) the {@link SideNavRail}-managed {@code matchNested}
      * override on this item. Called by {@link SideNavRail} when rail-mode toggles or
-     * {@link SideNavRail#setRailRootItemsMatchNested(boolean)} flips the feature.
+     * {@link SideNavRail#setRootMatchNested(RootMatchNested)} flips the feature.
      * Snapshots the user's own {@code matchNested} value on the first activation so
      * deactivation restores it exactly — repeated activations do not overwrite the
      * snapshot, so a mid-rail-mode {@code setMatchNested(...)} call by the user is
