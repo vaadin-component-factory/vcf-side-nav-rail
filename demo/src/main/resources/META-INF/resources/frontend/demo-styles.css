@@ -1,0 +1,15 @@
+/*
+ * Demo-only stylesheet. Showcases recipes from the addon's README — these
+ * are NOT shipped with the addon. Copy what you need into your own theme.
+ */
+
+/*
+ * Ancestor-current parents — items whose [current] attribute is only set
+ * because a descendant route matches (see README §Styling → "Self-current
+ * vs ancestor-current items"). Drop the active background + primary text
+ * color so the descendant carries the visible cue alone.
+ */
+vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])::part(content) {
+    background-color: transparent;
+    color: var(--lumo-body-text-color);
+}

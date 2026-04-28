@@ -18,6 +18,7 @@ package org.vaadin.addons.componentfactory.sidenavrail.demo;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -41,6 +42,7 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
  * rail's {@link PopoverOn}; the sidebar with the rail sits below it.
  */
 @Layout
+@CssImport("./demo-styles.css")
 public class MainLayout extends VerticalLayout implements RouterLayout {
 
     private final Div contentArea = new Div();
