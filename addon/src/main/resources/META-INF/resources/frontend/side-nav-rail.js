@@ -21,11 +21,13 @@
  */
 
 const ATTACHED = new WeakSet();
+const TEARDOWNS = new WeakMap();
 
 /**
  * Initializes the client-side adapter for a given <vaadin-side-nav> element
  * owned by a SideNavRail. Safe to call multiple times — a WeakSet guard
- * dedupes.
+ * dedupes. Pair with dispose() on detach so document-level listeners and
+ * the MutationObserver don't outlive the rail.
  *
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
@@ -34,11 +36,45 @@ export function init(rail) {
         return;
     }
     ATTACHED.add(rail);
-    document.addEventListener('keydown', (e) => handleKeydown(e, rail), true);
-    installHaspopupGuard(rail);
+
+    const teardowns = [];
+
+    const keydownHandler = (e) => handleKeydown(e, rail);
+    document.addEventListener('keydown', keydownHandler, true);
+    teardowns.push(() => document.removeEventListener('keydown', keydownHandler, true));
+
+    const observer = installHaspopupGuard(rail);
+    teardowns.push(() => observer.disconnect());
+
     installHoverTracker(rail);
-    installPopoverActivationCloser(rail);
+
+    const clickHandler = installPopoverActivationCloser(rail);
+    teardowns.push(() => document.removeEventListener('click', clickHandler, true));
+
     rail.setAttribute('data-keyboard-ready', '1');
+    TEARDOWNS.set(rail, teardowns);
+}
+
+/**
+ * Releases document-level listeners and the MutationObserver registered by
+ * init(rail). Idempotent — safe to call when init never ran or when called
+ * twice. Called from SideNavRail#onDetach.
+ *
+ * @param {HTMLElement} rail — the <vaadin-side-nav> root element
+ */
+export function dispose(rail) {
+    if (!rail) {
+        return;
+    }
+    const teardowns = TEARDOWNS.get(rail);
+    if (teardowns) {
+        for (const fn of teardowns) {
+            fn();
+        }
+        TEARDOWNS.delete(rail);
+    }
+    ATTACHED.delete(rail);
+    rail.removeAttribute('data-keyboard-ready');
 }
 
 /**
@@ -101,6 +137,7 @@ function installHaspopupGuard(rail) {
         attributeFilter: ['aria-haspopup'],
         subtree: true,
     });
+    return obs;
 }
 
 /**
@@ -134,7 +171,7 @@ function installHaspopupGuard(rail) {
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
 function installPopoverActivationCloser(rail) {
-    document.addEventListener('click', (event) => {
+    const handler = (event) => {
         const path = event.composedPath ? event.composedPath() : [];
         let overlay = null;
         let anchor = null;
@@ -153,7 +190,9 @@ function installPopoverActivationCloser(rail) {
             return;
         }
         overlay.opened = false;
-    }, true);
+    };
+    document.addEventListener('click', handler, true);
+    return handler;
 }
 
 function handleKeydown(event, rail) {
@@ -452,3 +491,4 @@ function focusItem(item) {
 // at app boot, so window.vaadinAddonsSideNavRail is ready when Flow needs it.
 window.vaadinAddonsSideNavRail = window.vaadinAddonsSideNavRail || {};
 window.vaadinAddonsSideNavRail.init = init;
+window.vaadinAddonsSideNavRail.dispose = dispose;

@@ -19,6 +19,7 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.popover.PopoverPosition;
@@ -108,6 +109,14 @@ public class SideNavRail extends SideNav {
         // inside executeJs do not resolve reliably in Vaadin's production bundle.
         attachEvent.getUI().getPage().executeJs(
                 "window.vaadinAddonsSideNavRail.init($0);",
+                getElement());
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        detachEvent.getUI().getPage().executeJs(
+                "window.vaadinAddonsSideNavRail.dispose($0);",
                 getElement());
     }
 
