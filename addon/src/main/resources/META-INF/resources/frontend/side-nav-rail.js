@@ -189,6 +189,16 @@ function installPopoverActivationCloser(rail) {
         if (!overlay.positionTarget || !rail.contains(overlay.positionTarget)) {
             return;
         }
+        // Blur the anchor first so vaadin-popover's overlay focusout handler
+        // synchronously clears its internal __focusInside flag. Without this,
+        // browsers focus the anchor on mousedown -> __focusInside=true, the
+        // overlay is removed by the line below before focusout asynchronously
+        // fires, the flag stays stuck, and the next hover-leave on the parent
+        // refuses to auto-close (vaadin-popover thinks the focus trigger is
+        // still active).
+        if (typeof anchor.blur === 'function') {
+            anchor.blur();
+        }
         overlay.opened = false;
     };
     document.addEventListener('click', handler, true);
