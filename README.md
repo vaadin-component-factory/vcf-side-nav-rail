@@ -145,7 +145,7 @@ rail.addRailModeChangedListener(e ->
 
 By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Setting `matchNested(true)` on each root item flips this: the root also counts as `current` when any descendant matches.
 
-`setRootMatchNested(RootMatchNested)` opts into having the addon manage that flag automatically. The override is layered on top — per-item snapshotting means a `setMatchNested(...)` call you made yourself is preserved and restored when the override is disabled again, never destructive.
+`setRootMatchNested(RootMatchNested)` opts into having the addon manage that flag automatically for root items. This is especially useful, when you display children only in the popup.
 
 | Value | Behaviour |
 | --- | --- |
