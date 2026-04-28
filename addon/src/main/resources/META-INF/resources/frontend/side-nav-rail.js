@@ -245,12 +245,34 @@ function resolveItem(el) {
 
 function isItemInScope(item, rail) {
     if (rail.contains(item)) return true;
-    // Focus inside a popover overlay counts if the popover's target is a rail-root.
-    const overlay = item.closest('vaadin-popover-overlay');
-    if (overlay && overlay.positionTarget && rail.contains(overlay.positionTarget)) {
+    // Focus inside a popover counts if the popover's target is a rail-root.
+    const scope = closestPopoverScope(item);
+    const positionTarget = popoverScopeTarget(scope);
+    if (positionTarget && rail.contains(positionTarget)) {
         return true;
     }
     return false;
+}
+
+/**
+ * Returns the nearest popover-scope ancestor of an element. Cross-Vaadin-version:
+ * V24 teleports vaadin-popover-overlay to <body> (slotted content moves with it,
+ * so closest finds the overlay), V25 keeps the overlay in vaadin-popover's
+ * shadowRoot (the slotted content stays in the popover host's light DOM, so
+ * closest finds the host instead). Both expose .opened, .querySelector for
+ * inserted items, and a position-target accessor (see popoverScopeTarget).
+ */
+function closestPopoverScope(el) {
+    if (!el || !el.closest) return null;
+    return el.closest('vaadin-popover-overlay, vaadin-popover');
+}
+
+/** Position-target ("owning rail-root") of a popover scope element. */
+function popoverScopeTarget(scope) {
+    if (!scope) return null;
+    return scope.localName === 'vaadin-popover'
+        ? (scope.target ?? null)
+        : (scope.positionTarget ?? null);
 }
 
 function isRailActive(rail) {
@@ -311,9 +333,9 @@ function visibleItemsInScope(scope) {
  *   3. Otherwise → visible-item walk across the whole rail.
  */
 function visibleItems(rail, target) {
-    const overlay = target && target.closest && target.closest('vaadin-popover-overlay');
-    if (overlay) {
-        return visibleItemsInScope(overlay);
+    const scope = closestPopoverScope(target);
+    if (scope) {
+        return visibleItemsInScope(scope);
     }
 
     if (isRootOnlyTree(rail) && target && target.hasAttribute('root-item')) {
@@ -417,17 +439,17 @@ function moveFocusLeft(item, rail) {
     }
 
     // 2. Inside a popover: two sub-cases.
-    const overlay = item.closest('vaadin-popover-overlay');
-    if (overlay) {
-        const popoverParent = parentItemWithin(item, overlay);
+    const scope = closestPopoverScope(item);
+    if (scope) {
+        const popoverParent = parentItemWithin(item, scope);
         if (popoverParent) {
             // Nested popover item → focus popover-parent.
             focusItem(popoverParent);
             return;
         }
         // Top-level popover item → close popover, return focus to owning rail-root.
-        const owner = overlay.positionTarget;
-        overlay.opened = false;
+        const owner = popoverScopeTarget(scope);
+        scope.opened = false;
         if (owner) focusItem(owner);
         return;
     }
@@ -461,17 +483,17 @@ function parentItemWithin(item, scope) {
  * Returns true if the event was handled (caller preventDefaults).
  */
 function handleEscape(item, rail) {
-    const overlay = item.closest('vaadin-popover-overlay');
-    if (overlay) {
-        const owner = overlay.positionTarget;
-        overlay.opened = false;
+    const scope = closestPopoverScope(item);
+    if (scope) {
+        const owner = popoverScopeTarget(scope);
+        scope.opened = false;
         if (owner) focusItem(owner);
         return true;
     }
     if (item.hasAttribute('root-item')) {
-        const popoverOverlay = findOpenPopoverForTarget(item);
-        if (popoverOverlay) {
-            popoverOverlay.opened = false;
+        const openScope = findOpenPopoverForTarget(item);
+        if (openScope) {
+            openScope.opened = false;
             focusItem(item);
             return true;
         }
@@ -479,9 +501,30 @@ function handleEscape(item, rail) {
     return false;
 }
 
+/**
+ * Finds the open popover scope (V24: vaadin-popover-overlay in <body>;
+ * V25: the vaadin-popover host itself, since the overlay lives in its
+ * shadowRoot and document.querySelectorAll cannot pierce it) targeting
+ * the given rail-root item.
+ */
 function findOpenPopoverForTarget(rootItem) {
-    return [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
-        .find(o => o.positionTarget === rootItem) || null;
+    // V24 — overlay teleported to <body> reachable via document query.
+    const overlay = [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
+        .find(o => o.positionTarget === rootItem);
+    if (overlay) return overlay;
+    // V25 — vaadin-popover hosts the overlay in shadow DOM; the host itself
+    // exposes .opened and contains the popover content via slot, so it serves
+    // as a usable scope for callers that need .opened, .querySelector, etc.
+    // The shadow-overlay check is what distinguishes V25 from V24's transient
+    // state right after popover.opened=true (where popover.opened is true but
+    // the body overlay hasn't attached yet — V24 host has NO items in light
+    // DOM, so callers' querySelector('vaadin-side-nav-item') would return
+    // nothing and break focus advancement).
+    return [...document.querySelectorAll('vaadin-popover')]
+        .find(p => p.opened
+            && p.target === rootItem
+            && p.shadowRoot?.querySelector('vaadin-popover-overlay[opened]'))
+        || null;
 }
 
 /**
