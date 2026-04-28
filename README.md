@@ -258,7 +258,7 @@ If you'd rather keep the active highlight on the leaf alone and tone the root do
 | `vaadin-side-nav-item[root-item][current]:not(:has(vaadin-side-nav-item[current]))` | The root itself is the active route. |
 | `vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])` | The root is `[current]` only because a descendant is the active route. |
 
-The `[root-item]` qualifier is the addon's hook on direct children of `SideNavRail` (see [Items](#items)) — drop it if you want the same recipe to apply at any nesting level.
+`[root-item]` is the addon's hook on direct children of `SideNavRail` (see [Items](#items)). The qualifier matters because `setRootMatchNested(...)` only forces `matchNested = true` on root items — nested parents in between keep their default behaviour and are never `[current]` purely because of a descendant route.
 
 For example, to drop the active background and keep the default text color on roots that aren't themselves the active route:
 
