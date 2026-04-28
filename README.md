@@ -247,19 +247,23 @@ The popover renders as a `<vaadin-popover>` overlay attached to `<body>`, so it 
 | --- | --- |
 | `vaadin-side-nav-item[has-children]::before` | The subitem indicator itself. Non-interactive. |
 
-#### Self-current vs ancestor-current items
+#### Styling root items differently when only a child is active
 
-`<vaadin-side-nav-item>` exposes a single `[current]` attribute that is set both when the item itself matches the current route and — with `matchNested` enabled (see [Active marker on rail icons](#active-marker-on-rail-icons)) — when any descendant matches. The two cases are not exposed as separate attributes, but they can be told apart in pure CSS via `:has()`:
+When you enable [`matchNested`](#active-marker-on-rail-icons) (typically via `setRootMatchNested(...)`), a root item is marked `[current]` whenever any of its descendants matches the route — even if the root itself isn't the active page. By default Vaadin gives that root the same active highlight as the leaf, so both the root and the actually-active child end up looking equally "selected".
+
+If you'd rather keep the active highlight on the leaf alone and tone the root down (or style it in a third, distinct way), the two cases can be told apart in pure CSS via `:has()`:
 
 | Selector | Matches |
 | --- | --- |
-| `vaadin-side-nav-item[current]:not(:has(vaadin-side-nav-item[current]))` | Self-current — the item's own path matches the URL. |
-| `vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])` | Ancestor-current — `[current]` is set only because a descendant matches. |
+| `vaadin-side-nav-item[root-item][current]:not(:has(vaadin-side-nav-item[current]))` | The root itself is the active route. |
+| `vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])` | The root is `[current]` only because a descendant is the active route. |
 
-Use this to give ancestor-current parents a subtler treatment than the leaf they're highlighting on behalf of. For example, to drop the active background and keep the default text color on parents that aren't themselves the active route:
+The `[root-item]` qualifier is the addon's hook on direct children of `SideNavRail` (see [Items](#items)) — drop it if you want the same recipe to apply at any nesting level.
+
+For example, to drop the active background and keep the default text color on roots that aren't themselves the active route:
 
 ```css
-vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])::part(content) {
+vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::part(content) {
     background-color: transparent;
     color: var(--lumo-body-text-color);
 }
