@@ -437,11 +437,11 @@ public class SideNavRailItem extends SideNavItem {
         // Seed from the owning rail's current settings so a popover created mid-session
         // picks up timings/position configured earlier. Fall back to Lumo-typical
         // defaults for popovers living outside a rail (rare but supported).
-        popover.setHoverDelay(owner != null ? owner.getPopoverHoverDelay() : 200);
-        popover.setHideDelay(owner != null ? owner.getPopoverHideDelay() : 300);
-        popover.setPosition(owner != null ? owner.getPopoverPosition() : PopoverPosition.END_TOP);
-        if (owner == null || owner.isPopoverArrowVisible()) {
-            popover.addThemeVariants(PopoverVariant.ARROW);
+        if (owner != null) {
+            applyPopoverSettings(owner.getPopoverHoverDelay(), owner.getPopoverHideDelay(),
+                    owner.getPopoverPosition(), owner.isPopoverArrowVisible());
+        } else {
+            applyPopoverSettings(200, 300, PopoverPosition.END_TOP, true);
         }
 
         populatePopover();
