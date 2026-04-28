@@ -63,6 +63,9 @@ public class SideNavRail extends SideNav {
     private static final String RAIL_THEME = "rail";
     private static final String CHILDREN_ONLY_IN_POPOVER_THEME = "inline-children-hidden";
 
+    static final String RAIL_TOOLTIP_ATTRIBUTE = "data-rail-tooltip";
+    static final String NATIVE_TOOLTIP_ATTRIBUTE = "title";
+
     private static final int DEFAULT_POPOVER_HOVER_DELAY_MS = 200;
     private static final int DEFAULT_POPOVER_HIDE_DELAY_MS = 300;
     private static final PopoverPosition DEFAULT_POPOVER_POSITION = PopoverPosition.END_TOP;
@@ -507,9 +510,6 @@ public class SideNavRail extends SideNav {
             item.getElement().setAttribute(attr, label);
         }
     }
-
-    static final String RAIL_TOOLTIP_ATTRIBUTE = "data-rail-tooltip";
-    static final String NATIVE_TOOLTIP_ATTRIBUTE = "title";
 
     /**
      * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever

@@ -58,6 +58,9 @@ import java.util.Optional;
 public class SideNavRailItem extends SideNavItem {
 
     private static final String LABEL_SPAN_CLASS = "label";
+    private static final String ARIA_HASPOPUP = "aria-haspopup";
+    private static final String ARIA_EXPANDED = "aria-expanded";
+    private static final String MENU_ROLE = "menu";
 
     private Popover popover;
     private boolean expandedListenerWired = false;
@@ -432,7 +435,7 @@ public class SideNavRailItem extends SideNavItem {
         popover.setOpenOnClick(false);
         SideNavRail owner = findOwnerRail();
         popover.setOpenOnFocus(owner != null && owner.isRailMode());
-        popover.setOverlayRole("menu");
+        popover.setOverlayRole(MENU_ROLE);
 
         // Seed from the owning rail's current settings so a popover created mid-session
         // picks up timings/position configured earlier. Fall back to Lumo-typical
@@ -544,13 +547,13 @@ public class SideNavRailItem extends SideNavItem {
     void applyAriaAttributes(boolean railMode) {
         boolean hasChildren = !getItems().isEmpty();
         if (railMode && hasChildren) {
-            getElement().setAttribute("aria-haspopup", "menu");
-            if (!getElement().hasAttribute("aria-expanded")) {
-                getElement().setAttribute("aria-expanded", "false");
+            getElement().setAttribute(ARIA_HASPOPUP, MENU_ROLE);
+            if (!getElement().hasAttribute(ARIA_EXPANDED)) {
+                getElement().setAttribute(ARIA_EXPANDED, "false");
             }
         } else {
-            getElement().removeAttribute("aria-haspopup");
-            getElement().removeAttribute("aria-expanded");
+            getElement().removeAttribute(ARIA_HASPOPUP);
+            getElement().removeAttribute(ARIA_EXPANDED);
         }
     }
 
@@ -605,8 +608,8 @@ public class SideNavRailItem extends SideNavItem {
         if (owner == null || !owner.isRailMode()) {
             return;
         }
-        getElement().setAttribute("aria-haspopup", "menu");
-        getElement().setAttribute("aria-expanded", String.valueOf(open));
+        getElement().setAttribute(ARIA_HASPOPUP, MENU_ROLE);
+        getElement().setAttribute(ARIA_EXPANDED, String.valueOf(open));
     }
 
     private void populatePopover() {
