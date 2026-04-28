@@ -18,6 +18,7 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.popover.Popover;
@@ -63,6 +64,7 @@ public class SideNavRailItem extends SideNavItem {
     private static final String MENU_ROLE = "menu";
 
     private Popover popover;
+    private SideNavRail ownerRail;
     private boolean expandedListenerWired = false;
     private boolean lastKnownExpanded = false;
     private Boolean savedMatchNested = null;
@@ -288,9 +290,16 @@ public class SideNavRailItem extends SideNavItem {
     @Override
     protected void onAttach(AttachEvent event) {
         super.onAttach(event);
+        ownerRail = lookupOwnerRail();
         ensureLetterAvatar();
         ensurePopover();
         wireExpandedListener();
+    }
+
+    @Override
+    protected void onDetach(DetachEvent event) {
+        super.onDetach(event);
+        ownerRail = null;
     }
 
     private static final String AVATAR_CLASS = "side-nav-rail-letter-avatar";
@@ -489,7 +498,11 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     private SideNavRail findOwnerRail() {
-        com.vaadin.flow.component.Component p = getParent().orElse(null);
+        return ownerRail;
+    }
+
+    private SideNavRail lookupOwnerRail() {
+        Component p = getParent().orElse(null);
         while (p != null) {
             if (p instanceof SideNavRail rail) {
                 return rail;
