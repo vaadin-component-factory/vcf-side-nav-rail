@@ -44,7 +44,7 @@ async function openPopoverOnCode(page: Page): Promise<void> {
 }
 
 const popoverChild = (path: string) =>
-    `vaadin-popover-overlay[opened] vaadin-side-nav-item[path="${path}"]`;
+    `vaadin-popover-overlay[opened] vaadin-side-nav-item[path="${path}"], vaadin-popover[opened] vaadin-side-nav-item[path="${path}"]`;
 
 test.describe('popover closes when an item inside it is activated', () => {
     test('rail mode — mouse click on popover item closes the popover', async ({ page }) => {

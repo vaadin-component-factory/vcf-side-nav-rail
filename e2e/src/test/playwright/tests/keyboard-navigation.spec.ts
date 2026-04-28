@@ -262,7 +262,7 @@ test.describe('rail mode — root navigation + Esc', () => {
         await focusItem(page, 'code');
         // Focus into popover — Task 8 implements Arrow-Right as the keyboard route in.
         // For now we move focus manually inside the popover and verify Esc behavior.
-        await page.locator('vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"]')
+        await page.locator('vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"], vaadin-popover[opened] vaadin-side-nav-item[path="code/branches"]')
             .evaluate((el: HTMLElement) => {
                 const a = el.shadowRoot?.querySelector('a') as HTMLElement | null;
                 (a ?? el).focus();
@@ -376,7 +376,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
         await page.keyboard.press('ArrowRight');
         const users = page.locator(
-            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"]');
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"], vaadin-popover[opened] vaadin-side-nav-item[path="admin/users"]');
         await expect(users).toHaveJSProperty('expanded', true);
         await expectFocusedPath(page, 'admin/users');
     });
@@ -405,7 +405,7 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
 
         await page.keyboard.press('ArrowLeft');
         await expect(page.locator(
-            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"]'))
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="admin/users"], vaadin-popover[opened] vaadin-side-nav-item[path="admin/users"]'))
             .toHaveJSProperty('expanded', false);
         await expectFocusedPath(page, 'admin/users');
     });

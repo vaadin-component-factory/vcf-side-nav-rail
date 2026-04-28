@@ -87,7 +87,7 @@ test.describe('detach + reattach', () => {
 
         await openPopoverOnCode(page);
         await page.locator(
-            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"]'
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"], vaadin-popover[opened] vaadin-side-nav-item[path="code/branches"]'
         ).click();
 
         await expect(page.locator('vaadin-popover-overlay[opened]'))
@@ -189,7 +189,7 @@ test.describe('detach + reattach', () => {
         // overlay flickering).
         await openPopoverOnCode(page);
         await page.locator(
-            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"]'
+            'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/branches"], vaadin-popover[opened] vaadin-side-nav-item[path="code/branches"]'
         ).click();
         await expect(page.locator('vaadin-popover-overlay[opened]'))
             .not.toBeVisible({ timeout: 2_000 });

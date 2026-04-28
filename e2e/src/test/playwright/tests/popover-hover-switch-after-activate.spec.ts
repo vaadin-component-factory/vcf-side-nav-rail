@@ -42,8 +42,11 @@ async function enableRailMode(page: Page): Promise<void> {
 const openedPopoverPaths = (page: Page) =>
     page.evaluate(() =>
         [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
-            .map((o) => (o as HTMLElement & { positionTarget?: Element })
-                .positionTarget?.getAttribute('path') ?? ''));
+            .map((o) => {
+                // V24 overlay has .positionTarget; V25 popover host has .target.
+                const t = (o as any).positionTarget ?? (o as any).target;
+                return (t as Element | undefined)?.getAttribute("path") ?? "";
+            }));
 
 test('rail mode — popover auto-closes after hover-switch following an in-popover activation', async ({ page }) => {
     await page.goto('/keyboard-navigation');
@@ -57,7 +60,7 @@ test('rail mode — popover auto-closes after hover-switch following an in-popov
 
     // 2. Click an item inside the popover -> activation closer fires.
     await page.locator(
-        'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/commits"]'
+        'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/commits"], vaadin-popover[opened] vaadin-side-nav-item[path="code/commits"]'
     ).click();
     await expect(page.locator('vaadin-popover-overlay[opened]'))
         .not.toBeVisible({ timeout: 2_000 });

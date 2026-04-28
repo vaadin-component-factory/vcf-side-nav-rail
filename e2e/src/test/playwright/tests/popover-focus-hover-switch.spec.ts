@@ -20,8 +20,11 @@ async function enableRailMode(page: Page): Promise<void> {
 const openedPaths = (page: Page) =>
     page.evaluate(() =>
         [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
-            .map((o) => (o as HTMLElement & { positionTarget?: Element })
-                .positionTarget?.getAttribute('path') ?? ''));
+            .map((o) => {
+                // V24 overlay has .positionTarget; V25 popover host has .target.
+                const t = (o as any).positionTarget ?? (o as any).target;
+                return (t as Element | undefined)?.getAttribute("path") ?? "";
+            }));
 
 test('rail mode — Tab from one root to another closes the first popover', async ({ page }) => {
     await page.goto('/keyboard-navigation');

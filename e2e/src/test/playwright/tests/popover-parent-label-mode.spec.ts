@@ -20,7 +20,7 @@ test.describe('popover parent-label header', () => {
     await root.hover();
 
     const header = page
-        .locator('vaadin-popover-overlay[opened] .side-nav-rail-popover-header');
+        .locator('vaadin-popover-overlay[opened] .side-nav-rail-popover-header, vaadin-popover[opened] .side-nav-rail-popover-header');
     await expect(header).toBeVisible({ timeout: 2_000 });
     await expect(header).toContainText('Code');
     await expect(header.locator('vaadin-icon')).toHaveCount(0);
@@ -34,7 +34,7 @@ test.describe('popover parent-label header', () => {
     await root.hover();
 
     const header = page
-        .locator('vaadin-popover-overlay[opened] .side-nav-rail-popover-header');
+        .locator('vaadin-popover-overlay[opened] .side-nav-rail-popover-header, vaadin-popover[opened] .side-nav-rail-popover-header');
     await expect(header).toBeVisible({ timeout: 2_000 });
     await expect(header).toContainText('Code');
     await expect(header.locator('vaadin-icon')).toHaveCount(1);
