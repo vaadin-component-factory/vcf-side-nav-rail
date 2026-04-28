@@ -439,7 +439,7 @@ public class SideNavRailItem extends SideNavItem {
         // defaults for popovers living outside a rail (rare but supported).
         popover.setHoverDelay(owner != null ? owner.getPopoverHoverDelay() : 200);
         popover.setHideDelay(owner != null ? owner.getPopoverHideDelay() : 300);
-        popover.setPosition(owner != null ? owner.getPopoverPosition() : resolveEndTopPosition());
+        popover.setPosition(owner != null ? owner.getPopoverPosition() : PopoverPosition.END_TOP);
         if (owner == null || owner.isPopoverArrowVisible()) {
             popover.addThemeVariants(PopoverVariant.ARROW);
         }
@@ -725,19 +725,6 @@ public class SideNavRailItem extends SideNavItem {
             return copy;
         }
         return source;
-    }
-
-    /**
-     * Resolves the right-aligned, top-anchored popover position. The spec flags the exact
-     * enum value as implementation-verified; try {@code END_TOP} first, then fall back to
-     * {@code END}.
-     */
-    private static PopoverPosition resolveEndTopPosition() {
-        try {
-            return PopoverPosition.valueOf("END_TOP");
-        } catch (IllegalArgumentException notFound) {
-            return PopoverPosition.valueOf("END");
-        }
     }
 
     /**
