@@ -188,8 +188,7 @@ vaadin-side-nav[theme~="rail"]
     line-height: var(--lumo-line-height-s);
 }
 
-.side-nav-rail-popover-header vaadin-icon,
-.side-nav-rail-popover-header iron-icon {
+.side-nav-rail-popover-header vaadin-icon {
     width: var(--lumo-icon-size-s);
     height: var(--lumo-icon-size-s);
     color: var(--lumo-secondary-text-color);
