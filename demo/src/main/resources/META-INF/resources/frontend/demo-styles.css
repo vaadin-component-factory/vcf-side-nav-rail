@@ -5,8 +5,10 @@
 
 /*
  * Tone down parents whose [current] attribute is only set because a
- * descendant route matches (see README §Styling → "Styling parents
- * differently when only a child is active").
+ * descendant route matches (see README §Styling → "Styling root items
+ * differently when only a child is active"). The recipe in the README
+ * scopes to [root-item]; here we drop that qualifier so the effect is
+ * visible at every nesting level in the demo.
  */
 vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])::part(content) {
     color: var(--lumo-body-text-color);
