@@ -6,9 +6,7 @@
 /*
  * Tone down parents whose [current] attribute is only set because a
  * descendant route matches (see README §Styling → "Styling parents
- * differently when only a child is active"). Drop the active background
- * and primary text color so the active child carries the visible cue
- * alone, instead of competing with the parent for attention.
+ * differently when only a child is active").
  */
 vaadin-side-nav-item[current]:has(vaadin-side-nav-item[current])::part(content) {
     color: var(--lumo-body-text-color);
