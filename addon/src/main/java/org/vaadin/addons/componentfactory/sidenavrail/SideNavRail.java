@@ -543,14 +543,7 @@ public class SideNavRail extends SideNav {
         super.addItem(items);
         boolean overrideMatchNested = isRootMatchNestedActive();
         for (SideNavItem item : items) {
-            markAsRootItem(item);
-            applyTooltipFor(item);
-            if (item instanceof SideNavRailItem rail) {
-                rail.applyAriaAttributes(railMode);
-                if (overrideMatchNested) {
-                    rail.applyRailMatchNestedOverride(true);
-                }
-            }
+            wireRootItem(item, overrideMatchNested);
         }
     }
 
@@ -565,11 +558,15 @@ public class SideNavRail extends SideNav {
     public void addItemAsFirst(SideNavItem item) {
         requireRailItem(item);
         super.addItemAsFirst(item);
+        wireRootItem(item, isRootMatchNestedActive());
+    }
+
+    private void wireRootItem(SideNavItem item, boolean overrideMatchNested) {
         markAsRootItem(item);
         applyTooltipFor(item);
         if (item instanceof SideNavRailItem rail) {
             rail.applyAriaAttributes(railMode);
-            if (isRootMatchNestedActive()) {
+            if (overrideMatchNested) {
                 rail.applyRailMatchNestedOverride(true);
             }
         }
