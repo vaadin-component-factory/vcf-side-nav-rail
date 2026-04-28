@@ -42,3 +42,4 @@ test-results/
 !e2e/src/test/playwright/package.json
 !e2e/src/test/playwright/package-lock.json
 !e2e/src/test/playwright/tsconfig.json
+/.playwright-mcp/**
