@@ -625,18 +625,9 @@ public class SideNavRailItem extends SideNavItem {
 
         SideNav nested = new SideNav();
         for (SideNavItem child : getItems()) {
-            SideNavItem copy = copyOf(child);
-            tagAsMenuItem(copy);
-            nested.addItem(copy);
+            nested.addItem(copyOf(child));
         }
         popover.add(nested);
-    }
-
-    private static void tagAsMenuItem(SideNavItem item) {
-        item.getElement().setAttribute("role", "menuitem");
-        for (SideNavItem sub : item.getItems()) {
-            tagAsMenuItem(sub);
-        }
     }
 
     /**
@@ -706,6 +697,7 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             copy = new SideNavItem(label);
         }
+        copy.getElement().setAttribute("role", "menuitem");
 
         for (SideNavItem grandchild : source.getItems()) {
             copy.addItem(copyOf(grandchild));
