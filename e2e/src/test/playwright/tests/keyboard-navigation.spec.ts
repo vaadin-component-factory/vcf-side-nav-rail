@@ -50,6 +50,21 @@ async function enableRailMode(page: Page): Promise<void> {
     }, undefined, { timeout: 10_000 });
 }
 
+/**
+ * Click `#toggle-popover-only` and wait until the rail's theme reflects the
+ * inline-children-hidden flag. The toggle is a server roundtrip; without the
+ * wait a focusItem immediately afterwards would race the keyboard adapter's
+ * mode check.
+ */
+async function enablePopoverOnlyMode(page: Page): Promise<void> {
+    await page.locator('#toggle-popover-only').click();
+    await page.waitForFunction(() => {
+        const rail = document.querySelector('#rail');
+        const theme = rail?.getAttribute('theme') || '';
+        return theme.split(/\s+/).includes('inline-children-hidden');
+    }, undefined, { timeout: 10_000 });
+}
+
 test.describe('keyboard navigation adapter', () => {
     test('adapter marks the rail as keyboard-ready on attach', async ({ page }) => {
         await page.goto('/keyboard-navigation');
@@ -424,5 +439,112 @@ test.describe('rail mode — popover tree navigation (Arrow-Right/Left)', () => 
         await page.keyboard.press('ArrowLeft');
         await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
         await expectFocusedPath(page, 'admin');
+    });
+});
+
+test.describe('popover-only mode (children only in popover)', () => {
+    test('Arrow-Down walks root items only, even when an inline parent is expanded', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        // Simulate Vaadin's auto-expand-on-route-match: nested children stay
+        // CSS-hidden by inline-children-hidden, but the expanded property still
+        // flips. The keyboard walk must not descend into them.
+        await page.locator('vaadin-side-nav-item[path="code"]').evaluate(
+            (el: any) => { el.expanded = true; });
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code');
+
+        // Without the popover-only-mode fix this would step into code/branches.
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'admin');
+    });
+
+    test('Arrow-Up walks backward across roots only', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await page.locator('vaadin-side-nav-item[path="admin"]').evaluate(
+            (el: any) => { el.expanded = true; });
+
+        await focusItem(page, 'admin');
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'code');
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'dashboard');
+
+        await page.keyboard.press('ArrowUp');
+        await expectFocusedPath(page, 'dashboard');
+    });
+
+    test('Arrow-Right on a root with children opens the popover and focuses first item', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await focusItem(page, 'code');
+        // Popover-only mode does NOT enable open-on-focus (that's rail-mode-only),
+        // so focusing the root must not have opened the popover by itself.
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+        await expectFocusedPath(page, 'code/branches');
+    });
+
+    test('Arrow-Right on a leaf root is a no-op', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await focusItem(page, 'dashboard');
+        await page.keyboard.press('ArrowRight');
+        await expectFocusedPath(page, 'dashboard');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+    });
+
+    test('Arrow-Left on top-level popover item closes popover + focuses rail-root', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');
+        await expectFocusedPath(page, 'code/branches');
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expectFocusedPath(page, 'code');
+    });
+
+    test('Esc closes the popover and returns focus to the rail-root', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toBeVisible();
+
+        await page.keyboard.press('Escape');
+        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expectFocusedPath(page, 'code');
+    });
+
+    test('Arrow-Down inside popover walks menu items', async ({ page }) => {
+        await page.goto('/keyboard-navigation');
+        await enablePopoverOnlyMode(page);
+
+        await focusItem(page, 'code');
+        await page.keyboard.press('ArrowRight');  // into popover, on Branches
+        await expectFocusedPath(page, 'code/branches');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/commits');
+
+        await page.keyboard.press('ArrowDown');
+        await expectFocusedPath(page, 'code/commits');
     });
 });

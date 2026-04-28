@@ -150,6 +150,27 @@ function isRailActive(rail) {
 }
 
 /**
+ * Whether the rail is in "children only in popover" mode. The nested items are
+ * still in the DOM but CSS-hidden, so for keyboard purposes the tree behaves
+ * like rail mode: only root items participate in the up/down walk, and the
+ * popover is the sole path to children. See spec §3.x / SideNavRail.setChildrenOnlyInPopover.
+ */
+function isPopoverOnlyMode(rail) {
+    const theme = rail.getAttribute('theme') || '';
+    return theme.split(/\s+/).includes('inline-children-hidden');
+}
+
+/**
+ * True when the inline rail tree only exposes root items — either because
+ * rail mode collapsed nested children, or because popover-only mode CSS-hides
+ * them. Used to gate root-only navigation and the "ArrowRight opens popover"
+ * shortcut.
+ */
+function isRootOnlyTree(rail) {
+    return isRailActive(rail) || isPopoverOnlyMode(rail);
+}
+
+/**
  * Returns all visible items in document order: items whose ancestors (up to the
  * given scope element) are all expanded. Root items of the scope are always
  * visible; collapsed subtrees are skipped from the walk.
@@ -173,8 +194,11 @@ function visibleItemsInScope(scope) {
  *   1. Focus inside a popover overlay → visible-item walk rooted at the overlay
  *      (same tree semantics as normal mode — Arrow-Down on an expanded parent
  *      descends into the first child, stops at boundaries inside the overlay).
- *   2. Rail mode + focus on a root item → walk root items only (nested items
- *      are still in the DOM but hidden under the rail — per §4.4.2).
+ *   2. Root-only tree (rail mode or popover-only mode) + focus on a root item
+ *      → walk root items only. Nested items are still in the DOM but visually
+ *      hidden under either the rail collapse (§4.4.2) or the
+ *      inline-children-hidden CSS, so the user can't see where focus would
+ *      otherwise go.
  *   3. Otherwise → visible-item walk across the whole rail.
  */
 function visibleItems(rail, target) {
@@ -183,8 +207,7 @@ function visibleItems(rail, target) {
         return visibleItemsInScope(overlay);
     }
 
-    const railMode = isRailActive(rail);
-    if (railMode && target && target.hasAttribute('root-item')) {
+    if (isRootOnlyTree(rail) && target && target.hasAttribute('root-item')) {
         return [...rail.querySelectorAll(':scope > vaadin-side-nav-item[root-item]')];
     }
 
@@ -223,8 +246,9 @@ function parentItem(item, rail) {
 
 function moveFocusRight(item) {
     // Rail-root case: open the popover (if closed) and move focus into it.
-    // This is the universal "into the popover" action in rail mode.
-    if (item.hasAttribute('root-item') && isItemRailMode(item)) {
+    // This is the universal "into the popover" action whenever the rail tree
+    // only exposes root items (rail mode or popover-only mode).
+    if (item.hasAttribute('root-item') && isItemRootOnlyTree(item)) {
         moveFocusRightOnRailRoot(item);
         return;
     }
@@ -240,9 +264,9 @@ function moveFocusRight(item) {
     }
 }
 
-function isItemRailMode(item) {
+function isItemRootOnlyTree(item) {
     const rail = item.closest('vaadin-side-nav');
-    return rail ? isRailActive(rail) : false;
+    return rail ? isRootOnlyTree(rail) : false;
 }
 
 function moveFocusRightOnRailRoot(item) {

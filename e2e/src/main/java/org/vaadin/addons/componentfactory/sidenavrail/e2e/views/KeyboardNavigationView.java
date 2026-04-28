@@ -47,6 +47,10 @@ public class KeyboardNavigationView extends VerticalLayout {
                 e -> rail.setRailMode(!rail.isRailMode()));
         toggle.setId("toggle-rail");
 
-        add(new HorizontalLayout(rail, toggle));
+        Button togglePopoverOnly = new Button("Toggle popover-only",
+                e -> rail.setChildrenOnlyInPopover(!rail.isChildrenOnlyInPopover()));
+        togglePopoverOnly.setId("toggle-popover-only");
+
+        add(new HorizontalLayout(rail, toggle, togglePopoverOnly));
     }
 }
