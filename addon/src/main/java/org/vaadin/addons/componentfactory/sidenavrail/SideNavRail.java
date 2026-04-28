@@ -25,6 +25,7 @@ import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.shared.Registration;
+import java.util.function.Consumer;
 
 /**
  * A {@link SideNav} that can be switched into a compact icon-only <em>rail</em> mode
@@ -402,76 +403,48 @@ public class SideNavRail extends SideNav {
         applyRootMatchNested();
     }
 
-    private void updatePopoverGating() {
+    private void forEachRootRailItem(Consumer<SideNavRailItem> action) {
         for (SideNavItem child : getItems()) {
             if (child instanceof SideNavRailItem rail) {
-                applyGatingRecursively(rail);
+                action.accept(rail);
             }
         }
     }
 
-    private void applyGatingRecursively(SideNavRailItem item) {
-        item.applyPopoverGating(popoverOn, railMode, childrenOnlyInPopover);
+    private void forEachRailItemRecursive(Consumer<SideNavRailItem> action) {
+        forEachRootRailItem(root -> applyRecursive(root, action));
+    }
+
+    private static void applyRecursive(SideNavRailItem item, Consumer<SideNavRailItem> action) {
+        action.accept(item);
         for (SideNavItem child : item.getItems()) {
             if (child instanceof SideNavRailItem rail) {
-                applyGatingRecursively(rail);
+                applyRecursive(rail, action);
             }
         }
+    }
+
+    private void updatePopoverGating() {
+        forEachRailItemRecursive(
+                item -> item.applyPopoverGating(popoverOn, railMode, childrenOnlyInPopover));
     }
 
     private void rebuildPopoverContents() {
-        for (SideNavItem child : getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                rebuildPopoverContentsRecursively(rail);
-            }
-        }
-    }
-
-    private void rebuildPopoverContentsRecursively(SideNavRailItem item) {
-        item.rebuildPopoverContent();
-        for (SideNavItem child : item.getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                rebuildPopoverContentsRecursively(rail);
-            }
-        }
+        forEachRailItemRecursive(SideNavRailItem::rebuildPopoverContent);
     }
 
     private void applyPopoverSettings() {
-        for (SideNavItem child : getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                applyPopoverSettingsRecursively(rail);
-            }
-        }
-    }
-
-    private void applyPopoverSettingsRecursively(SideNavRailItem item) {
-        item.applyPopoverSettings(
-                popoverHoverDelay, popoverHideDelay, popoverPosition, popoverArrowVisible);
-        for (SideNavItem child : item.getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                applyPopoverSettingsRecursively(rail);
-            }
-        }
+        forEachRailItemRecursive(item -> item.applyPopoverSettings(
+                popoverHoverDelay, popoverHideDelay, popoverPosition, popoverArrowVisible));
     }
 
     private void applyTooltips() {
-        for (SideNavItem child : getItems()) {
-            applyTooltipFor(child);
-        }
+        forEachRootRailItem(this::applyTooltipFor);
     }
 
-    /**
-     * Applies (or rolls back) the {@code matchNested} override on every root item
-     * based on the current ({@link RootMatchNested}, {@code railMode}) pair.
-     * Per-item snapshotting lives on {@link SideNavRailItem}.
-     */
     private void applyRootMatchNested() {
         boolean override = isRootMatchNestedActive();
-        for (SideNavItem child : getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                rail.applyRailMatchNestedOverride(override);
-            }
-        }
+        forEachRootRailItem(item -> item.applyRailMatchNestedOverride(override));
     }
 
     /**
@@ -487,19 +460,11 @@ public class SideNavRail extends SideNav {
     }
 
     private void applyAriaToRootItems() {
-        for (SideNavItem child : getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                rail.applyAriaAttributes(railMode);
-            }
-        }
+        forEachRootRailItem(item -> item.applyAriaAttributes(railMode));
     }
 
     private void applyFocusTriggerToRootItems() {
-        for (SideNavItem child : getItems()) {
-            if (child instanceof SideNavRailItem rail) {
-                rail.applyFocusTrigger(railMode);
-            }
-        }
+        forEachRootRailItem(item -> item.applyFocusTrigger(railMode));
     }
 
     private void applyNestedTabindex() {
