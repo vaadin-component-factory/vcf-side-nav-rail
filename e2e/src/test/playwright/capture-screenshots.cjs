@@ -121,6 +121,9 @@ async function shot(page, name, clip) {
 
     await page.goto('http://localhost:8080/screenshot');
     await page.waitForSelector('vaadin-side-nav-item[path="dashboard"]');
+    // Wait for Lumo's webfont to finish loading; otherwise text falls back to
+    // a different-metric font and labels shift a few pixels vertically.
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(800);
 
     // ---------- A — rail off vs rail on (no popovers) ----------
