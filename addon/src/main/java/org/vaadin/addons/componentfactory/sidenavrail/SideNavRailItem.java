@@ -458,13 +458,7 @@ public class SideNavRailItem extends SideNavItem {
         }
     }
 
-    /**
-     * Updates the popover's focus-trigger according to rail state. Called by
-     * {@link SideNavRail#setRailMode(boolean)} so the flag tracks live mode changes.
-     * Public because it is invoked from the {@link SideNavRail} in the same package —
-     * consider it addon-internal; user code should not depend on it.
-     */
-    public void applyFocusTrigger(boolean railMode) {
+    void applyFocusTrigger(boolean railMode) {
         if (popover != null) {
             popover.setOpenOnFocus(railMode);
         }
