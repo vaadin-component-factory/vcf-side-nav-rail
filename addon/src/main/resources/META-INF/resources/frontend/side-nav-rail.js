@@ -175,7 +175,7 @@ function handleKeydown(event, rail) {
             break;
         case 'ArrowRight':
             event.preventDefault();
-            moveFocusRight(item);
+            moveFocusRight(item, rail);
             break;
         case 'ArrowLeft':
             event.preventDefault();
@@ -293,11 +293,11 @@ function firstChild(item) {
     return item.querySelector(':scope > vaadin-side-nav-item');
 }
 
-function moveFocusRight(item) {
+function moveFocusRight(item, rail) {
     // Rail-root case: open the popover (if closed) and move focus into it.
     // This is the universal "into the popover" action whenever the rail tree
     // only exposes root items (rail mode or popover-only mode).
-    if (item.hasAttribute('root-item') && isItemRootOnlyTree(item)) {
+    if (item.hasAttribute('root-item') && isRootOnlyTree(rail)) {
         moveFocusRightOnRailRoot(item);
         return;
     }
@@ -311,11 +311,6 @@ function moveFocusRight(item) {
         const child = firstChild(item);
         if (child) focusItem(child);
     }
-}
-
-function isItemRootOnlyTree(item) {
-    const rail = item.closest('vaadin-side-nav');
-    return rail ? isRootOnlyTree(rail) : false;
 }
 
 function moveFocusRightOnRailRoot(item) {
