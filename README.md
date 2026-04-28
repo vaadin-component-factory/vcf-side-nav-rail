@@ -145,10 +145,16 @@ rail.addRailModeChangedListener(e ->
 
 By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Setting `matchNested(true)` on each root item flips this: the root also counts as `current` when any descendant matches.
 
-`setRailRootItemsMatchNested(true)` opts into having the addon manage that flag automatically: while the rail is in rail mode, each root item's `matchNested` is forced to `true`; on leaving rail mode (or turning the feature back off), the original `matchNested` value the user had set is restored. Per-item snapshotting means a `setMatchNested(...)` call you made yourself is preserved across rail-mode cycles — the override is layered on top, never destructive.
+`setRootMatchNested(RootMatchNested)` opts into having the addon manage that flag automatically. The override is layered on top — per-item snapshotting means a `setMatchNested(...)` call you made yourself is preserved and restored when the override is disabled again, never destructive.
+
+| Value | Behaviour |
+| --- | --- |
+| `NONE` (default) | The addon never touches `matchNested`. |
+| `ONLY_RAIL` | Each root's `matchNested` is forced to `true` while the rail is in rail mode and restored on leaving rail mode. Recommended for the typical use case. |
+| `ALL` | Each root's `matchNested` is always forced to `true`, regardless of rail mode. Useful in combination with [Children only in popover](#children-only-in-popover) or any other configuration where the visible inline tree doesn't expose deeper levels. |
 
 ```java
-rail.setRailRootItemsMatchNested(true);  // default: false
+rail.setRootMatchNested(RootMatchNested.ONLY_RAIL);  // default: NONE
 ```
 
 ### Items without an icon
