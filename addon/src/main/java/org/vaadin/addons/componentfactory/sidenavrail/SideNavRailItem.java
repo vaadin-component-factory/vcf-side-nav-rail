@@ -496,10 +496,6 @@ public class SideNavRailItem extends SideNavItem {
         return null;
     }
 
-    /**
-     * Whether this item is a direct child of the owning {@link SideNavRail} rather than
-     * nested inside another item. Used to gate {@link PopoverOn#ONLY_ROOT_COLLAPSED_ITEMS}.
-     */
     private boolean isRootItem() {
         return getParent().map(p -> p instanceof SideNavRail).orElse(false);
     }
