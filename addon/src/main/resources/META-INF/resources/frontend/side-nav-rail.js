@@ -293,17 +293,6 @@ function firstChild(item) {
     return item.querySelector(':scope > vaadin-side-nav-item');
 }
 
-function parentItem(item, rail) {
-    let p = item.parentElement;
-    while (p && p !== rail) {
-        if (p.localName === 'vaadin-side-nav-item') {
-            return p;
-        }
-        p = p.parentElement;
-    }
-    return null;
-}
-
 function moveFocusRight(item) {
     // Rail-root case: open the popover (if closed) and move focus into it.
     // This is the universal "into the popover" action whenever the rail tree
@@ -400,7 +389,7 @@ function moveFocusLeft(item, rail) {
     }
 
     // 3. Normal rail tree → parent item.
-    const parent = parentItem(item, rail);
+    const parent = parentItemWithin(item, rail);
     if (parent) {
         focusItem(parent);
     }
@@ -408,8 +397,8 @@ function moveFocusLeft(item, rail) {
 
 /**
  * Returns the nearest vaadin-side-nav-item ancestor of the given item, stopping at
- * the given scope (usually a popover overlay). Returns null if the item is already
- * at the top level of the scope.
+ * the given scope (a popover overlay or the rail itself). Returns null if the item
+ * is already at the top level of the scope.
  */
 function parentItemWithin(item, scope) {
     let p = item.parentElement;
