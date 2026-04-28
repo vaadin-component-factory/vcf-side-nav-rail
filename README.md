@@ -9,17 +9,20 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 ## Features
 
 - **Rail mode toggle** — flip the nav between full-width and rail mode.
-- **Hover popovers** for items with children, configurable in scope.
-- **Full keyboard navigation** — use arrow keys to navigate through items.
-- **Accessible by default** — ARIA roles and focus management handled for you.
-- **Tooltips** on root items (rail mode).
-- **Letter-avatar fallback** for items without an icon (rail mode).
+- **Hover popovers** for items with children, configurable in scope, with adjustable hover/hide delays, position, and arrow visibility.
+- **Configurable rail-mode tooltips** on root items (all items / only items without children / off), with an optional browser-native `title` fallback.
+- **Letter-avatar fallback** for root items without an icon (rail mode).
+- **Subitem indicator** — visual cue on parent items, with full CSS-property control for glyph, color, and size.
+- **Children-only-in-popover layout** — flat rail with descendants reachable only via the hover popover.
+- **Auto `matchNested`** — opt in to highlight a root as `[current]` when any descendant route is active, scoped to rail mode or always-on.
+- **Full keyboard navigation** — Arrow keys, Tab, Escape; ARIA roles and focus management handled for you.
 - **Mode-change event** for downstream code that needs to react to the toggle.
 
 ## Compatibility
 
-- Vaadin Flow **24.9** or later — tested against 24.10. Hilla / client-side views are not in scope.
-- Java **17** or later
+- **Vaadin Flow 24.9** or later — verified on 24.10 and 25.1.
+- **Java 17** or later.
+- Flow-only by design — Hilla / client-side views are not in scope.
 
 ## Installation
 
@@ -33,9 +36,20 @@ Add the dependency to your application's `pom.xml`:
 </dependency>
 ```
 
+The artifact is published to the Vaadin Add-ons repository, so make sure that repository is on your project's resolution list:
+
+```xml
+<repositories>
+    <repository>
+        <id>vaadin-addons</id>
+        <url>https://maven.vaadin.com/vaadin-addons</url>
+    </repository>
+</repositories>
+```
+
 ## Quick start
 
-You can use the `SideNavRail` like Vaadin's native `SideNav` component. Add `SideNavRailItem`s to add navigational items. Please note that the normal `SideNavItem` is not supported.
+You can use the `SideNavRail` like Vaadin's native `SideNav` component. All public types live in the `org.vaadin.addons.componentfactory.sidenavrail` package. Add `SideNavRailItem`s to populate the navigation; passing a plain `SideNavItem` to `addItem(...)` throws `IllegalArgumentException`.
 
 ```java
 SideNavRail rail = new SideNavRail();
@@ -51,9 +65,8 @@ code.addItem(new SideNavRailItem("Pull requests", "/code/pulls"));
 rail.addItem(dashboard, code);
 
 Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
-    boolean railMode = !rail.isRailMode();
-    rail.setRailMode(railMode);
-    e.getSource().setIcon((railMode
+    rail.toggleRailMode();
+    e.getSource().setIcon((rail.isRailMode()
             ? VaadinIcon.CHEVRON_RIGHT_SMALL
             : VaadinIcon.CHEVRON_LEFT_SMALL).create());
 });
@@ -65,13 +78,25 @@ add(toggle, rail);
 
 The addon intentionally ships without a built-in toggle button — applications differ too much in layout for a one-size-fits-all default. Wire your own button that calls `setRailMode(boolean)` or `toggleRailMode()`.
 
+## Keyboard navigation and accessibility
+
+The rail handles keyboard navigation and ARIA wiring out of the box; no extra setup is required. In rail mode only the root items are visible — nested items remain in the DOM but get `tabindex="-1"`, so the tab order matches what's on screen. The relevant ARIA attributes (`aria-haspopup`, `aria-expanded`, `aria-current`) are kept in sync as the rail mode toggles.
+
+| Key | Behaviour |
+| --- | --- |
+| `Tab` / `Shift+Tab` | Move focus into and out of the rail. Items hidden in rail mode are skipped. |
+| `↓` / `↑` | Move focus to the next / previous visible item, both inside the rail and inside an open popover. Stops at boundaries. |
+| `→` | On a rail-root with children: open the hover popover and move focus into it. Elsewhere: expand a collapsed parent or descend into an expanded one. |
+| `←` | Collapse an expanded item. Inside a popover: focus the popover-parent, or close the popover and return focus to the rail-root. Otherwise: focus the parent item. |
+| `Esc` | Close the open popover and return focus to its owning rail-root. |
+
 ## Configuration
 
 Most features can be configured to your needs. Please see the following sections for how to modify the `SideNavRail` settings:
 
 ### Popover behaviour
 
-The rail shows sub-items as a hover popover when the rail is in rail mode. For consistency, the same popover is also available in normal mode. `PopoverOn` controls when it appears:
+The rail shows sub-items as a hover popover when the rail is in rail mode. The same popover is also offered in normal mode by default, so users see the same nested children whether or not the rail is collapsed. `PopoverOn` controls when it appears:
 
 - `ALL_COLLAPSED_ITEMS` (default) — popover for every collapsed parent, regardless of depth or rail mode.
 - `ONLY_ROOT_COLLAPSED_ITEMS` — popover only for direct rail-children that are collapsed; nested levels behave like a stock `SideNav`.
@@ -94,6 +119,23 @@ rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 rail.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
 ```
 
+### Popover delays
+
+Popovers match Lumo's hover/hide-delay defaults (200 ms / 300 ms). Adjust them if your rail wants snappier or more forgiving timing:
+
+```java
+rail.setPopoverHoverDelay(150);  // ms before the popover opens
+rail.setPopoverHideDelay(400);   // ms before it closes after the pointer leaves
+```
+
+### Popover position
+
+Where the popover opens relative to its target item, expressed as Vaadin's `PopoverPosition`. Default: `END_TOP` — top-aligned, to the inline-end of the item (right in an LTR layout). Suitable for a rail pinned to the inline-start edge.
+
+```java
+rail.setPopoverPosition(PopoverPosition.START_TOP);  // for a right-edge rail in LTR
+```
+
 ### Popover arrow
 
 By default each popover renders the small Lumo arrow that points back at its target item. Toggle it off if you prefer a cleaner look — e.g. when popovers sit tightly against the rail and the arrow adds visual noise:
@@ -110,9 +152,9 @@ By default Vaadin's `<vaadin-side-nav-item>` auto-expands when a descendant rout
 rail.setChildrenOnlyInPopover(true);  // default: false
 ```
 
-The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small Lumo angle-right glyph next to parents — see [Subitem indicator](#subitem-indicator) for the relevant CSS custom properties.
+The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small Lumo angle-right glyph next to parents — see the [Subitem indicator CSS custom properties](#subitem-indicator) below for how to restyle it.
 
-Turning `setChildrenOnlyInPopover(false)` restores the default tree appearance with whatever expanded state the items had accumulated.
+Turning `setChildrenOnlyInPopover(false)` restores Vaadin's auto-expanded inline tree for the active route.
 
 ### Rail-mode tooltip
 
@@ -128,9 +170,9 @@ Because rail mode shows only icons, users may not be able to tell what each icon
 rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
 ```
 
-> The addon comes with its own tooltip implementation, since Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768).
+> The addon comes with its own tooltip implementation because Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768).
 >
-> If you prefer browser-native tooltips instead, you can activate them via `setRailTooltipNative(true)`. Note that these cannot be styled and will also not appear when focusing the rail items using the keyboard.
+> A browser-native `title` fallback is available via `setRailTooltipNative(true)` for environments that need it. **Be aware that browser-native tooltips do not appear on keyboard focus** — sighted keyboard users will lose the label cue. The addon's default tooltip handles both hover and focus.
 
 ### Reacting to mode changes
 
@@ -143,9 +185,9 @@ rail.addRailModeChangedListener(e ->
 
 ### Active marker on rail icons
 
-By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Setting `matchNested(true)` on each root item flips this: the root also counts as `current` when any descendant matches.
+By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Vaadin's own `setMatchNested(true)` flips this for an individual item, but you'd have to call it on every root manually and decide when to toggle it back.
 
-`setRootMatchNested(RootMatchNested)` opts into having the addon manage that flag automatically for root items. This is especially useful, when you display children only in the popup.
+`setRootMatchNested(RootMatchNested)` lets the addon manage that flag for you across all root items. This is especially useful when you display children only in the popover.
 
 | Value | Behaviour |
 | --- | --- |
@@ -163,14 +205,14 @@ A root `SideNavRailItem` without an icon gets a letter-avatar built from the lab
 
 ```java
 new SideNavRailItem("Profile", "/profile");                         // → "P" letter-avatar
-new SideNavRailItem("Profile", "/profile", new Avatar("Profile"));  // → "P" letter-avatar, that is also shown in normal mode (since set explicitly)
+new SideNavRailItem("Profile", "/profile", new Avatar("Profile"));  // → "P" letter-avatar that is also shown in normal mode (since set explicitly)
 ```
 
 ## Styling
 
 The addon styles the underlying `<vaadin-side-nav>` so all of the [stock SideNav styling hooks](https://vaadin.com/docs/latest/components/side-nav/styling) — parts, slots, `[current]`, `[expanded]`, etc. — keep working. On top of that, rail mode and the addon's own affordances (popover header, rail tooltip, letter avatar, subitem indicator) introduce a few additional hooks.
 
-All custom properties default to Lumo tokens, so a stock app needs no CSS. Set them on `vaadin-side-nav` (or globally on `html`) to override.
+Styling is split into three layers: **CSS custom properties** for tokens (colors, sizes, durations), **CSS selectors** for structural overrides, and **recipes** for common visual patterns. All custom properties default to Lumo tokens, so a stock app needs no CSS. Set them on `vaadin-side-nav` (or globally on `html`) to override.
 
 ### Style properties
 
@@ -247,6 +289,8 @@ The popover renders as a `<vaadin-popover>` overlay attached to `<body>`, so it 
 | --- | --- |
 | `vaadin-side-nav-item[has-children]::before` | The subitem indicator itself. Non-interactive. |
 
+### Recipes
+
 #### Styling root items differently when only a child is active
 
 When you enable [`matchNested`](#active-marker-on-rail-icons) (typically via `setRootMatchNested(...)`), a root item is marked `[current]` whenever any of its descendants matches the route — even if the root itself isn't the active page. By default Vaadin gives that root the same active highlight as the leaf, so both the root and the actually-active child end up looking equally "selected".
@@ -277,6 +321,12 @@ vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::par
 - [Vaadin Popover — styling reference](https://vaadin.com/docs/latest/components/popover/styling) — for styling the overlay that hosts subitems.
 - [Vaadin Avatar — styling reference](https://vaadin.com/docs/latest/components/avatar/styling) — for styling the letter-avatar fallback.
 
+## Scope and known gaps
+
+- **Dark mode**: supported automatically through Lumo — no extra wiring needed.
+- **RTL layouts**: not currently validated. The rail uses logical CSS properties where possible, but RTL has not been exercised end-to-end.
+- **Touch / mobile**: out of scope. The rail keeps its desktop hover-popover behaviour on touch devices.
+
 ## Building from source
 
 ```bash
@@ -291,12 +341,12 @@ Runs the addon's unit tests (Karibu-Testing in `addon/`) and the production-mode
 ./mvnw -pl demo spring-boot:run
 ```
 
-The demo runs on [http://localhost:8080](http://localhost:8080).
+The demo runs on [http://localhost:8080](http://localhost:8080) and walks through the configuration options (popover modes, tooltip modes, `matchNested` variants, styling overrides) on a single live nav.
 
 ## License
 
-Apache 2.0 — see [`LICENSE`](LICENSE).
+Copyright © Vaadin Ltd. Licensed under Apache 2.0 — see [`LICENSE`](LICENSE).
 
 ## Contributing
 
-Bug reports and feature requests are welcome at [github.com/vaadin-component-factory/side-nav-rail/issues](https://github.com/vaadin-component-factory/side-nav-rail/issues). For larger changes, please open an issue first to discuss the approach.
+Bug reports and feature requests are welcome at [github.com/vaadin-component-factory/vcf-side-nav-rail/issues](https://github.com/vaadin-component-factory/vcf-side-nav-rail/issues). For larger changes, please open an issue first to discuss the approach.
