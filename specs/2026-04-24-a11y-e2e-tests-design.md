@@ -69,7 +69,7 @@ Two separate tests — one per root — so a failure on `Code` doesn't mask a fa
 - Overlay has `role="menu"`.
 - Scoped to `vaadin-popover-overlay[opened]`: `Users`, `Roles`, and the deeply nested `Active`, `Archived` all have `role="menuitem"`. Expanding `Users` is not required for this assertion — `role="menuitem"` is applied recursively at populate time, independent of expanded state.
 
-**Why server-side matters for diagnosing regressions:** `role="menuitem"` is set by `SideNavRailItem.tagAsMenuItem()` during `populatePopover()` (server-side Java), **not** by the client-side keyboard adapter. A developer debugging a failure here should look in `SideNavRailItem.java`, not in `side-nav-rail-keyboard.js`.
+**Why server-side matters for diagnosing regressions:** `role="menuitem"` is set by `SideNavRailItem.tagAsMenuItem()` during `populatePopover()` (server-side Java), **not** by the client-side keyboard adapter. A developer debugging a failure here should look in `SideNavRailItem.java`, not in `side-nav-rail.js`.
 
 ### 4.4 Rail mode on — popover closed again
 

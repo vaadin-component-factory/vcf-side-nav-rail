@@ -9,21 +9,27 @@
  */
 
 /**
- * Keyboard-navigation adapter for <vaadin-side-nav> inside a SideNavRail.
- * Installs one delegated keydown listener at the document level so events
- * originating in popover overlays (which live outside the rail's DOM subtree)
- * are still handled. Spec: §4.4 of side-nav-rail-design.md.
+ * Client-side adapter for <vaadin-side-nav> inside a SideNavRail. Bundles the
+ * pieces that need to live on the client because they touch DOM the server
+ * doesn't see directly:
+ *   - delegated keydown listener at the document level so events originating
+ *     in popover overlays (outside the rail's DOM subtree) are still handled
+ *     (spec §4.4),
+ *   - hover tracker for the popover auto-reopen heuristic,
+ *   - aria-haspopup guard against the stock <vaadin-side-nav-item> override,
+ *   - popover close-on-activate (see installPopoverActivationCloser).
  */
 
 const ATTACHED = new WeakSet();
 
 /**
- * Initializes keyboard handling for a given <vaadin-side-nav> element owned
- * by a SideNavRail. Safe to call multiple times — a WeakSet guard dedupes.
+ * Initializes the client-side adapter for a given <vaadin-side-nav> element
+ * owned by a SideNavRail. Safe to call multiple times — a WeakSet guard
+ * dedupes.
  *
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
-export function initKeyboardNavigation(rail) {
+export function init(rail) {
     if (!rail || ATTACHED.has(rail)) {
         return;
     }
@@ -31,6 +37,7 @@ export function initKeyboardNavigation(rail) {
     document.addEventListener('keydown', (e) => handleKeydown(e, rail), true);
     installHaspopupGuard(rail);
     installHoverTracker(rail);
+    installPopoverActivationCloser(rail);
     rail.setAttribute('data-keyboard-ready', '1');
 }
 
@@ -94,6 +101,59 @@ function installHaspopupGuard(rail) {
         attributeFilter: ['aria-haspopup'],
         subtree: true,
     });
+}
+
+/**
+ * Installs a delegated click listener that closes a popover overlay owned by
+ * this rail when an anchor inside it is activated. Without this, clicking
+ * (or pressing Enter on) a navigating item in the popover navigates the
+ * route but leaves the popover visible — <vaadin-popover> only auto-closes
+ * on outside click, not on inside-clicks of its own content. In normal mode
+ * with PopoverOn.ALL_COLLAPSED_ITEMS the popover happens to close as a side
+ * effect of the parent inline-expanding on route match (gating re-evaluates
+ * to "not eligible"), but in rail mode and in childrenOnlyInPopover that
+ * indirect path doesn't fire — hence this explicit closer.
+ *
+ * The listener runs at the document level (capture) because popover overlays
+ * are teleported to <body>, outside the rail's subtree, so a rail-scoped
+ * listener wouldn't see them. Each rail's listener filters by overlay
+ * ownership (positionTarget inside this rail), so multiple rails on the
+ * same page don't cross-close each other's popovers.
+ *
+ * Enter on a focused <a href> dispatches a click event natively in every
+ * major browser, so this single handler covers both mouse activation and
+ * keyboard Enter. Non-navigating items render an <a> without href (or no
+ * <a> at all), so the href filter leaves expand-toggle clicks alone.
+ *
+ * Setting `overlay.opened = false` propagates back to the server: the
+ * overlay fires `opened-changed`, <vaadin-popover>.__onOpenedChanged mirrors
+ * it onto the popover element, which is annotated @DomEvent("opened-changed")
+ * on the Flow side — so Popover.isOpened() and any registered
+ * OpenedChangeListener stay in sync.
+ *
+ * @param {HTMLElement} rail — the <vaadin-side-nav> root element
+ */
+function installPopoverActivationCloser(rail) {
+    document.addEventListener('click', (event) => {
+        const path = event.composedPath ? event.composedPath() : [];
+        let overlay = null;
+        let anchor = null;
+        for (const el of path) {
+            if (!(el instanceof Element)) continue;
+            if (!anchor && el.localName === 'a' && el.hasAttribute('href')) {
+                anchor = el;
+            }
+            if (!overlay && el.localName === 'vaadin-popover-overlay') {
+                overlay = el;
+                break;  // overlay is the outer ancestor; no need to keep walking
+            }
+        }
+        if (!overlay || !anchor) return;
+        if (!overlay.positionTarget || !rail.contains(overlay.positionTarget)) {
+            return;
+        }
+        overlay.opened = false;
+    }, true);
 }
 
 function handleKeydown(event, rail) {
@@ -407,4 +467,4 @@ function focusItem(item) {
 // in Vaadin's production bundle. The module itself is loaded via @JsModule
 // at app boot, so window.vaadinAddonsSideNavRail is ready when Flow needs it.
 window.vaadinAddonsSideNavRail = window.vaadinAddonsSideNavRail || {};
-window.vaadinAddonsSideNavRail.initKeyboardNavigation = initKeyboardNavigation;
+window.vaadinAddonsSideNavRail.init = init;

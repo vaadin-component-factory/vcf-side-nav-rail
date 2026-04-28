@@ -335,7 +335,7 @@ Both effects are driven by the `expanded-changed` DOM event on the underlying `<
 
 ### 4.4 Keyboard navigation
 
-The rail is fully keyboard-navigable in both modes. Arrow keys drive focus and expand/collapse; Tab stays functional as a conservative fallback (walks root items; nested children follow DOM order — Vaadin default). The implementation lives in a small client-side JS module (`frontend/side-nav-rail-keyboard.js`) that installs one delegated `keydown` listener on the `<vaadin-side-nav>` root. No custom web component, no new Java API.
+The rail is fully keyboard-navigable in both modes. Arrow keys drive focus and expand/collapse; Tab stays functional as a conservative fallback (walks root items; nested children follow DOM order — Vaadin default). The implementation lives in a small client-side JS module (`frontend/side-nav-rail.js`) that installs one delegated `keydown` listener on the `<vaadin-side-nav>` root. No custom web component, no new Java API.
 
 **Rationale for client-side handling.** Keyboard navigation must feel immediate; a Flow server-roundtrip per arrow-key press introduces unacceptable latency. The JS adapter is event-handler glue only — it does not define new custom elements and does not replace any Vaadin component. See [§9.6](#96-explicitly-not-planned) for the boundary.
 
@@ -620,7 +620,7 @@ Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviou
 - ~~Screen reader labels for items in rail mode.~~ **Covered by the existing DOM:** labels stay in the item DOM (collapsed to `max-width: 0`, not `display: none` — see [§5.2](#52-css-module)), so screen readers still announce them. Verified as part of keyboard-nav E2E tests; no Java API added.
 - ~~Focus management on popover open/close.~~ **Designed** — see [§4.4.4](#444-focus-entry-and-exit). Popover auto-opens on focus, closes on focus-out (Vaadin default `closeOnFocusOut`); Esc returns focus to the rail-root. Arrow-Right moves focus into the popover; Arrow-Left at popover top level exits it.
 
-**Implementation approach:** a new client-side JS module `frontend/side-nav-rail-keyboard.js` with one delegated `keydown` listener on the `<vaadin-side-nav>` root. No new Java API, no custom web component — see [§9.6](#96-explicitly-not-planned) for the boundary.
+**Implementation approach:** a new client-side JS module `frontend/side-nav-rail.js` with one delegated `keydown` listener on the `<vaadin-side-nav>` root. No new Java API, no custom web component — see [§9.6](#96-explicitly-not-planned) for the boundary.
 
 ### 9.3 Phase 2 — touch/mobile
 
@@ -644,7 +644,7 @@ Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviou
 - Auto-collapse on viewport resize.
 - Auto-hide like the `AppLayout` drawer.
 - Touch/mobile adaptations (tap-to-open, no-hover variant). Not in `initial.md`; `AppLayout` remains the recommended mobile-navigation approach. Moved here from [§9.3](#93-phase-2--touchmobile).
-- A custom TypeScript / web component — stays pure Java + CSS. The keyboard adapter introduced for [§9.2](#92-phase-2--accessibility) is a small event-handler JS module (`side-nav-rail-keyboard.js`), not a custom element; it registers delegated listeners on the stock `<vaadin-side-nav>` and does not replace any Vaadin component.
+- A custom TypeScript / web component — stays pure Java + CSS. The keyboard adapter introduced for [§9.2](#92-phase-2--accessibility) is a small event-handler JS module (`side-nav-rail.js`), not a custom element; it registers delegated listeners on the stock `<vaadin-side-nav>` and does not replace any Vaadin component.
 
 ## 10. Verified during implementation
 

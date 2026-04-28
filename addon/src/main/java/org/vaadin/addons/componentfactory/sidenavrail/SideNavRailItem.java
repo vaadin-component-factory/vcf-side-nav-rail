@@ -360,7 +360,7 @@ public class SideNavRailItem extends SideNavItem {
      * open on page load.
      *
      * <p>The hover check is asynchronous: the client-side hover tracker installed
-     * by {@code side-nav-rail-keyboard.js#installHoverTracker(rail)} maintains
+     * by {@code side-nav-rail.js#installHoverTracker(rail)} maintains
      * {@code rail._sideNavRailLastHovered}; we read that via
      * {@link com.vaadin.flow.dom.Element#executeJs}, and only call
      * {@code popover.open()} from the {@code .then(...)} callback if the item
