@@ -103,6 +103,15 @@ public class SideNavRail extends SideNav {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+        // Auto-coerce: a leaf popover with no header would have no content, so
+        // when POPOVER mode is configured against the default NONE header, we
+        // silently upgrade the header to LABEL_ONLY at attach time. Runtime
+        // setters remain un-validated; the demo prevents the invalid combo
+        // via disabled select options.
+        if (railTooltipMode == RailTooltipMode.POPOVER
+                && popoverHeaderMode == PopoverHeaderMode.NONE) {
+            popoverHeaderMode = PopoverHeaderMode.LABEL_ONLY;
+        }
         // The JS module registers itself on window.vaadinAddonsSideNavRail at
         // @JsModule import time (see side-nav-rail.js). We call the global
         // directly instead of a dynamic import() because dynamic imports

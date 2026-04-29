@@ -294,6 +294,38 @@ class RailTooltipModeTest {
         assertEquals("Dashboard", textOf(header));
     }
 
+    @Test
+    void attachWithPopoverAndNoneHeaderCoercesToLabelOnly() {
+        SideNavRail nav = new SideNavRail();
+        nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        // Header mode left at default NONE.
+        UI.getCurrent().add(nav);  // attach
+
+        assertEquals(PopoverHeaderMode.LABEL_ONLY, nav.getPopoverHeaderMode());
+    }
+
+    @Test
+    void attachWithPopoverAndExplicitHeaderModeIsNotCoerced() {
+        SideNavRail nav = new SideNavRail();
+        nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
+        UI.getCurrent().add(nav);
+
+        assertEquals(PopoverHeaderMode.ICON_ONLY, nav.getPopoverHeaderMode());
+    }
+
+    @Test
+    void attachWithoutPopoverDoesNotCoerce() {
+        SideNavRail nav = new SideNavRail();
+        nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
+        // RailTooltipMode default STYLED, header default NONE.
+        UI.getCurrent().add(nav);
+
+        assertEquals(PopoverHeaderMode.NONE, nav.getPopoverHeaderMode());
+    }
+
     private static SideNavRail railWithItem(String label) {
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem(label, "/x"));
