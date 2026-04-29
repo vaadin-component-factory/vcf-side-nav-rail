@@ -106,6 +106,8 @@ The rail shows sub-items as a hover popover when the rail is in rail mode. The s
 rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 ```
 
+Note: `setChildrenOnlyInPopover(true)` overrides this — when popover-only layout is enabled, the popover is the only way to reach children, so it appears on root items with children in both rail mode and normal mode regardless of `PopoverOn`.
+
 ### Popover header
 
 `PopoverHeaderMode` controls whether (and how) the parent's label appears as a header at the top of its popover:
@@ -163,6 +165,8 @@ rail.setChildrenOnlyInPopover(true);  // default: false
 The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small Lumo angle-right glyph next to parents — see the [Subitem indicator CSS custom properties](#subitem-indicator) below for how to restyle it.
 
 Turning `setChildrenOnlyInPopover(false)` restores Vaadin's auto-expanded inline tree for the active route.
+
+This setting overrides `PopoverOn`: while it is enabled, the hover popover is shown on root items with children in both rail mode and normal mode, regardless of the configured `PopoverOn` value (the popover is the only path to the children, so gating it would hide them).
 
 ### Rail-mode tooltip
 

@@ -190,6 +190,10 @@ public class SideNavRail extends SideNav {
      * Sets the popover mode. Rewires all child items' popover eligibility immediately
      * so open popovers that are no longer eligible close right away.
      *
+     * <p>Has no effect on root items with children while
+     * {@link #setChildrenOnlyInPopover(boolean)} is enabled — that mode forces the
+     * popover on regardless of this setting.</p>
+     *
      * @param mode the new {@link PopoverOn}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
@@ -406,6 +410,10 @@ public class SideNavRail extends SideNav {
      * chevron toggle is suppressed, so the only path to a parent's children is
      * the hover popover. Useful for navigation designs that want a flat,
      * non-tree appearance in the rail itself.
+     *
+     * <p>While enabled, this overrides {@link #setPopoverOn(PopoverOn)}: the hover
+     * popover is always shown on root items with children (in both rail and normal
+     * mode), since it is the only path to their children.</p>
      *
      * <p>Vaadin's auto-expand-on-route-match still fires server-side, but has no
      * visual effect while this is on; switching the flag back to {@code false}

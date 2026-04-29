@@ -18,6 +18,10 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 
 /**
  * Controls when the hover popover on a {@link SideNavRailItem} with children appears.
+ *
+ * <p>Has no effect on root items with children while
+ * {@link SideNavRail#setChildrenOnlyInPopover(boolean)} is enabled — that mode
+ * forces the popover on regardless of this enum.</p>
  */
 public enum PopoverOn {
 
