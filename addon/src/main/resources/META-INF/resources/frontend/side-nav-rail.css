@@ -181,11 +181,19 @@ vaadin-side-nav[theme~="rail"]
     align-items: center;
     gap: var(--lumo-space-s);
     padding: var(--lumo-space-s) var(--lumo-space-m);
-    border-bottom: 1px solid var(--lumo-contrast-10pct);
     color: var(--lumo-secondary-text-color);
     font-weight: 600;
     font-size: var(--lumo-font-size-s);
     line-height: var(--lumo-line-height-s);
+}
+
+/*
+ * Border only when the header has a sibling below — i.e. when there are children to
+ * separate from. For leaf popovers (RailTooltipMode.POPOVER on a childless item), the
+ * header is the only content; a border-bottom would render as a stray underline.
+ */
+.side-nav-rail-popover-header:has(+ vaadin-side-nav) {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
 }
 
 .side-nav-rail-popover-header vaadin-icon {

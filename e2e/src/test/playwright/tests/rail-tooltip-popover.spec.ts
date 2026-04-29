@@ -117,4 +117,22 @@ test.describe('RailTooltipMode.POPOVER', () => {
         await expect(header).not.toContainText('Dashboard');
         await expect(header.locator('vaadin-icon')).toHaveCount(1);
     });
+
+    test('leaf popover header has no border-bottom', async ({ page }) => {
+        await hoverItem(page, DASHBOARD);
+        await expect(openPopover(page)).toBeVisible({ timeout: 2_000 });
+
+        const borderWidth = await page.locator(HEADER_LOCATOR).evaluate(
+            (el: HTMLElement) => getComputedStyle(el).borderBottomWidth);
+        expect(borderWidth).toBe('0px');
+    });
+
+    test('parent popover header has a border-bottom separating it from children', async ({ page }) => {
+        await hoverItem(page, CODE);
+        await expect(openPopover(page)).toBeVisible({ timeout: 2_000 });
+
+        const borderWidth = await page.locator(HEADER_LOCATOR).evaluate(
+            (el: HTMLElement) => getComputedStyle(el).borderBottomWidth);
+        expect(borderWidth).not.toBe('0px');
+    });
 });
