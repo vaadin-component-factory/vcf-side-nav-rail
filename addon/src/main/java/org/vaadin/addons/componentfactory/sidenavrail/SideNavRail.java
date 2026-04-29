@@ -72,9 +72,9 @@ public class SideNavRail extends SideNav {
 
     private boolean railMode = false;
     private PopoverOn popoverOn = PopoverOn.ALL_COLLAPSED_ITEMS;
-    private PopoverHeaderMode popoverHeaderMode = PopoverHeaderMode.NONE;
+    private PopoverHeaderMode popoverHeaderMode = PopoverHeaderMode.LABEL_ONLY;
     private boolean popoverHeaderOnlyInRailMode = true;
-    private RailTooltipMode railTooltipMode = RailTooltipMode.SIMPLE;
+    private RailTooltipMode railTooltipMode = RailTooltipMode.POPOVER_HEADER;
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
