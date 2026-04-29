@@ -10,7 +10,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 - **Rail mode toggle** — flip the nav between full-width and rail mode.
 - **Hover popovers** for items with children, configurable in scope, with adjustable hover/hide delays, position, and arrow visibility.
-- **Configurable rail-mode tooltips** on root items (all items / only items without children / off), with an optional browser-native `title` fallback.
+- **Configurable rail-mode tooltips** on root items — `NONE` / `BROWSER_NATIVE` / `STYLED` (default) / `POPOVER` (see `PopoverHeaderMode` for `POPOVER` content).
 - **Letter-avatar fallback** for root items without an icon (rail mode).
 - **Subitem indicator** — visual cue on parent items, with full CSS-property control for glyph, color, and size.
 - **Children-only-in-popover layout** — flat rail with descendants reachable only via the hover popover.
@@ -168,19 +168,18 @@ Turning `setChildrenOnlyInPopover(false)` restores Vaadin's auto-expanded inline
 
 Because rail mode shows only icons, users may not be able to tell what each icon represents. The rail-mode tooltip surfaces each root item's label on hover or keyboard focus. Tooltips apply to the root items of the rail only.
 
-`RailTooltipMode` controls which root items get one:
+`RailTooltipMode` selects how root items surface their label:
 
 - `NONE` — no tooltips.
-- `ONLY_WITHOUT_CHILDREN` — only root items that have no children (intended to be used with the **popover header mode**, where a tooltip would be redundant).
-- `ALL` (default) — every root item, regardless of whether it has children.
+- `BROWSER_NATIVE` — browser-native `title` attribute. Hover-only; no keyboard-focus surface.
+- `STYLED` (default) — Lumo-themed CSS pseudo-element tooltip. Reacts to hover and keyboard focus, and is immune to `vaadin-tooltip-mixin`'s overlay-dismissal behaviour.
+- `POPOVER` — uses a Vaadin `Popover` (with the configured `PopoverHeaderMode` as content) as the tooltip — see `PopoverHeaderMode` for the per-item content options.
 
 ```java
-rail.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
+rail.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
 ```
 
-> The addon comes with its own tooltip implementation because Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768).
->
-> A browser-native `title` fallback is available via `setRailTooltipNative(true)` for environments that need it. **Be aware that browser-native tooltips do not appear on keyboard focus** — sighted keyboard users will lose the label cue. The addon's default tooltip handles both hover and focus.
+> The default `STYLED` mode exists because Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). The CSS pseudo-element does not participate in the overlay system, so it stays visible alongside an open popover.
 
 ### Reacting to mode changes
 
@@ -272,7 +271,7 @@ Use these in a global stylesheet (e.g. `frontend/themes/<my-theme>/styles.css`).
 | --- | --- |
 | `vaadin-side-nav-item[root-item]` | A direct child of the rail (top-level icon row in rail mode). Set by the addon. Useful for adding extra padding or a separator around top-level items. |
 | `vaadin-side-nav-item[has-children]` | Any item that has nested items (Vaadin native, used by the addon's subitem indicator). |
-| `vaadin-side-nav-item[data-rail-tooltip]` | Items that get a rail-mode tooltip (set when `RailTooltipMode != NONE`). The attribute value is the tooltip text and is fed straight into the `::after` pseudo-element via CSS `attr()`. |
+| `vaadin-side-nav-item[data-rail-tooltip]` | Items that get a rail-mode tooltip (set when `RailTooltipMode` is `STYLED`). The attribute value is the tooltip text and is fed straight into the `::after` pseudo-element via CSS `attr()`. |
 
 #### Popover header (opt-in via `setPopoverHeaderMode`)
 

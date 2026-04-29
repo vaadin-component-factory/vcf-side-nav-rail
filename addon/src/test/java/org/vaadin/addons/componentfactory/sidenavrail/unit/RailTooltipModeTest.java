@@ -26,21 +26,22 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Verifies the {@link RailTooltipMode} behaviour: the rail sets the
- * {@code data-rail-tooltip} DOM attribute on eligible root items while rail mode is
- * active; CSS turns that attribute into a visible pseudo-element tooltip. We
- * moved away from Vaadin's native tooltip because the tooltip-mixin auto-dismisses
- * when a peer overlay (our hover popover) opens — a pure-CSS pseudo-element
- * doesn't participate in the overlay system and stays visible.
+ * Verifies the {@link RailTooltipMode} behaviour: depending on the active mode the rail
+ * sets either a {@code data-rail-tooltip} attribute (STYLED, default — CSS turns it
+ * into a pseudo-element tooltip), the native {@code title} attribute (BROWSER_NATIVE),
+ * neither (NONE / POPOVER — POPOVER is wired up via the parent / leaf popover, not via
+ * an attribute). Tooltips are only applied while rail mode is engaged.
  */
 class RailTooltipModeTest {
 
-    private static final String ATTR = "data-rail-tooltip";
+    private static final String STYLED_ATTR = "data-rail-tooltip";
+    private static final String NATIVE_ATTR = "title";
 
     @BeforeEach
     void setUp() {
@@ -53,174 +54,98 @@ class RailTooltipModeTest {
     }
 
     @Test
-    void defaultIsAll() {
+    void defaultIsStyled() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(RailTooltipMode.ALL, nav.getRailTooltipMode());
+        assertEquals(RailTooltipMode.STYLED, nav.getRailTooltipMode());
     }
 
     @Test
-    void nullIsRejected() {
+    void styledSetsCustomAttributeInRailMode() {
+        SideNavRail nav = railWithItem("Dashboard");
+        UI.getCurrent().add(nav);
+        nav.setRailMode(true);
+        SideNavItem item = nav.getItems().get(0);
+        assertEquals("Dashboard", item.getElement().getAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+    }
+
+    @Test
+    void browserNativeSetsTitleAttributeInRailMode() {
+        SideNavRail nav = railWithItem("Dashboard");
+        nav.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
+        UI.getCurrent().add(nav);
+        nav.setRailMode(true);
+        SideNavItem item = nav.getItems().get(0);
+        assertEquals("Dashboard", item.getElement().getAttribute(NATIVE_ATTR));
+        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+    }
+
+    @Test
+    void popoverModeClearsBothTooltipAttributes() {
+        SideNavRail nav = railWithItem("Dashboard");
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);  // valid combo
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        UI.getCurrent().add(nav);
+        nav.setRailMode(true);
+        SideNavItem item = nav.getItems().get(0);
+        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+    }
+
+    @Test
+    void noneRemovesBothAttributes() {
+        SideNavRail nav = railWithItem("Dashboard");
+        UI.getCurrent().add(nav);
+        nav.setRailMode(true);
+        nav.setRailTooltipMode(RailTooltipMode.NONE);
+        SideNavItem item = nav.getItems().get(0);
+        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+    }
+
+    @Test
+    void normalModeDoesNotShowTooltipRegardlessOfMode() {
+        SideNavRail nav = railWithItem("Dashboard");
+        UI.getCurrent().add(nav);
+        nav.setRailMode(false);
+        for (RailTooltipMode mode : RailTooltipMode.values()) {
+            nav.setRailTooltipMode(mode);
+            SideNavItem item = nav.getItems().get(0);
+            assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+            assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+        }
+    }
+
+    @Test
+    void switchingFromNativeToStyledClearsTitleAttribute() {
+        SideNavRail nav = railWithItem("Dashboard");
+        nav.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
+        UI.getCurrent().add(nav);
+        nav.setRailMode(true);
+        nav.setRailTooltipMode(RailTooltipMode.STYLED);
+        SideNavItem item = nav.getItems().get(0);
+        assertEquals("Dashboard", item.getElement().getAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+    }
+
+    @Test
+    void nullModeThrows() {
         SideNavRail nav = new SideNavRail();
         assertThrows(NullPointerException.class, () -> nav.setRailTooltipMode(null));
     }
 
     @Test
-    void noTooltipInNormalMode() {
-        SideNavRail nav = twoRootRail();
-        UI.getCurrent().add(nav);
-
-        for (SideNavItem item : nav.getItems()) {
-            assertFalse(item.getElement().hasAttribute(ATTR),
-                    "No tooltip expected before rail mode is engaged on: " + item.getLabel());
-        }
-    }
-
-    @Test
-    void allModeSetsTooltipsOnAllRootItemsInRailMode() {
-        SideNavRail nav = twoRootRail();  // "Dashboard" (leaf), "Code" (has children)
-        UI.getCurrent().add(nav);
-
-        nav.setRailMode(true);
-
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute(ATTR));
-        assertEquals("Code", nav.getItems().get(1).getElement().getAttribute(ATTR));
-    }
-
-    @Test
-    void onlyWithoutChildrenSkipsParents() {
-        SideNavRail nav = twoRootRail();
-        nav.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
-        UI.getCurrent().add(nav);
-
-        nav.setRailMode(true);
-
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute(ATTR),
-                "Leaf item must get a tooltip in ONLY_WITHOUT_CHILDREN");
-        assertFalse(nav.getItems().get(1).getElement().hasAttribute(ATTR),
-                "Item with children must NOT get a tooltip in ONLY_WITHOUT_CHILDREN");
-    }
-
-    @Test
-    void noneSuppressesAllTooltips() {
-        SideNavRail nav = twoRootRail();
-        nav.setRailTooltipMode(RailTooltipMode.NONE);
-        UI.getCurrent().add(nav);
-
-        nav.setRailMode(true);
-
-        for (SideNavItem item : nav.getItems()) {
-            assertFalse(item.getElement().hasAttribute(ATTR),
-                    "NONE must suppress tooltips even in rail mode: " + item.getLabel());
-        }
-    }
-
-    @Test
-    void leavingRailModeClearsTooltips() {
-        SideNavRail nav = twoRootRail();
-        UI.getCurrent().add(nav);
-
-        nav.setRailMode(true);
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute(ATTR));
-
-        nav.setRailMode(false);
-        assertFalse(nav.getItems().get(0).getElement().hasAttribute(ATTR),
-                "Leaving rail mode must clear the tooltip attribute");
-    }
-
-    @Test
-    void liveModeSwitchRefreshesExistingTooltips() {
-        SideNavRail nav = twoRootRail();
-        UI.getCurrent().add(nav);
-
-        nav.setRailMode(true);
-        assertEquals("Code", nav.getItems().get(1).getElement().getAttribute(ATTR));
-
-        nav.setRailTooltipMode(RailTooltipMode.ONLY_WITHOUT_CHILDREN);
-        assertFalse(nav.getItems().get(1).getElement().hasAttribute(ATTR),
-                "Switching to ONLY_WITHOUT_CHILDREN must drop the tooltip on parents");
-
-        nav.setRailTooltipMode(RailTooltipMode.ALL);
-        assertEquals("Code", nav.getItems().get(1).getElement().getAttribute(ATTR),
-                "Switching back to ALL must restore the tooltip");
-    }
-
-    @Test
-    void setLabelUpdatesActiveTooltip() {
-        SideNavRail nav = twoRootRail();
+    void blankLabelDoesNotProduceTooltipAttribute() {
+        SideNavRail nav = railWithItem("");
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
-
-        SideNavRailItem dashboard = (SideNavRailItem) nav.getItems().get(0);
-        assertEquals("Dashboard", dashboard.getElement().getAttribute(ATTR));
-
-        dashboard.setLabel("Home");
-        assertEquals("Home", dashboard.getElement().getAttribute(ATTR),
-                "A relabelled root item must have its tooltip attribute refreshed");
+        SideNavItem item = nav.getItems().get(0);
+        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
     }
 
-    @Test
-    void nativeFlagSwitchesAttributeToTitle() {
-        SideNavRail nav = twoRootRail();
-        nav.setRailTooltipNative(true);
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-
-        // Native mode uses the HTML title attribute instead of our custom data-*.
-        assertFalse(nav.getItems().get(0).getElement().hasAttribute(ATTR),
-                "Custom pseudo-element attribute must not be set in native mode");
-        assertEquals("Dashboard",
-                nav.getItems().get(0).getElement().getAttribute("title"));
-    }
-
-    @Test
-    void switchingNativeFlagCleansUpTheOtherAttribute() {
-        SideNavRail nav = twoRootRail();
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-
-        // Start with pseudo-element attribute
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute(ATTR));
-        assertFalse(nav.getItems().get(0).getElement().hasAttribute("title"));
-
-        // Flip to native — pseudo-element attr should be gone, title should appear
-        nav.setRailTooltipNative(true);
-        assertFalse(nav.getItems().get(0).getElement().hasAttribute(ATTR),
-                "Flipping to native must clear the pseudo-element attribute");
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute("title"));
-
-        // Flip back — the reverse
-        nav.setRailTooltipNative(false);
-        assertEquals("Dashboard", nav.getItems().get(0).getElement().getAttribute(ATTR));
-        assertFalse(nav.getItems().get(0).getElement().hasAttribute("title"),
-                "Flipping back to custom must clear the native title");
-    }
-
-    @Test
-    void nativeFlagDefaultIsFalse() {
+    private static SideNavRail railWithItem(String label) {
         SideNavRail nav = new SideNavRail();
-        assertFalse(nav.isRailTooltipNative());
-    }
-
-    @Test
-    void nestedItemsDoNotReceiveTooltips() {
-        SideNavRail nav = new SideNavRail();
-        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
-        SideNavRailItem child = new SideNavRailItem("Branches", "/code/branches");
-        parent.addItem(child);
-        nav.addItem(parent);
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-
-        assertFalse(child.getElement().hasAttribute(ATTR),
-                "Nested items must not get a tooltip — the rail targets root items only");
-    }
-
-    private static SideNavRail twoRootRail() {
-        SideNavRail nav = new SideNavRail();
-        SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/");
-        SideNavRailItem code = new SideNavRailItem("Code", "/code");
-        code.addItem(new SideNavRailItem("Branches", "/code/branches"));
-        nav.addItem(dashboard, code);
+        nav.addItem(new SideNavRailItem(label, "/x"));
         return nav;
     }
 }

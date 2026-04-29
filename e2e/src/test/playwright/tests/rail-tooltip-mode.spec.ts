@@ -1,17 +1,21 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * The server sets the `data-rail-tooltip` attribute on root items while rail mode
- * is active; CSS renders the attribute as a ::after pseudo-element tooltip.
- * Playwright can't query pseudo-elements directly, but it can observe both the
- * attribute state and the computed ::after styles — together those pin down the
+ * For STYLED mode the server sets the `data-rail-tooltip` attribute on root items
+ * while rail mode is active; CSS renders the attribute as a ::after pseudo-element
+ * tooltip. Playwright can't query pseudo-elements directly, but it can observe both
+ * the attribute state and the computed ::after styles — together those pin down the
  * behaviour.
  *
- * Background: we migrated away from Vaadin's native tooltip because
- * vaadin-tooltip-mixin auto-dismisses when a peer overlay (our popover) opens,
- * producing a flicker on items that have both a tooltip and a popover. The CSS
- * pseudo-element does not participate in the overlay system, so tooltip + popover
- * coexist cleanly.
+ * For BROWSER_NATIVE mode the server sets the HTML `title` attribute. The browser
+ * decides when/how to render it; we only verify the attribute presence.
+ *
+ * Background: STYLED is the default and was chosen because vaadin-tooltip-mixin
+ * auto-dismisses when a peer overlay (our popover) opens, producing a flicker on
+ * items that have both a tooltip and a popover. The CSS pseudo-element does not
+ * participate in the overlay system, so tooltip + popover coexist cleanly.
+ *
+ * POPOVER mode is exercised by a dedicated view/spec — not in this file.
  */
 async function waitForTooltipAttribute(
     page: Page, path: string, expected: string | null): Promise<void> {
@@ -19,6 +23,18 @@ async function waitForTooltipAttribute(
         ({ p, exp }: { p: string; exp: string | null }) => {
             const el = document.querySelector(`vaadin-side-nav-item[path="${p}"]`);
             const actual = el?.getAttribute('data-rail-tooltip') ?? null;
+            return actual === exp;
+        },
+        { p: path, exp: expected },
+        { timeout: 5_000 });
+}
+
+async function waitForTitleAttribute(
+    page: Page, path: string, expected: string | null): Promise<void> {
+    await page.waitForFunction(
+        ({ p, exp }: { p: string; exp: string | null }) => {
+            const el = document.querySelector(`vaadin-side-nav-item[path="${p}"]`);
+            const actual = el?.getAttribute('title') ?? null;
             return actual === exp;
         },
         { p: path, exp: expected },
@@ -34,16 +50,16 @@ async function tooltipOpacity(page: Page, path: string): Promise<number> {
     }, path);
 }
 
-test.describe('rail tooltip (CSS pseudo-element)', () => {
-    test('no tooltip attribute in normal mode even when mode is ALL', async ({ page }) => {
+test.describe('rail tooltip', () => {
+    test('no tooltip attribute in normal mode even when STYLED is active', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
 
-        // Default mode is ALL but rail mode is off — attribute must be absent.
+        // Default mode is STYLED but rail mode is off — attribute must be absent.
         await waitForTooltipAttribute(page, 'dashboard', null);
         await waitForTooltipAttribute(page, 'code', null);
     });
 
-    test('ALL writes tooltip attributes on all root items in rail mode', async ({ page }) => {
+    test('STYLED writes tooltip attributes on all root items in rail mode', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#toggle-rail').click();
 
@@ -51,7 +67,7 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         await waitForTooltipAttribute(page, 'code', 'Code');
     });
 
-    test('ALL tooltip becomes visible on hover (pseudo-element opacity)', async ({ page }) => {
+    test('STYLED tooltip becomes visible on hover (pseudo-element opacity)', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#toggle-rail').click();
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
@@ -69,7 +85,7 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         expect(await tooltipOpacity(page, 'dashboard')).toBe(1);
     });
 
-    test('ALL tooltip becomes visible on keyboard focus (pseudo-element opacity)', async ({ page }) => {
+    test('STYLED tooltip becomes visible on keyboard focus (pseudo-element opacity)', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#toggle-rail').click();
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
@@ -96,16 +112,19 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         expect(await tooltipOpacity(page, 'dashboard')).toBe(1);
     });
 
-    test('ONLY_WITHOUT_CHILDREN skips items with children', async ({ page }) => {
+    test('BROWSER_NATIVE writes title attribute on all root items in rail mode', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
-        await page.locator('#mode-without-children').click();
+        await page.locator('#mode-browser-native').click();
         await page.locator('#toggle-rail').click();
 
-        await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
+        await waitForTitleAttribute(page, 'dashboard', 'Dashboard');
+        await waitForTitleAttribute(page, 'code', 'Code');
+        // And the styled attribute must NOT be set.
+        await waitForTooltipAttribute(page, 'dashboard', null);
         await waitForTooltipAttribute(page, 'code', null);
     });
 
-    test('NONE leaves tooltip attribute empty even in rail mode', async ({ page }) => {
+    test('NONE leaves both tooltip attributes empty even in rail mode', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
         await page.locator('#mode-none').click();
         await page.locator('#toggle-rail').click();
@@ -114,6 +133,8 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         await page.waitForTimeout(500);
         await waitForTooltipAttribute(page, 'dashboard', null);
         await waitForTooltipAttribute(page, 'code', null);
+        await waitForTitleAttribute(page, 'dashboard', null);
+        await waitForTitleAttribute(page, 'code', null);
     });
 
     test('leaving rail mode clears the tooltip attribute', async ({ page }) => {

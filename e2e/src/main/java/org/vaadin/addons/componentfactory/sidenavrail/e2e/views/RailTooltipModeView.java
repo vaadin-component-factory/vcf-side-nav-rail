@@ -45,8 +45,8 @@ public class RailTooltipModeView extends VerticalLayout {
 
         HorizontalLayout modeButtons = new HorizontalLayout(
                 modeButton(rail, RailTooltipMode.NONE, "mode-none"),
-                modeButton(rail, RailTooltipMode.ONLY_WITHOUT_CHILDREN, "mode-without-children"),
-                modeButton(rail, RailTooltipMode.ALL, "mode-all"));
+                modeButton(rail, RailTooltipMode.BROWSER_NATIVE, "mode-browser-native"),
+                modeButton(rail, RailTooltipMode.STYLED, "mode-styled"));
 
         add(new HorizontalLayout(rail, toggle, modeButtons));
     }

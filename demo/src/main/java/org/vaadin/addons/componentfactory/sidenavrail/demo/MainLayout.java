@@ -155,12 +155,6 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             }
         });
 
-        Checkbox nativeTooltipCheckbox = new Checkbox("Native tooltip");
-        nativeTooltipCheckbox.setId("rail-tooltip-native");
-        nativeTooltipCheckbox.setValue(nav.isRailTooltipNative());
-        nativeTooltipCheckbox.addValueChangeListener(
-                e -> nav.setRailTooltipNative(Boolean.TRUE.equals(e.getValue())));
-
         Checkbox childrenOnlyInPopoverCheckbox = new Checkbox("Children only in popover");
         childrenOnlyInPopoverCheckbox.setId("children-only-in-popover");
         childrenOnlyInPopoverCheckbox.setValue(nav.isChildrenOnlyInPopover());
@@ -181,7 +175,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
 
         HorizontalLayout selects = new HorizontalLayout(
                 modeSelect, headerSelect, tooltipSelect,
-                nativeTooltipCheckbox, childrenOnlyInPopoverCheckbox,
+                childrenOnlyInPopoverCheckbox,
                 rootMatchNestedSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
@@ -216,8 +210,9 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
     private static String humanize(RailTooltipMode mode) {
         return switch (mode) {
             case NONE -> "None";
-            case ONLY_WITHOUT_CHILDREN -> "Only without children";
-            case ALL -> "All root items";
+            case BROWSER_NATIVE -> "Browser-native (title)";
+            case STYLED -> "Styled (CSS pseudo-element)";
+            case POPOVER -> "Popover";
         };
     }
 

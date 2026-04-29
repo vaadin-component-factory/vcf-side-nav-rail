@@ -75,11 +75,10 @@ public class SideNavRail extends SideNav {
     private PopoverOn popoverOn = PopoverOn.ALL_COLLAPSED_ITEMS;
     private PopoverHeaderMode popoverHeaderMode = PopoverHeaderMode.NONE;
     private boolean popoverHeaderOnlyInRailMode = true;
-    private RailTooltipMode railTooltipMode = RailTooltipMode.ALL;
+    private RailTooltipMode railTooltipMode = RailTooltipMode.STYLED;
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
-    private boolean railTooltipNative = false;
     private boolean popoverArrowVisible = true;
     private RootMatchNested rootMatchNested = RootMatchNested.NONE;
     private boolean childrenOnlyInPopover = false;
@@ -255,7 +254,7 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current rail-tooltip mode. Default: {@link RailTooltipMode#ALL}. Tooltips
+     * The current rail-tooltip mode. Default: {@link RailTooltipMode#STYLED}. Tooltips
      * are only shown while the rail is in rail mode; see {@link RailTooltipMode} for
      * the per-value semantics.
      *
@@ -266,8 +265,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Controls which root items surface their label as a tooltip while the rail is in
-     * rail mode. Re-applies the tooltip state to every root item immediately.
+     * Controls how root items surface their label while the rail is in rail mode.
+     * Re-applies the tooltip state to every root item immediately. See
+     * {@link RailTooltipMode} for the per-value semantics.
      *
      * @param mode the new {@link RailTooltipMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
@@ -275,38 +275,6 @@ public class SideNavRail extends SideNav {
     public void setRailTooltipMode(RailTooltipMode mode) {
         this.railTooltipMode = java.util.Objects.requireNonNull(
                 mode, "RailTooltipMode must not be null");
-        applyTooltips();
-    }
-
-    /**
-     * Whether rail-mode tooltips are rendered as browser-native tooltips (via the
-     * {@code title} HTML attribute) rather than the addon's CSS pseudo-element.
-     * Default: {@code false} (pseudo-element, Lumo-styled, immune to
-     * {@code vaadin-tooltip-mixin}'s overlay dismissal).
-     *
-     * @return {@code true} if tooltips are rendered via the native {@code title}
-     *     attribute, {@code false} if via the addon's CSS pseudo-element
-     */
-    public boolean isRailTooltipNative() {
-        return railTooltipNative;
-    }
-
-    /**
-     * Switches between the addon's pseudo-element tooltip ({@code false}, default) and
-     * the browser-native {@code title} tooltip ({@code true}).
-     *
-     * <p>The native tooltip has a fixed browser-decided delay (roughly 500&nbsp;ms) and
-     * browser-decided styling and position, so it won't react to
-     * {@link #setPopoverHoverDelay(int)} and may look inconsistent with the rest of the
-     * Vaadin UI — but it carries zero overlay-interaction risk and works everywhere
-     * {@code title} works, including assistive technologies. Native tooltips do not
-     * appear on keyboard focus.
-     *
-     * @param useNative {@code true} to render tooltips via the browser's {@code title}
-     *     attribute, {@code false} to use the addon's CSS pseudo-element
-     */
-    public void setRailTooltipNative(boolean useNative) {
-        this.railTooltipNative = useNative;
         applyTooltips();
     }
 
@@ -543,23 +511,25 @@ public class SideNavRail extends SideNav {
 
     /**
      * Sets or clears the tooltip attribute on a single root item based on the current
-     * rail-mode, {@link RailTooltipMode}, and native-vs-custom toggle. Always wipes
-     * both the native {@code title} and the custom {@code data-rail-tooltip} first so
-     * flipping the native flag doesn't leave the old attribute on the item.
+     * rail-mode and {@link RailTooltipMode}. Always wipes both the native {@code title}
+     * and the custom {@code data-rail-tooltip} first so flipping the mode doesn't leave
+     * a stale attribute on the item.
      */
     private void applyTooltipFor(SideNavItem item) {
         item.getElement().removeAttribute(RAIL_TOOLTIP_ATTRIBUTE);
         item.getElement().removeAttribute(NATIVE_TOOLTIP_ATTRIBUTE);
-
-        boolean eligible = railMode && switch (railTooltipMode) {
-            case NONE -> false;
-            case ONLY_WITHOUT_CHILDREN -> item.getItems().isEmpty();
-            case ALL -> true;
-        };
+        if (!railMode || railTooltipMode == RailTooltipMode.NONE) {
+            return;
+        }
         String label = item.getLabel();
-        if (eligible && label != null && !label.isBlank()) {
-            String attr = railTooltipNative ? NATIVE_TOOLTIP_ATTRIBUTE : RAIL_TOOLTIP_ATTRIBUTE;
-            item.getElement().setAttribute(attr, label);
+        if (label == null || label.isBlank()) {
+            return;
+        }
+        switch (railTooltipMode) {
+            case STYLED -> item.getElement().setAttribute(RAIL_TOOLTIP_ATTRIBUTE, label);
+            case BROWSER_NATIVE -> item.getElement().setAttribute(NATIVE_TOOLTIP_ATTRIBUTE, label);
+            case POPOVER -> { /* No attribute; leaf-popover wiring (Task 4) handles this. */ }
+            case NONE -> { /* Already short-circuited by the early return above. */ }
         }
     }
 

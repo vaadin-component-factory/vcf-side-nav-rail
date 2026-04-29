@@ -17,12 +17,17 @@
 package org.vaadin.addons.componentfactory.sidenavrail;
 
 /**
- * Controls whether root items of a {@link SideNavRail} display a native tooltip
- * <em>while the rail is in rail mode</em>. Tooltips are never shown in normal mode —
- * the label text identifies the item in that case.
+ * Controls how root items of a {@link SideNavRail} surface their identity while the rail
+ * is in rail mode. Tooltips are never shown in normal mode — the label text identifies
+ * the item in that case.
  *
- * <p>The tooltip text is the item's own {@code getLabel()}. It is applied to direct
+ * <p>The label source is the item's own {@code getLabel()}. Tooltips apply to direct
  * children of the rail only; nested items never get a tooltip from the rail.
+ *
+ * <p>Three of the four modes ({@link #BROWSER_NATIVE}, {@link #STYLED}, {@link #POPOVER})
+ * apply to <em>every</em> rail-mode root item. The previous distinction between
+ * "items with children" and "all items" is gone — combine with {@link PopoverHeaderMode}
+ * if you want fine-grained control over what's shown.
  */
 public enum RailTooltipMode {
 
@@ -30,32 +35,43 @@ public enum RailTooltipMode {
     NONE,
 
     /**
-     * Only root items that have no children get a tooltip. Items with children still
-     * surface their label via the hover popover, so a tooltip would be redundant. Use
-     * this if you want to avoid a tooltip appearing alongside an open popover.
+     * Browser-native tooltip via the {@code title} HTML attribute. Hover-only — does not
+     * appear on keyboard focus (browser limitation). Browser-decided delay (~500&nbsp;ms)
+     * and styling, so it won't react to {@link SideNavRail#setPopoverHoverDelay(int)} and
+     * may look inconsistent with the rest of the Vaadin UI. Carries zero overlay-interaction
+     * risk and works everywhere {@code title} works, including assistive technologies.
      */
-    ONLY_WITHOUT_CHILDREN,
+    BROWSER_NATIVE,
 
     /**
-     * Every root item gets a tooltip. Default. Rationale: in a rail whose root items
-     * are typically clickable links, the user often clicks directly on an icon rather
-     * than pausing on it to explore the popover — the tooltip is the primary
-     * identification cue and should be available on every icon regardless of whether
-     * it has children. A tooltip on an item that also opens a popover sits below the
-     * icon (default tooltip position), while the popover opens to the right, so they
-     * don't spatially overlap.
+     * Lumo-themed CSS pseudo-element tooltip. Default. Reacts to both hover and keyboard
+     * focus (via {@code :focus-within}). Immune to {@code vaadin-tooltip-mixin}'s overlay
+     * dismissal because it does not participate in the overlay system.
      *
-     * <p><b>Vaadin by-design behaviour:</b> if a tooltip is <em>already open</em> on
-     * one root item and the pointer slides onto another root item that also opens a
-     * popover, the tooltip switches to the new item's label and is then dismissed as
-     * the popover opens. This is driven by {@code vaadin-tooltip-mixin} listening for
-     * {@code vaadin-overlay-open} events on {@code document.body} and auto-closing
-     * itself when a peer overlay appears (see
-     * <a href="https://github.com/vaadin/web-components/issues/9768">web-components#9768</a>
-     * for the upstream acknowledgement). The direct-hover case (no prior tooltip)
-     * slips past this check because the tooltip has not yet reached the opened state
-     * when the popover fires the event. Use {@link #ONLY_WITHOUT_CHILDREN} if you
-     * don't want tooltips on items that also own a popover.
+     * <p>When combined with a parent-popover, the tooltip and popover both appear on the
+     * same item — the tooltip sits below the icon (default tooltip position), the popover
+     * opens to the right, so they don't spatially overlap. Use {@link #POPOVER} if you
+     * want a single overlay per item.
      */
-    ALL
+    STYLED,
+
+    /**
+     * Tooltip is rendered as a {@link com.vaadin.flow.component.popover.Popover} with the
+     * configured {@link PopoverHeaderMode} as its content. For items with children the
+     * existing parent-popover doubles as the tooltip — there is exactly one overlay per
+     * item. For leaf items a popover is created on demand whose only content is the
+     * header.
+     *
+     * <p>Reacts to hover and keyboard focus (via {@code Popover.setOpenOnFocus}). Inherits
+     * hover/hide delays, position, and arrow visibility from the rail's existing popover
+     * settings.
+     *
+     * <p><b>Constraint:</b> requires a non-{@link PopoverHeaderMode#NONE} header — without
+     * one the popover would have no content. If the rail is attached with
+     * {@code RailTooltipMode.POPOVER} and {@code PopoverHeaderMode.NONE} configured, the
+     * header mode is silently coerced to {@link PopoverHeaderMode#LABEL_ONLY}. Setting the
+     * combination via runtime setters after attach is not validated and may produce an
+     * empty popover.
+     */
+    POPOVER
 }
