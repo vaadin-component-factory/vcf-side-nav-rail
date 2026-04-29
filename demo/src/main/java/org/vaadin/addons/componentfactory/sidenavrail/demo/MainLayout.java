@@ -224,7 +224,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
     private static String humanize(RailTooltipMode mode) {
         return switch (mode) {
             case NONE -> "None";
-            case SIMPLE -> "Simple (CSS pseudo-element)";
+            case SIMPLE -> "Simple";
             case POPOVER_HEADER -> "Popover header";
         };
     }
