@@ -79,7 +79,7 @@ public class SideNavRail extends SideNav {
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
     private boolean popoverArrowVisible = true;
-    private RootMatchNested rootMatchNested = RootMatchNested.NONE;
+    private RootMatchNested rootMatchNested = RootMatchNested.ONLY_RAIL;
     private boolean childrenOnlyInPopover = false;
 
     /** Creates an unlabelled rail. */
