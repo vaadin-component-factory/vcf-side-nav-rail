@@ -73,8 +73,8 @@ public class SideNavRail extends SideNav {
 
     private boolean railMode = false;
     private PopoverOn popoverOn = PopoverOn.ALL_COLLAPSED_ITEMS;
-    private PopoverParentLabelMode popoverParentLabelMode = PopoverParentLabelMode.NONE;
-    private boolean popoverParentLabelOnlyInRailMode = true;
+    private PopoverHeaderMode popoverHeaderMode = PopoverHeaderMode.NONE;
+    private boolean popoverHeaderOnlyInRailMode = true;
     private RailTooltipMode railTooltipMode = RailTooltipMode.ALL;
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
@@ -152,8 +152,8 @@ public class SideNavRail extends SideNav {
         applyFocusTriggerToRootItems();
         applyNestedTabindex();
         applyRootMatchNested();
-        if (popoverParentLabelMode != PopoverParentLabelMode.NONE
-                && popoverParentLabelOnlyInRailMode) {
+        if (popoverHeaderMode != PopoverHeaderMode.NONE
+                && popoverHeaderOnlyInRailMode) {
             rebuildPopoverContents();
         }
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
@@ -191,14 +191,14 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current parent-label mode for popover headers. Default:
-     * {@link PopoverParentLabelMode#NONE}. See {@link PopoverParentLabelMode} for the
+     * The current header mode for popovers. Default:
+     * {@link PopoverHeaderMode#NONE}. See {@link PopoverHeaderMode} for the
      * rendering rules per value.
      *
-     * @return the active {@link PopoverParentLabelMode}; never {@code null}
+     * @return the active {@link PopoverHeaderMode}; never {@code null}
      */
-    public PopoverParentLabelMode getPopoverParentLabelMode() {
-        return popoverParentLabelMode;
+    public PopoverHeaderMode getPopoverHeaderMode() {
+        return popoverHeaderMode;
     }
 
     /**
@@ -206,51 +206,51 @@ public class SideNavRail extends SideNav {
      * Rebuilds the content of all existing popovers so the change is visible immediately.
      *
      * <p>The header is rail-mode-only by default — see
-     * {@link #setPopoverParentLabelOnlyInRailMode(boolean)} to also show it in normal
+     * {@link #setPopoverHeaderOnlyInRailMode(boolean)} to also show it in normal
      * mode (e.g. together with {@link #setChildrenOnlyInPopover(boolean)}).
      *
-     * @param mode the new {@link PopoverParentLabelMode}; must not be {@code null}
+     * @param mode the new {@link PopoverHeaderMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
-    public void setPopoverParentLabelMode(PopoverParentLabelMode mode) {
-        this.popoverParentLabelMode = java.util.Objects.requireNonNull(
-                mode, "PopoverParentLabelMode must not be null");
+    public void setPopoverHeaderMode(PopoverHeaderMode mode) {
+        this.popoverHeaderMode = java.util.Objects.requireNonNull(
+                mode, "PopoverHeaderMode must not be null");
         rebuildPopoverContents();
     }
 
     /**
-     * Whether the popover parent-label header is rendered only while the rail is in
+     * Whether the popover header is rendered only while the rail is in
      * rail mode. Default: {@code true} (header is hidden in normal mode, where the
      * parent label is already visible inline). Has no effect while the
-     * {@link #getPopoverParentLabelMode() parent-label mode} is
-     * {@link PopoverParentLabelMode#NONE}.
+     * {@link #getPopoverHeaderMode() header mode} is
+     * {@link PopoverHeaderMode#NONE}.
      *
      * @return {@code true} if the header is restricted to rail mode, {@code false} if
      *     it is rendered in both modes
      */
-    public boolean isPopoverParentLabelOnlyInRailMode() {
-        return popoverParentLabelOnlyInRailMode;
+    public boolean isPopoverHeaderOnlyInRailMode() {
+        return popoverHeaderOnlyInRailMode;
     }
 
     /**
-     * Restricts the popover parent-label header to rail mode, or allows it in both
+     * Restricts the popover header to rail mode, or allows it in both
      * modes. Default: {@code true}. Useful in combination with
      * {@link #setChildrenOnlyInPopover(boolean)}, where the popover is the only place
      * children appear even in normal mode and a parent-identifying header may still be
      * desired.
      *
-     * <p>Has no visible effect while {@link #getPopoverParentLabelMode()} is
-     * {@link PopoverParentLabelMode#NONE}. Rebuilds the content of all existing
+     * <p>Has no visible effect while {@link #getPopoverHeaderMode()} is
+     * {@link PopoverHeaderMode#NONE}. Rebuilds the content of all existing
      * popovers so the change is visible immediately.
      *
      * @param onlyInRailMode {@code true} to render the header only in rail mode,
      *     {@code false} to render it in both modes
      */
-    public void setPopoverParentLabelOnlyInRailMode(boolean onlyInRailMode) {
-        if (this.popoverParentLabelOnlyInRailMode == onlyInRailMode) {
+    public void setPopoverHeaderOnlyInRailMode(boolean onlyInRailMode) {
+        if (this.popoverHeaderOnlyInRailMode == onlyInRailMode) {
             return;
         }
-        this.popoverParentLabelOnlyInRailMode = onlyInRailMode;
+        this.popoverHeaderOnlyInRailMode = onlyInRailMode;
         rebuildPopoverContents();
     }
 

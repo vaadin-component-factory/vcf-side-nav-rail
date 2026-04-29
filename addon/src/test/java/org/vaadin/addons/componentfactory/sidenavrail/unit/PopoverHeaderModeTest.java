@@ -33,11 +33,11 @@ import com.vaadin.flow.component.popover.Popover;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-class PopoverParentLabelModeTest {
+class PopoverHeaderModeTest {
 
     @BeforeEach
     void setUp() {
@@ -52,19 +52,19 @@ class PopoverParentLabelModeTest {
     @Test
     void defaultIsNone() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(PopoverParentLabelMode.NONE, nav.getPopoverParentLabelMode());
+        assertEquals(PopoverHeaderMode.NONE, nav.getPopoverHeaderMode());
     }
 
     @Test
     void nullIsRejected() {
         SideNavRail nav = new SideNavRail();
-        assertThrows(NullPointerException.class, () -> nav.setPopoverParentLabelMode(null));
+        assertThrows(NullPointerException.class, () -> nav.setPopoverHeaderMode(null));
     }
 
     @Test
     void defaultIsRailModeOnly() {
         SideNavRail nav = new SideNavRail();
-        assertTrue(nav.isPopoverParentLabelOnlyInRailMode(),
+        assertTrue(nav.isPopoverHeaderOnlyInRailMode(),
                 "Header is rail-mode-only by default");
     }
 
@@ -79,7 +79,7 @@ class PopoverParentLabelModeTest {
     @Test
     void labelOnlyRendersTextOnly() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.LABEL_ONLY);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
         UI.getCurrent().add(nav);
 
         Div header = findHeader(parentPopover());
@@ -91,7 +91,7 @@ class PopoverParentLabelModeTest {
     @Test
     void iconOnlyRendersIconOnly() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.ICON_ONLY);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
         UI.getCurrent().add(nav);
 
         Div header = findHeader(parentPopover());
@@ -103,7 +103,7 @@ class PopoverParentLabelModeTest {
     @Test
     void fullRendersIconAndLabel() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         UI.getCurrent().add(nav);
 
         Div header = findHeader(parentPopover());
@@ -117,7 +117,7 @@ class PopoverParentLabelModeTest {
         // Parent without a prefix icon — ICON_ONLY would produce an empty header, so the
         // whole header is skipped rather than rendered blank.
         SideNavRail nav = railWithParent("Code", null);
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.ICON_ONLY);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
         UI.getCurrent().add(nav);
 
         assertNull(findHeader(parentPopover()),
@@ -133,7 +133,7 @@ class PopoverParentLabelModeTest {
         parent.setPrefixComponent(VaadinIcon.CODE.create());
         parent.addItem(new SideNavRailItem("Branches", "/branches"));
         nav.addItem(parent);
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.LABEL_ONLY);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
@@ -149,15 +149,15 @@ class PopoverParentLabelModeTest {
         Popover popover = parentPopover();
         assertNull(findHeader(popover), "precondition: NONE renders no header");
 
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         assertNotNull(findHeader(popover), "live switch to FULL must add a header");
 
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.LABEL_ONLY);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
         Div header = findHeader(popover);
         assertNotNull(header);
         assertEquals(0L, iconsIn(header), "switching back to LABEL_ONLY must drop the icon");
 
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.NONE);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.NONE);
         assertNull(findHeader(popover), "switching back to NONE must remove the header");
     }
 

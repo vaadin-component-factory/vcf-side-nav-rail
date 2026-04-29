@@ -20,23 +20,22 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises all four {@link PopoverParentLabelMode} values via buttons so Playwright can
- * switch at runtime and verify the header (or its absence) directly.
+ * Exercises the {@link SideNavRail#setPopoverHeaderOnlyInRailMode(boolean) only-in-rail-mode}
+ * gating: the parent-label header is configured (FULL) and toggles for rail-mode and the flag
+ * let Playwright assert all four combinations.
  */
-@Route("popover-parent-label-mode")
-public class PopoverParentLabelModeView extends VerticalLayout {
+@Route("popover-header-only-in-rail-mode")
+public class PopoverHeaderOnlyInRailModeView extends VerticalLayout {
 
-    public PopoverParentLabelModeView() {
+    public PopoverHeaderOnlyInRailModeView() {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
-        // The parent-label header is rail-mode-only by default. This view exercises the
-        // four mode values in isolation in normal mode, so disable that gating here.
-        rail.setPopoverParentLabelOnlyInRailMode(false);
+        rail.setPopoverHeaderMode(PopoverHeaderMode.FULL);
 
         SideNavRailItem code = new SideNavRailItem(
                 "Code", "/code", VaadinIcon.CODE.create());
@@ -44,18 +43,15 @@ public class PopoverParentLabelModeView extends VerticalLayout {
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
         rail.addItem(code);
 
-        HorizontalLayout modeButtons = new HorizontalLayout(
-                modeButton(rail, PopoverParentLabelMode.NONE, "mode-none"),
-                modeButton(rail, PopoverParentLabelMode.LABEL_ONLY, "mode-label"),
-                modeButton(rail, PopoverParentLabelMode.ICON_ONLY, "mode-icon"),
-                modeButton(rail, PopoverParentLabelMode.FULL, "mode-full"));
+        Button toggleRail = new Button("Toggle rail mode", e -> rail.toggleRailMode());
+        toggleRail.setId("toggle-rail");
+        Button flagOn = new Button("only-in-rail-mode = true",
+                e -> rail.setPopoverHeaderOnlyInRailMode(true));
+        flagOn.setId("flag-on");
+        Button flagOff = new Button("only-in-rail-mode = false",
+                e -> rail.setPopoverHeaderOnlyInRailMode(false));
+        flagOff.setId("flag-off");
 
-        add(new HorizontalLayout(rail, modeButtons));
-    }
-
-    private static Button modeButton(SideNavRail rail, PopoverParentLabelMode mode, String id) {
-        Button button = new Button(mode.name(), e -> rail.setPopoverParentLabelMode(mode));
-        button.setId(id);
-        return button;
+        add(new HorizontalLayout(rail, new HorizontalLayout(toggleRail, flagOn, flagOff)));
     }
 }

@@ -29,7 +29,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
@@ -131,15 +131,15 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             }
         });
 
-        Select<PopoverParentLabelMode> parentLabelSelect = new Select<>();
-        parentLabelSelect.setId("popover-parent-label-select");
-        parentLabelSelect.setLabel("Popover header");
-        parentLabelSelect.setItems(PopoverParentLabelMode.values());
-        parentLabelSelect.setItemLabelGenerator(MainLayout::humanize);
-        parentLabelSelect.setValue(nav.getPopoverParentLabelMode());
-        parentLabelSelect.addValueChangeListener(e -> {
+        Select<PopoverHeaderMode> headerSelect = new Select<>();
+        headerSelect.setId("popover-header-select");
+        headerSelect.setLabel("Popover header");
+        headerSelect.setItems(PopoverHeaderMode.values());
+        headerSelect.setItemLabelGenerator(MainLayout::humanize);
+        headerSelect.setValue(nav.getPopoverHeaderMode());
+        headerSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                nav.setPopoverParentLabelMode(e.getValue());
+                nav.setPopoverHeaderMode(e.getValue());
             }
         });
 
@@ -180,7 +180,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         });
 
         HorizontalLayout selects = new HorizontalLayout(
-                modeSelect, parentLabelSelect, tooltipSelect,
+                modeSelect, headerSelect, tooltipSelect,
                 nativeTooltipCheckbox, childrenOnlyInPopoverCheckbox,
                 rootMatchNestedSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
@@ -204,7 +204,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         };
     }
 
-    private static String humanize(PopoverParentLabelMode mode) {
+    private static String humanize(PopoverHeaderMode mode) {
         return switch (mode) {
             case NONE -> "None";
             case LABEL_ONLY -> "Label only";

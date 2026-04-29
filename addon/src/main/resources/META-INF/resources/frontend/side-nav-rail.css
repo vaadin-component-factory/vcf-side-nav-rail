@@ -172,7 +172,7 @@ vaadin-side-nav[theme~="rail"]
 }
 
 /*
- * Popover header (opt-in via SideNavRail#setPopoverParentLabelMode). Rendered as a
+ * Popover header (opt-in via SideNavRail#setPopoverHeaderMode). Rendered as a
  * light-DOM div *inside* vaadin-popover-overlay, which teleports to <body> — the rail
  * theme selector above doesn't reach it, so these rules apply globally to the class.
  */

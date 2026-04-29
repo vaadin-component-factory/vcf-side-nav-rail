@@ -27,11 +27,11 @@ import com.vaadin.flow.component.popover.Popover;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverParentLabelMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
-class PopoverParentLabelOnlyInRailModeTest {
+class PopoverHeaderOnlyInRailModeTest {
 
     @BeforeEach
     void setUp() {
@@ -46,7 +46,7 @@ class PopoverParentLabelOnlyInRailModeTest {
     @Test
     void defaultHidesHeaderInNormalMode() {
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         UI.getCurrent().add(nav);
 
         assertNull(findHeader(parentPopover()),
@@ -56,7 +56,7 @@ class PopoverParentLabelOnlyInRailModeTest {
     @Test
     void defaultShowsHeaderInRailMode() {
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
@@ -67,8 +67,8 @@ class PopoverParentLabelOnlyInRailModeTest {
     @Test
     void disabledShowsHeaderInBothModes() {
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
-        nav.setPopoverParentLabelOnlyInRailMode(false);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
+        nav.setPopoverHeaderOnlyInRailMode(false);
         UI.getCurrent().add(nav);
 
         assertNotNull(findHeader(parentPopover()),
@@ -84,17 +84,17 @@ class PopoverParentLabelOnlyInRailModeTest {
         // Popover is created on attach with default (rail-mode-only) and rail off,
         // so the header should be absent. Flipping the flag should add it.
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         UI.getCurrent().add(nav);
 
         Popover popover = parentPopover();
         assertNull(findHeader(popover), "precondition: header hidden in normal mode");
 
-        nav.setPopoverParentLabelOnlyInRailMode(false);
+        nav.setPopoverHeaderOnlyInRailMode(false);
         assertNotNull(findHeader(popover),
                 "Flipping the flag to false must add the header live");
 
-        nav.setPopoverParentLabelOnlyInRailMode(true);
+        nav.setPopoverHeaderOnlyInRailMode(true);
         assertNull(findHeader(popover),
                 "Flipping the flag back to true must remove the header live");
     }
@@ -104,7 +104,7 @@ class PopoverParentLabelOnlyInRailModeTest {
         // With the default flag, toggling rail mode must add/remove the header on the
         // existing popover (without requiring a reattach).
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         UI.getCurrent().add(nav);
 
         Popover popover = parentPopover();
@@ -124,7 +124,7 @@ class PopoverParentLabelOnlyInRailModeTest {
         // Flag is meaningful only when a non-NONE mode is set; with NONE no header is
         // rendered regardless of flag/rail-mode.
         SideNavRail nav = newRail();
-        nav.setPopoverParentLabelOnlyInRailMode(false);
+        nav.setPopoverHeaderOnlyInRailMode(false);
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 

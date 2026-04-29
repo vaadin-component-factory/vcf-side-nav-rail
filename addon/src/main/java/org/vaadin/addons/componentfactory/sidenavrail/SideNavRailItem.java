@@ -660,7 +660,7 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Rebuilds the popover's content using the owning rail's current
-     * {@link PopoverParentLabelMode}. Invoked by {@link SideNavRail} when the mode changes
+     * {@link PopoverHeaderMode}. Invoked by {@link SideNavRail} when the mode changes
      * so the header toggles without requiring a full reattach. Safe to call before the
      * popover is attached — no-op.
      */
@@ -673,19 +673,19 @@ public class SideNavRailItem extends SideNavItem {
 
     private void renderHeaderIfConfigured() {
         SideNavRail owner = findOwnerRail();
-        PopoverParentLabelMode mode =
-                (owner != null) ? owner.getPopoverParentLabelMode() : PopoverParentLabelMode.NONE;
-        if (mode == PopoverParentLabelMode.NONE) {
+        PopoverHeaderMode mode =
+                (owner != null) ? owner.getPopoverHeaderMode() : PopoverHeaderMode.NONE;
+        if (mode == PopoverHeaderMode.NONE) {
             return;
         }
-        if (owner != null && owner.isPopoverParentLabelOnlyInRailMode() && !owner.isRailMode()) {
+        if (owner != null && owner.isPopoverHeaderOnlyInRailMode() && !owner.isRailMode()) {
             return;
         }
 
-        boolean wantsIcon = mode == PopoverParentLabelMode.ICON_ONLY
-                || mode == PopoverParentLabelMode.FULL;
-        boolean wantsLabel = mode == PopoverParentLabelMode.LABEL_ONLY
-                || mode == PopoverParentLabelMode.FULL;
+        boolean wantsIcon = mode == PopoverHeaderMode.ICON_ONLY
+                || mode == PopoverHeaderMode.FULL;
+        boolean wantsLabel = mode == PopoverHeaderMode.LABEL_ONLY
+                || mode == PopoverHeaderMode.FULL;
 
         Component prefix = getPrefixComponent();
         String label = getLabel();

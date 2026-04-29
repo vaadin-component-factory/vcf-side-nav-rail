@@ -17,20 +17,25 @@
 package org.vaadin.addons.componentfactory.sidenavrail;
 
 /**
- * Controls whether (and how) the popover opened on a {@link SideNavRailItem} with children
- * renders a header that identifies its parent. Opt-in — the default is {@link #NONE}.
+ * Controls whether (and how) a {@link SideNavRailItem}'s popover renders a header that
+ * identifies the item itself. Opt-in — the default is {@link #NONE}.
  *
- * <p>The header is rendered above the nested {@code SideNav} that shows the children. If the
- * configured mode would produce an empty header (e.g. {@link #ICON_ONLY} on a parent
- * without a prefix component), the header is omitted entirely rather than rendered blank.
+ * <p>The header is rendered above the nested {@code SideNav} that shows children, when
+ * the item has children. For leaf items shown via {@link RailTooltipMode#POPOVER}, the
+ * header is the only content of the popover.
+ *
+ * <p>If the configured mode would produce an empty header (e.g. {@link #ICON_ONLY} on a
+ * parent without a prefix component), the header is omitted entirely rather than rendered
+ * blank. Note: rail-mode root items always carry a prefix component (the auto-generated
+ * letter avatar), so {@link #ICON_ONLY} never produces an empty header in practice.
  *
  * <p>Changes made after the popover has been rendered take effect immediately — the rail
- * rewires all existing popovers when {@link SideNavRail#setPopoverParentLabelMode} is called.
+ * rewires all existing popovers when {@link SideNavRail#setPopoverHeaderMode} is called.
  * Changes to the parent's label or prefix component <em>after</em> the popover exists are
- * picked up only on the next call to {@code setPopoverParentLabelMode}; update the item
+ * picked up only on the next call to {@code setPopoverHeaderMode}; update the item
  * before rendering or re-trigger the mode to refresh.
  */
-public enum PopoverParentLabelMode {
+public enum PopoverHeaderMode {
 
     /** No header. Default. */
     NONE,

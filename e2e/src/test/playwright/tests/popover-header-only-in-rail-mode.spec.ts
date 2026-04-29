@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTE = '/popover-parent-label-only-in-rail-mode';
+const ROUTE = '/popover-header-only-in-rail-mode';
 const HEADER_LOCATOR =
     'vaadin-popover-overlay[opened] .side-nav-rail-popover-header, vaadin-popover[opened] .side-nav-rail-popover-header';
 

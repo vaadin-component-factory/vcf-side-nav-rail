@@ -5,7 +5,7 @@ const HEADER_LOCATOR =
 
 test.describe('popover parent-label header', () => {
   test('default NONE renders no header', async ({ page }) => {
-    await page.goto('/popover-parent-label-mode');
+    await page.goto('/popover-header-mode');
 
     const root = page.locator('#rail > vaadin-side-nav-item').first();
     await root.hover();
@@ -21,7 +21,7 @@ test.describe('popover parent-label header', () => {
   });
 
   test('LABEL_ONLY renders the parent label as text only', async ({ page }) => {
-    await page.goto('/popover-parent-label-mode');
+    await page.goto('/popover-header-mode');
     await page.locator('#mode-label').click();
 
     const root = page.locator('#rail > vaadin-side-nav-item').first();
@@ -34,7 +34,7 @@ test.describe('popover parent-label header', () => {
   });
 
   test('FULL renders icon + label', async ({ page }) => {
-    await page.goto('/popover-parent-label-mode');
+    await page.goto('/popover-header-mode');
     await page.locator('#mode-full').click();
 
     const root = page.locator('#rail > vaadin-side-nav-item').first();

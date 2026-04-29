@@ -108,7 +108,7 @@ rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 
 ### Popover header
 
-`PopoverParentLabelMode` controls whether (and how) the parent's label appears as a header at the top of its popover:
+`PopoverHeaderMode` controls whether (and how) the parent's label appears as a header at the top of its popover:
 
 - `NONE` (default) — no header.
 - `LABEL_ONLY` — header shows the parent's text label only.
@@ -116,16 +116,16 @@ rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 - `FULL` — header shows both the prefix component and the label, icon first.
 
 ```java
-rail.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
+rail.setPopoverHeaderMode(PopoverHeaderMode.FULL);
 ```
 
 By default the header is rendered only while the rail is in rail mode — in normal mode the parent label is already visible inline, so the header would be redundant. When the rail uses `setChildrenOnlyInPopover(true)` (popover-only layout in normal mode too) you usually want the header in both modes; opt out via:
 
 ```java
-rail.setPopoverParentLabelOnlyInRailMode(false);  // header in both modes
+rail.setPopoverHeaderOnlyInRailMode(false);  // header in both modes
 ```
 
-This flag has no effect while `PopoverParentLabelMode` is `NONE`.
+This flag has no effect while `PopoverHeaderMode` is `NONE`.
 
 ### Popover delays
 
@@ -171,7 +171,7 @@ Because rail mode shows only icons, users may not be able to tell what each icon
 `RailTooltipMode` controls which root items get one:
 
 - `NONE` — no tooltips.
-- `ONLY_WITHOUT_CHILDREN` — only root items that have no children (intended to be used with the **popover parent label mode**, where a tooltip would be redundant).
+- `ONLY_WITHOUT_CHILDREN` — only root items that have no children (intended to be used with the **popover header mode**, where a tooltip would be redundant).
 - `ALL` (default) — every root item, regardless of whether it has children.
 
 ```java
@@ -274,7 +274,7 @@ Use these in a global stylesheet (e.g. `frontend/themes/<my-theme>/styles.css`).
 | `vaadin-side-nav-item[has-children]` | Any item that has nested items (Vaadin native, used by the addon's subitem indicator). |
 | `vaadin-side-nav-item[data-rail-tooltip]` | Items that get a rail-mode tooltip (set when `RailTooltipMode != NONE`). The attribute value is the tooltip text and is fed straight into the `::after` pseudo-element via CSS `attr()`. |
 
-#### Popover header (opt-in via `setPopoverParentLabelMode`)
+#### Popover header (opt-in via `setPopoverHeaderMode`)
 
 The popover renders as a `<vaadin-popover>` overlay attached to `<body>`, so it lives outside the `<vaadin-side-nav>` subtree — a descendant selector like `vaadin-side-nav .side-nav-rail-popover-header` does not match. Target the class globally instead.
 
