@@ -50,9 +50,9 @@ class PopoverHeaderModeTest {
     }
 
     @Test
-    void defaultIsNone() {
+    void defaultIsLabelOnly() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(PopoverHeaderMode.NONE, nav.getPopoverHeaderMode());
+        assertEquals(PopoverHeaderMode.LABEL_ONLY, nav.getPopoverHeaderMode());
     }
 
     @Test
@@ -71,6 +71,7 @@ class PopoverHeaderModeTest {
     @Test
     void noneRendersNoHeader() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
+        nav.setPopoverHeaderMode(PopoverHeaderMode.NONE);
         UI.getCurrent().add(nav);
 
         assertNull(findHeader(parentPopover()), "NONE must not render a header");
@@ -144,6 +145,7 @@ class PopoverHeaderModeTest {
     @Test
     void liveSwitchRebuildsExistingPopover() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
+        nav.setPopoverHeaderMode(PopoverHeaderMode.NONE);
         UI.getCurrent().add(nav);
 
         Popover popover = parentPopover();
@@ -177,11 +179,17 @@ class PopoverHeaderModeTest {
     }
 
     private static Popover parentPopover() {
+        // Filter to popovers whose target is a parent item (has children). With the
+        // RailTooltipMode.POPOVER_HEADER default, leaves can also have popovers; this
+        // helper would otherwise pick the wrong one whenever the iteration order put
+        // a leaf first.
         return UI.getCurrent().getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
+                .filter(p -> p.getTarget() instanceof SideNavRailItem item
+                        && !item.getItems().isEmpty())
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("No popover attached to UI"));
+                .orElseThrow(() -> new AssertionError("No popover targets a parent item"));
     }
 
     private static Popover popoverTargeting(SideNavRailItem target) {

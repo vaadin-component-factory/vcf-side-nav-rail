@@ -124,6 +124,7 @@ class PopoverHeaderOnlyInRailModeTest {
         // Flag is meaningful only when a non-NONE mode is set; with NONE no header is
         // rendered regardless of flag/rail-mode.
         SideNavRail nav = newRail();
+        nav.setPopoverHeaderMode(PopoverHeaderMode.NONE);
         nav.setPopoverHeaderOnlyInRailMode(false);
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
@@ -143,11 +144,17 @@ class PopoverHeaderOnlyInRailModeTest {
     }
 
     private static Popover parentPopover() {
+        // Filter to popovers whose target is a parent item (has children). With the
+        // RailTooltipMode.POPOVER_HEADER default, leaves can also have popovers in
+        // rail mode; this helper would otherwise pick the wrong one when iteration
+        // order put a leaf first.
         return UI.getCurrent().getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
+                .filter(p -> p.getTarget() instanceof SideNavRailItem item
+                        && !item.getItems().isEmpty())
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("No popover attached to UI"));
+                .orElseThrow(() -> new AssertionError("No popover targets a parent item"));
     }
 
     private static Div findHeader(Popover popover) {

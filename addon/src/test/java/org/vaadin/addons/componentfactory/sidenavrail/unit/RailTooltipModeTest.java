@@ -42,11 +42,11 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
  * Verifies the {@link RailTooltipMode} behaviour: the rail sets a {@code data-rail-tooltip}
- * attribute on every root item when {@code SIMPLE} (default) is active and rail mode is
- * engaged — CSS turns that attribute into a Lumo-themed pseudo-element tooltip. {@code
- * POPOVER_HEADER} uses the popover (parent or leaf) instead, so no attribute is written.
- * {@code NONE}
- * suppresses tooltips entirely. Tooltips are only applied while rail mode is engaged.
+ * attribute on every root item when {@code SIMPLE} is active and rail mode is engaged —
+ * CSS turns that attribute into a Lumo-themed pseudo-element tooltip. {@code POPOVER_HEADER}
+ * (the default) uses the popover (parent or leaf) instead, so no attribute is written.
+ * {@code NONE} suppresses tooltips entirely. Tooltips are only applied while rail mode
+ * is engaged.
  */
 class RailTooltipModeTest {
 
@@ -63,14 +63,15 @@ class RailTooltipModeTest {
     }
 
     @Test
-    void defaultIsSimple() {
+    void defaultIsPopoverHeader() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(RailTooltipMode.SIMPLE, nav.getRailTooltipMode());
+        assertEquals(RailTooltipMode.POPOVER_HEADER, nav.getRailTooltipMode());
     }
 
     @Test
     void simpleSetsTooltipAttributeInRailMode() {
         SideNavRail nav = railWithItem("Dashboard");
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         SideNavItem item = nav.getItems().get(0);
@@ -215,6 +216,7 @@ class RailTooltipModeTest {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem leaf = new SideNavRailItem("Dashboard", "/dashboard");
         nav.addItem(leaf);
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
@@ -303,9 +305,15 @@ class RailTooltipModeTest {
 
     @Test
     void attachWithoutPopoverDoesNotCoerce() {
+        // The auto-coerce in onAttach only fires for RailTooltipMode.POPOVER_HEADER
+        // combined with PopoverHeaderMode.NONE — without it a leaf popover would have
+        // empty content. Here we explicitly opt OUT of POPOVER_HEADER (and the
+        // matching LABEL_ONLY default header) so no coerce should happen and NONE
+        // sticks.
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
-        // RailTooltipMode default SIMPLE, header default NONE.
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.NONE);
         UI.getCurrent().add(nav);
 
         assertEquals(PopoverHeaderMode.NONE, nav.getPopoverHeaderMode());
