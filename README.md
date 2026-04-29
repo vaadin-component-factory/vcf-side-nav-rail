@@ -181,6 +181,16 @@ rail.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
 
 > The default `STYLED` mode exists because Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). The CSS pseudo-element does not participate in the overlay system, so it stays visible alongside an open popover.
 
+`POPOVER` reuses the configured Vaadin `Popover` as a Lumo-themed tooltip. The header content is whatever `PopoverHeaderMode` produces, so the two knobs are paired:
+
+```java
+rail.setRailTooltipMode(RailTooltipMode.POPOVER);
+rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);  // or ICON_ONLY / FULL
+```
+
+- **Auto-coerce constraint:** `POPOVER` requires a non-`NONE` `PopoverHeaderMode` (otherwise the popover would have no content). If the rail is attached with `POPOVER` selected while the header mode is still the default `NONE`, the addon silently coerces it to `LABEL_ONLY` at attach time. Runtime setters remain un-validated, so it's the caller's responsibility to keep the combination valid afterwards.
+- **Parent-popover overlap:** when `POPOVER` is selected and an item has children, the existing parent-popover doubles as the tooltip — there is exactly one overlay per item. With `STYLED` or `BROWSER_NATIVE`, parent items show both the tooltip and the children popover (two overlays); leaf items only ever show the tooltip.
+
 ### Reacting to mode changes
 
 You can react to rail mode toggles, using a dedicated event listener (`addRailModeChangedListener(...)`). Whenever the rail mode is toggled, this event listener will be informed.

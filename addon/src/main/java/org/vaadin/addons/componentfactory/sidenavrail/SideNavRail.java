@@ -211,8 +211,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets whether (and how) each popover renders a header identifying its parent item.
-     * Rebuilds the content of all existing popovers so the change is visible immediately.
+     * Sets whether (and how) each popover renders a header identifying the
+     * owning item. Rebuilds the content of all existing popovers so the change
+     * is visible immediately.
      *
      * <p>The header is rail-mode-only by default — see
      * {@link #setPopoverHeaderOnlyInRailMode(boolean)} to also show it in normal
@@ -230,7 +231,7 @@ public class SideNavRail extends SideNav {
     /**
      * Whether the popover header is rendered only while the rail is in
      * rail mode. Default: {@code true} (header is hidden in normal mode, where the
-     * parent label is already visible inline). Has no effect while the
+     * item's label is already visible inline). Has no effect while the
      * {@link #getPopoverHeaderMode() header mode} is
      * {@link PopoverHeaderMode#NONE}.
      *
@@ -245,7 +246,7 @@ public class SideNavRail extends SideNav {
      * Restricts the popover header to rail mode, or allows it in both
      * modes. Default: {@code true}. Useful in combination with
      * {@link #setChildrenOnlyInPopover(boolean)}, where the popover is the only place
-     * children appear even in normal mode and a parent-identifying header may still be
+     * children appear even in normal mode and an item-identifying header may still be
      * desired.
      *
      * <p>Has no visible effect while {@link #getPopoverHeaderMode()} is
