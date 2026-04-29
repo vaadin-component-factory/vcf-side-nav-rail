@@ -147,6 +147,7 @@ public class SideNavRail extends SideNav {
         }
         updatePopoverGating();
         applyTooltips();
+        refreshAllPopoversFromOwner();
         applyAriaToRootItems();
         applyFocusTriggerToRootItems();
         applyNestedTabindex();
@@ -276,6 +277,18 @@ public class SideNavRail extends SideNav {
         this.railTooltipMode = java.util.Objects.requireNonNull(
                 mode, "RailTooltipMode must not be null");
         applyTooltips();
+        refreshAllPopoversFromOwner();
+    }
+
+    /**
+     * Whether the rail currently asks {@link SideNavRailItem} to create a popover for a
+     * leaf (childless) root item, so the popover can act as a Vaadin-themed tooltip.
+     * True iff rail mode is active and {@link RailTooltipMode#POPOVER} is selected.
+     *
+     * @return {@code true} if leaf items should have a popover, {@code false} otherwise
+     */
+    public boolean isLeafPopoverActive() {
+        return railMode && railTooltipMode == RailTooltipMode.POPOVER;
     }
 
     /**
@@ -463,6 +476,10 @@ public class SideNavRail extends SideNav {
 
     private void applyTooltips() {
         forEachRootRailItem(this::applyTooltipFor);
+    }
+
+    private void refreshAllPopoversFromOwner() {
+        forEachRootRailItem(SideNavRailItem::refreshPopoverFromOwner);
     }
 
     private void applyRootMatchNested() {

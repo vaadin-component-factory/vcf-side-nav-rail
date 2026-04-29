@@ -19,6 +19,7 @@ package org.vaadin.addons.componentfactory.sidenavrail.unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.mvysny.kaributesting.v10.MockVaadin;
 import com.vaadin.flow.component.UI;
@@ -141,6 +142,25 @@ class RailTooltipModeTest {
         nav.setRailMode(true);
         SideNavItem item = nav.getItems().get(0);
         assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+    }
+
+    @Test
+    void isLeafPopoverActiveReflectsRailModeAndPopoverMode() {
+        SideNavRail nav = new SideNavRail();
+        assertFalse(nav.isLeafPopoverActive());  // not in rail mode
+
+        UI.getCurrent().add(nav);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailMode(true);
+        assertTrue(nav.isLeafPopoverActive());
+
+        nav.setRailMode(false);
+        assertFalse(nav.isLeafPopoverActive());
+
+        nav.setRailMode(true);
+        nav.setRailTooltipMode(RailTooltipMode.STYLED);
+        assertFalse(nav.isLeafPopoverActive());
     }
 
     private static SideNavRail railWithItem(String label) {

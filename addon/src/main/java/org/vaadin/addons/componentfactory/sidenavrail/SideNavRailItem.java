@@ -301,7 +301,7 @@ public class SideNavRailItem extends SideNavItem {
         wireExpandedListener();
     }
 
-    private void refreshPopoverFromOwner() {
+    void refreshPopoverFromOwner() {
         if (popover == null) {
             return;
         }
