@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { openPopover, openPopoverWithMenuRole, popoverDescendant } from '../lib/popover';
 
 /**
  * Focus the inner <a id="link"> of a rail-scoped vaadin-side-nav-item.
@@ -110,7 +111,7 @@ test.describe('rail on, popover open (Code)', () => {
 
         await focusRailItem(page, 'code');
         // Popover auto-opens on focus in rail mode (setOpenOnFocus=true).
-        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(1);
+        await expect(openPopover(page)).toHaveCount(1);
 
         const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
         await expect(code).toHaveAttribute('aria-expanded', 'true');
@@ -122,9 +123,9 @@ test.describe('rail on, popover open (Code)', () => {
         await enableRailMode(page);
 
         await focusRailItem(page, 'code');
-        const overlay = page.locator('vaadin-popover-overlay[opened]');
-        await expect(overlay).toHaveCount(1);
-        await expect(overlay).toHaveAttribute('role', 'menu');
+        // role="menu" lives on V24's overlay or V25's popover host — filtering by the
+        // attribute disambiguates without strict-mode-tripping comma-form.
+        await expect(openPopoverWithMenuRole(page)).toHaveCount(1);
     });
 
     test('rail on, popover open (Code) — flat children have role=menuitem', async ({ page }) => {
@@ -132,22 +133,21 @@ test.describe('rail on, popover open (Code)', () => {
         await enableRailMode(page);
 
         await focusRailItem(page, 'code');
-        const overlay = page.locator('vaadin-popover-overlay[opened]');
-        await expect(overlay).toHaveCount(1);
+        await expect(openPopover(page)).toHaveCount(1);
 
-        // Locators MUST be scoped to the overlay: the rail DOM still contains
-        // these items with tabindex="-1" and no role, so an unscoped selector
-        // could hit the wrong copy and produce a false green.
+        // Locators MUST be scoped inside the popover: the rail DOM still
+        // contains these items with tabindex="-1" and no role, so an unscoped
+        // selector could hit the wrong copy and produce a false green.
         for (const path of ['code/branches', 'code/commits']) {
-            const item = overlay.locator(`vaadin-side-nav-item[path="${path}"]`);
+            const item = page.locator(popoverDescendant(`vaadin-side-nav-item[path="${path}"]`));
             await expect(item).toHaveCount(1);
             await expect(item).toHaveAttribute('role', 'menuitem');
         }
 
         // The Code root itself is the popover's target and is NOT duplicated
-        // inside the overlay — verify the overlay does not contain it.
+        // inside the popover content — verify the popover does not contain it.
         await expect(
-            overlay.locator('vaadin-side-nav-item[path="code"]')
+            page.locator(popoverDescendant('vaadin-side-nav-item[path="code"]'))
         ).toHaveCount(0);
     });
 });
@@ -158,9 +158,7 @@ test.describe('rail on, popover open (Admin)', () => {
         await enableRailMode(page);
 
         await focusRailItem(page, 'admin');
-        const overlay = page.locator('vaadin-popover-overlay[opened]');
-        await expect(overlay).toHaveCount(1);
-        await expect(overlay).toHaveAttribute('role', 'menu');
+        await expect(openPopoverWithMenuRole(page)).toHaveCount(1);
 
         // role="menuitem" is applied recursively at populate time by
         // SideNavRailItem.tagAsMenuItem() — expansion state of `users` does
@@ -172,14 +170,14 @@ test.describe('rail on, popover open (Admin)', () => {
             'admin/roles',
         ];
         for (const path of nestedPaths) {
-            const item = overlay.locator(`vaadin-side-nav-item[path="${path}"]`);
+            const item = page.locator(popoverDescendant(`vaadin-side-nav-item[path="${path}"]`));
             await expect(item).toHaveCount(1);
             await expect(item).toHaveAttribute('role', 'menuitem');
         }
 
-        // Admin root itself is not duplicated into the overlay.
+        // Admin root itself is not duplicated into the popover content.
         await expect(
-            overlay.locator('vaadin-side-nav-item[path="admin"]')
+            page.locator(popoverDescendant('vaadin-side-nav-item[path="admin"]'))
         ).toHaveCount(0);
     });
 });
@@ -190,11 +188,10 @@ test.describe('popover close — aria-expanded resets', () => {
         await enableRailMode(page);
 
         await focusRailItem(page, 'code');
-        const overlay = page.locator('vaadin-popover-overlay[opened]');
-        await expect(overlay).toHaveCount(1);
+        await expect(openPopover(page)).toHaveCount(1);
 
         await page.keyboard.press('Escape');
-        await expect(page.locator('vaadin-popover-overlay[opened]')).toHaveCount(0);
+        await expect(openPopover(page)).toHaveCount(0);
 
         const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
         await expect(code).toHaveAttribute('aria-expanded', 'false');

@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { leaveItem, openPopover } from '../lib/popover';
 
 /**
  * Migration rationale for the CSS pseudo-element rail-tooltip (instead of
@@ -32,15 +33,22 @@ test('rail-mode tooltip and popover overlay coexist for the same item', async ({
     await page.goto('/keyboard-navigation');
     await enableRailMode(page);
 
-    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
+    // `force: true` skips Playwright's actionability dance; on V25 that
+    // dance produces a spurious pointerleave (~165 ms) that drops the CSS
+    // `:hover` state needed for the tooltip ::after opacity transition AND
+    // cancels vaadin-popover's hover-open timer. With force:true the cursor
+    // settles on the item once and stays.
+    // Hover near the top-left corner of the item (not the center) so any
+    // rail-mode layout shift on hover keeps the cursor inside the item's box.
+    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover({ position: { x: 4, y: 4 } });
+    await expect(openPopover(page))
         .toBeVisible({ timeout: 3_000 });
 
     await expect.poll(() => tooltipOpacity(page, 'code'), { timeout: 3_000 })
         .toBeGreaterThan(0.5);
 
     // Both visible at the same time — no flicker, no dismissal of the tooltip.
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
+    await expect(openPopover(page))
         .toBeVisible();
 });
 
@@ -48,17 +56,21 @@ test('after popover closes, tooltip can still appear on subsequent hover', async
     await page.goto('/keyboard-navigation');
     await enableRailMode(page);
 
-    // Open then close popover.
-    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
+    // Open then close popover (real cursor for `:hover` CSS state needed
+    // later; force:true to avoid V25 hover race — see test above).
+    // Hover near the top-left corner of the item (not the center) so any
+    // rail-mode layout shift on hover keeps the cursor inside the item's box.
+    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover({ position: { x: 4, y: 4 } });
+    await expect(openPopover(page))
         .toBeVisible({ timeout: 3_000 });
-    // Move mouse away.
-    await page.locator('body').hover({ position: { x: 0, y: 0 } });
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
+    // Move mouse away — synthetic leave (Playwright's body.hover has the
+    // same V25 race as item.hover, so dispatch the leave events directly).
+    await leaveItem(page, '#rail vaadin-side-nav-item[path="code"]');
+    await expect(openPopover(page))
         .toHaveCount(0, { timeout: 3_000 });
 
     // Hover Dashboard (a leaf without popover) — the tooltip-only path.
-    await page.locator('#rail vaadin-side-nav-item[path="dashboard"]').hover();
+    await page.locator('#rail vaadin-side-nav-item[path="dashboard"]').hover({ position: { x: 4, y: 4 } });
     await expect.poll(() => tooltipOpacity(page, 'dashboard'), { timeout: 3_000 })
         .toBeGreaterThan(0.5);
 });

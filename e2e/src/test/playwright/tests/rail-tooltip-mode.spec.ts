@@ -59,7 +59,11 @@ test.describe('rail tooltip (CSS pseudo-element)', () => {
         // Before hover: opacity 0 (the pseudo-element exists but is transparent)
         expect(await tooltipOpacity(page, 'dashboard')).toBe(0);
 
-        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover();
+        // Hover near the top-left corner of the item (not the center) so
+        // that any rail-mode layout shift on hover keeps the cursor inside
+        // the item's bounding box. The CSS `:hover` rule only requires the
+        // cursor to be over the item; position within the box doesn't matter.
+        await page.locator('vaadin-side-nav-item[path="dashboard"]').hover({ position: { x: 4, y: 4 } });
         // Wait out the 500ms hover delay + 120ms fade.
         await page.waitForTimeout(800);
         expect(await tooltipOpacity(page, 'dashboard')).toBe(1);

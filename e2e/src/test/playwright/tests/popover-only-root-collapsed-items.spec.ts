@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openPopover, popoverDescendant } from '../lib/popover';
 
 test.describe('popover in ONLY_ROOT_COLLAPSED_ITEMS mode', () => {
   test('root item shows popover on hover', async ({ page }) => {
@@ -8,13 +9,12 @@ test.describe('popover in ONLY_ROOT_COLLAPSED_ITEMS mode', () => {
     const root = page.locator('#rail > vaadin-side-nav-item').first();
     await root.hover();
 
-    const popover = page.locator('vaadin-popover-overlay[opened]');
-    await expect(popover).toBeVisible({ timeout: 2_000 });
+    await expect(openPopover(page)).toBeVisible({ timeout: 2_000 });
     // Semantic check: the two direct children of "Code" render inside the popover.
-    // (Counting all vaadin-side-nav-item descendants would be brittle — hidden
-    // grandchildren also live in the DOM.)
-    await expect(popover.getByText('Branches')).toBeVisible();
-    await expect(popover.getByText('Tags')).toBeVisible();
+    // V24 hosts them under the teleported overlay; V25 keeps them as light-DOM
+    // children of the popover host — popoverDescendant emits both forms.
+    await expect(page.locator(popoverDescendant('vaadin-side-nav-item[path="code/branches"]'))).toBeVisible();
+    await expect(page.locator(popoverDescendant('vaadin-side-nav-item[path="code/tags"]'))).toBeVisible();
   });
 
   test('nested item does not show a popover on hover', async ({ page }) => {
@@ -33,7 +33,6 @@ test.describe('popover in ONLY_ROOT_COLLAPSED_ITEMS mode', () => {
     await nested.hover();
 
     // No popover must open — only root items are eligible in this mode.
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
-      .not.toBeVisible({ timeout: 1_500 });
+    await expect(openPopover(page)).toHaveCount(0, { timeout: 1_500 });
   });
 });

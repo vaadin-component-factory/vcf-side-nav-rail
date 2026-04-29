@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { hoverItem, openPopover, popoverDescendant, queryOpenedTargetPaths } from '../lib/popover';
 
 /**
  * Regression test for the "stuck-open" bug:
@@ -39,43 +40,29 @@ async function enableRailMode(page: Page): Promise<void> {
     });
 }
 
-const openedPopoverPaths = (page: Page) =>
-    page.evaluate(() =>
-        [...document.querySelectorAll('vaadin-popover-overlay[opened]')]
-            .map((o) => {
-                // V24 overlay has .positionTarget; V25 popover host has .target.
-                const t = (o as any).positionTarget ?? (o as any).target;
-                return (t as Element | undefined)?.getAttribute("path") ?? "";
-            }));
-
 test('rail mode — popover auto-closes after hover-switch following an in-popover activation', async ({ page }) => {
     await page.goto('/keyboard-navigation');
     await blockAnchorNavigation(page);
     await enableRailMode(page);
 
     // 1. Hover Code -> popover opens.
-    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
-        .toBeVisible({ timeout: 3_000 });
+    await hoverItem(page, '#rail vaadin-side-nav-item[path="code"]');
+    await expect(openPopover(page)).toBeVisible({ timeout: 3_000 });
 
     // 2. Click an item inside the popover -> activation closer fires.
-    await page.locator(
-        'vaadin-popover-overlay[opened] vaadin-side-nav-item[path="code/commits"], vaadin-popover[opened] vaadin-side-nav-item[path="code/commits"]'
-    ).click();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
-        .not.toBeVisible({ timeout: 2_000 });
+    await page.locator(popoverDescendant('vaadin-side-nav-item[path="code/commits"]')).click();
+    await expect(openPopover(page)).toHaveCount(0, { timeout: 2_000 });
 
     // 3. Re-hover Code -> popover opens again.
-    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
-        .toBeVisible({ timeout: 3_000 });
+    await hoverItem(page, '#rail vaadin-side-nav-item[path="code"]');
+    await expect(openPopover(page)).toBeVisible({ timeout: 3_000 });
 
     // 4. Hover a different parent (Admin) -> Code's popover should auto-close
     //    after the hover hide delay; only Admin's popover should remain.
-    await page.locator('#rail vaadin-side-nav-item[path="admin"]').hover();
+    await hoverItem(page, '#rail vaadin-side-nav-item[path="admin"]');
 
     await expect.poll(
-        () => openedPopoverPaths(page),
+        () => queryOpenedTargetPaths(page),
         { timeout: 3_000 }
     ).toEqual(['admin']);
 });

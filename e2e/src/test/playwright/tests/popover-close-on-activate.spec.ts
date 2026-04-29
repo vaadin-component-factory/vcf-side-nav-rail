@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { hoverItem, openPopover, popoverDescendant } from '../lib/popover';
 
 /**
  * Block actual navigation so the popover-close assertion is not racing the
@@ -38,13 +39,13 @@ async function enableChildrenOnlyInPopover(page: Page): Promise<void> {
 }
 
 async function openPopoverOnCode(page: Page): Promise<void> {
-    await page.locator('#rail vaadin-side-nav-item[path="code"]').hover();
-    await expect(page.locator('vaadin-popover-overlay[opened]'))
-        .toBeVisible({ timeout: 3_000 });
+    // Synthetic hover — Playwright's .hover() races V25's hover-cancel timing.
+    await hoverItem(page, '#rail vaadin-side-nav-item[path="code"]');
+    await expect(openPopover(page)).toBeVisible({ timeout: 3_000 });
 }
 
 const popoverChild = (path: string) =>
-    `vaadin-popover-overlay[opened] vaadin-side-nav-item[path="${path}"], vaadin-popover[opened] vaadin-side-nav-item[path="${path}"]`;
+    popoverDescendant(`vaadin-side-nav-item[path="${path}"]`);
 
 test.describe('popover closes when an item inside it is activated', () => {
     test('rail mode — mouse click on popover item closes the popover', async ({ page }) => {
@@ -55,8 +56,7 @@ test.describe('popover closes when an item inside it is activated', () => {
         await openPopoverOnCode(page);
         await page.locator(popoverChild('code/branches')).click();
 
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .not.toBeVisible({ timeout: 2_000 });
+        await expect(openPopover(page)).toHaveCount(0, { timeout: 2_000 });
     });
 
     test('rail mode — Enter on focused popover item closes the popover', async ({ page }) => {
@@ -73,8 +73,7 @@ test.describe('popover closes when an item inside it is activated', () => {
         });
         await page.keyboard.press('Enter');
 
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .not.toBeVisible({ timeout: 2_000 });
+        await expect(openPopover(page)).toHaveCount(0, { timeout: 2_000 });
     });
 
     test('childrenOnlyInPopover (normal mode) — click on popover item closes the popover', async ({ page }) => {
@@ -85,8 +84,7 @@ test.describe('popover closes when an item inside it is activated', () => {
         await openPopoverOnCode(page);
         await page.locator(popoverChild('code/branches')).click();
 
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .not.toBeVisible({ timeout: 2_000 });
+        await expect(openPopover(page)).toHaveCount(0, { timeout: 2_000 });
     });
 
     test('normal mode (ALL_COLLAPSED_ITEMS) — click on popover item closes the popover', async ({ page }) => {
@@ -96,7 +94,6 @@ test.describe('popover closes when an item inside it is activated', () => {
         await openPopoverOnCode(page);
         await page.locator(popoverChild('code/branches')).click();
 
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .not.toBeVisible({ timeout: 2_000 });
+        await expect(openPopover(page)).toHaveCount(0, { timeout: 2_000 });
     });
 });

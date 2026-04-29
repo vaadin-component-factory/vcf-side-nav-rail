@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { hoverItem, leaveItem, openPopover } from '../lib/popover';
 
 /**
  * setVisible() on the rail or on a parent item must keep the addon's behaviour
@@ -38,8 +39,7 @@ test.describe('setVisible(false) on item', () => {
         await page.locator(codeItem).evaluate((el: HTMLElement) =>
             el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
         await page.waitForTimeout(500);
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .toHaveCount(0);
+        await expect(openPopover(page)).toHaveCount(0);
     });
 
     test('closes any open popover for that item', async ({ page }) => {
@@ -47,18 +47,17 @@ test.describe('setVisible(false) on item', () => {
         await enableRailMode(page);
 
         // Open Code's popover.
-        await page.locator(codeItem).hover();
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
+        await hoverItem(page, codeItem);
+        await expect(openPopover(page))
             .toBeVisible({ timeout: 3_000 });
 
         // Hide Code while popover is open. The popover overlay is bound to the
         // item via positionTarget. Setting display:none on the target makes
         // it un-hoverable; vaadin-popover should then auto-close on hover-leave.
         await page.locator('#toggle-code-visible').click();
-        await page.locator('body').hover({ position: { x: 0, y: 0 } });
+        await leaveItem(page, codeItem);
 
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
-            .toHaveCount(0, { timeout: 3_000 });
+        await expect(openPopover(page)).toHaveCount(0, { timeout: 3_000 });
     });
 
     test('setVisible(true) restores hover-popover', async ({ page }) => {
@@ -71,8 +70,8 @@ test.describe('setVisible(false) on item', () => {
         await page.locator('#toggle-code-visible').click();
         await expect(page.locator(codeItem)).toBeVisible();
 
-        await page.locator(codeItem).hover();
-        await expect(page.locator('vaadin-popover-overlay[opened]'))
+        await hoverItem(page, codeItem);
+        await expect(openPopover(page))
             .toBeVisible({ timeout: 3_000 });
     });
 });
