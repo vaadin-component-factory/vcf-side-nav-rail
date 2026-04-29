@@ -141,32 +141,69 @@ function installHaspopupGuard(rail) {
 }
 
 /**
- * Installs a delegated click listener that closes a popover overlay owned by
- * this rail when an anchor inside it is activated. Without this, clicking
- * (or pressing Enter on) a navigating item in the popover navigates the
- * route but leaves the popover visible — <vaadin-popover> only auto-closes
- * on outside click, not on inside-clicks of its own content. In normal mode
- * with PopoverOn.ALL_COLLAPSED_ITEMS the popover happens to close as a side
- * effect of the parent inline-expanding on route match (gating re-evaluates
- * to "not eligible"), but in rail mode and in childrenOnlyInPopover that
- * indirect path doesn't fire — hence this explicit closer.
+ * Installs a delegated click handler at the document level that, for clicks
+ * landing inside a popover overlay owned by this rail, does two things:
  *
- * The listener runs at the document level (capture) because popover overlays
- * are teleported to <body>, outside the rail's subtree, so a rail-scoped
- * listener wouldn't see them. Each rail's listener filters by overlay
- * ownership (positionTarget inside this rail), so multiple rails on the
- * same page don't cross-close each other's popovers.
+ *   A) Releases focus that the click landed inside the popover. Browsers
+ *      shift focus to native focusables (<a href>, <button>, anything with
+ *      a positive tabindex) on mousedown. vaadin-popover's
+ *      `__onOverlayFocusIn` then sets its private `__focusInside` flag, and
+ *      `__handleMouseLeave` will refuse to auto-close while that flag is
+ *      true and the `focus` trigger is active:
  *
- * Enter on a focused <a href> dispatches a click event natively in every
- * major browser, so this single handler covers both mouse activation and
- * keyboard Enter. Non-navigating items render an <a> without href (or no
- * <a> at all), so the href filter leaves expand-toggle clicks alone.
+ *          if (this.__hasTrigger('focus') && this.__focusInside) return;
+ *
+ *      In rail mode the rail enables the focus trigger (so keyboard nav
+ *      works), so once focus enters the overlay it sticks until something
+ *      moves focus out. Without this blur, the popover stays open after
+ *      the cursor leaves it — moving from one rail-root to another opens
+ *      the second popover while the first stays stuck on screen.
+ *
+ *   B) Additionally closes the popover when the click activated a
+ *      navigating <a href>. Without this, clicking (or pressing Enter on)
+ *      a link inside the popover routes the app but leaves the popover
+ *      visible — vaadin-popover only auto-closes on outside click, not
+ *      on inside-clicks of its own content. In normal mode with
+ *      PopoverOn.ALL_COLLAPSED_ITEMS the popover happens to close as a
+ *      side effect of the parent inline-expanding on route match (gating
+ *      re-evaluates to "not eligible"), but in rail mode and in
+ *      childrenOnlyInPopover that indirect path doesn't fire.
+ *
+ * Two trigger shapes covered by (A):
+ *   - <a href> activation, mouse or keyboard. Enter on a focused <a href>
+ *     dispatches a click event natively in every major browser, so the
+ *     single click handler covers both. (B) also fires for this case.
+ *   - <button>/<button part="toggle-button"> activation, e.g. the chevron
+ *     of a parent item rendered inside the popover (`Branches` →
+ *     `Active` etc.). Modern browsers focus native buttons on mousedown.
+ *     (B) does NOT fire for this case — we want the popover to stay open
+ *     so the user can see the just-expanded sub-tree.
+ *
+ * Caveat — implicit assumption that the focus shift happens via a click
+ * event. The fix relies on the focus-grabbing trigger being a click, which
+ * holds for native <button> activation, <a href> navigation, and most
+ * `[tabindex]` widgets we'd embed today. If a future Vaadin component
+ * lands focus inside the popover via something else — programmatic
+ * focus on mouseenter, focus-trapping nested overlays, an embedded
+ * <input> auto-focused on render — this listener would not catch it and
+ * the popover would be stuck-open again. A more invasive alternative is
+ * to listen for `mouseleave` on the overlay itself and release focus
+ * there; that catches every trigger but adds risk of stealing focus from
+ * keyboard users who happen to also have the cursor over the overlay
+ * (Variant B in the bug-fix discussion). When this caveat bites, revisit.
+ *
+ * The handler runs at document-level capture because popover overlays may
+ * be teleported to <body> (V24) or live in vaadin-popover's shadowRoot
+ * (V25), so a rail-scoped listener could miss them. Each rail's listener
+ * filters by overlay ownership (positionTarget inside this rail), so
+ * multiple rails on the same page don't blur or close each other's
+ * popovers.
  *
  * Setting `overlay.opened = false` propagates back to the server: the
- * overlay fires `opened-changed`, <vaadin-popover>.__onOpenedChanged mirrors
- * it onto the popover element, which is annotated @DomEvent("opened-changed")
- * on the Flow side — so Popover.isOpened() and any registered
- * OpenedChangeListener stay in sync.
+ * overlay fires `opened-changed`, <vaadin-popover>.__onOpenedChanged
+ * mirrors it onto the popover element, which is annotated
+ * @DomEvent("opened-changed") on the Flow side — so Popover.isOpened()
+ * and any registered OpenedChangeListener stay in sync.
  *
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
@@ -175,34 +212,73 @@ function installPopoverActivationCloser(rail) {
         const path = event.composedPath ? event.composedPath() : [];
         let overlay = null;
         let anchor = null;
+        let focusable = null;
         for (const el of path) {
             if (!(el instanceof Element)) continue;
             if (!anchor && el.localName === 'a' && el.hasAttribute('href')) {
                 anchor = el;
+            }
+            if (!focusable && isClickFocusable(el)) {
+                focusable = el;
             }
             if (!overlay && el.localName === 'vaadin-popover-overlay') {
                 overlay = el;
                 break;  // overlay is the outer ancestor; no need to keep walking
             }
         }
-        if (!overlay || !anchor) return;
+        if (!overlay) return;
         if (!overlay.positionTarget || !rail.contains(overlay.positionTarget)) {
             return;
         }
-        // Blur the anchor first so vaadin-popover's overlay focusout handler
-        // synchronously clears its internal __focusInside flag. Without this,
-        // browsers focus the anchor on mousedown -> __focusInside=true, the
-        // overlay is removed by the line below before focusout asynchronously
-        // fires, the flag stays stuck, and the next hover-leave on the parent
-        // refuses to auto-close (vaadin-popover thinks the focus trigger is
-        // still active).
-        if (typeof anchor.blur === 'function') {
-            anchor.blur();
+        // (A) Release any focus the click landed inside the popover so
+        // vaadin-popover's __focusInside flag clears synchronously via
+        // its focusout handler. Must happen BEFORE we yank the overlay
+        // (anchor case below) — once the overlay is detached, focusout
+        // fires asynchronously into a no-op and the flag stays stuck.
+        if (focusable && typeof focusable.blur === 'function') {
+            focusable.blur();
         }
-        overlay.opened = false;
+        // (B) Close the popover too on a navigating click. Toggle-button
+        // and other non-navigating focusable activations fall through
+        // here untouched — popover stays open, user sees the result of
+        // their interaction (e.g. an expanded sub-tree).
+        if (anchor) {
+            overlay.opened = false;
+        }
     };
     document.addEventListener('click', handler, true);
     return handler;
+}
+
+/**
+ * Whether an element in a click event's composed path is one a browser
+ * would focus on mousedown — the population that triggers vaadin-popover's
+ * __focusInside flag and motivates the blur in
+ * {@link installPopoverActivationCloser}.
+ *
+ * Intentionally narrow: we only blur things we're confident the click
+ * itself focused. A broader "anything focusable" check (matching
+ * `:focus-within`, `[contenteditable]`, form controls, …) would risk
+ * blurring elements the user actually wanted focused — typed-into
+ * inputs, programmatic-focus form fields. Today the popovers only
+ * contain <vaadin-side-nav-item>s, which render as `<a>` for routed
+ * items and a `<button part="toggle-button">` for parents — the cases
+ * below cover both. Add new branches here if a future popover content
+ * type lands focus on click (and update the JSDoc caveat above).
+ */
+function isClickFocusable(el) {
+    if (!el || typeof el.localName !== 'string') return false;
+    if (el.localName === 'a' && el.hasAttribute && el.hasAttribute('href')) {
+        return true;
+    }
+    if (el.localName === 'button') {
+        return true;
+    }
+    if (el.hasAttribute && el.hasAttribute('tabindex')
+            && el.getAttribute('tabindex') !== '-1') {
+        return true;
+    }
+    return false;
 }
 
 function handleKeydown(event, rail) {
