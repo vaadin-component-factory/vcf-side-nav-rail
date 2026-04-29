@@ -200,8 +200,8 @@ public class SideNavRail extends SideNav {
 
     /**
      * The current header mode for popovers. Default:
-     * {@link PopoverHeaderMode#NONE}. See {@link PopoverHeaderMode} for the
-     * rendering rules per value.
+     * {@link PopoverHeaderMode#LABEL_ONLY}. See {@link PopoverHeaderMode} for
+     * the rendering rules per value.
      *
      * @return the active {@link PopoverHeaderMode}; never {@code null}
      */
@@ -264,9 +264,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current rail-tooltip mode. Default: {@link RailTooltipMode#STYLED}. Tooltips
-     * are only shown while the rail is in rail mode; see {@link RailTooltipMode} for
-     * the per-value semantics.
+     * The current rail-tooltip mode. Default: {@link RailTooltipMode#POPOVER_HEADER}.
+     * Tooltips are only shown while the rail is in rail mode; see
+     * {@link RailTooltipMode} for the per-value semantics.
      *
      * @return the active {@link RailTooltipMode}; never {@code null}
      */
