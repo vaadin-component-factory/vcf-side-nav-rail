@@ -302,12 +302,20 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     void refreshPopoverFromOwner() {
-        if (popover == null) {
-            return;
-        }
         SideNavRail owner = findOwnerRail();
         if (owner == null) {
-            return;  // standalone — defaults were set at creation
+            // Pre-attach or standalone — owner-driven settings can't be applied,
+            // and creating a popover here would skip the owner-aware initial
+            // populate. The next onAttach will run ensurePopover()/this method
+            // again with the owner in place.
+            return;
+        }
+        // Owner-driven settings may now require a popover on a previously-bare leaf
+        // (RailTooltipMode.POPOVER ⇒ owner.isLeafPopoverActive()). ensurePopover()
+        // is a no-op when one already exists.
+        ensurePopover();
+        if (popover == null) {
+            return;
         }
         popover.setOpenOnFocus(owner.isRailMode());
         applyPopoverSettings();
@@ -451,7 +459,7 @@ public class SideNavRailItem extends SideNavItem {
         if (popover != null) {
             return;
         }
-        if (getItems().isEmpty()) {
+        if (getItems().isEmpty() && !ownerWantsLeafPopover()) {
             return;
         }
         popover = new Popover();
@@ -482,6 +490,11 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             popover.setOpenOnHover(true);  // standalone item — default on
         }
+    }
+
+    private boolean ownerWantsLeafPopover() {
+        SideNavRail owner = findOwnerRail();
+        return owner != null && owner.isLeafPopoverActive();
     }
 
     void applyFocusTrigger(boolean railMode) {
@@ -546,6 +559,17 @@ public class SideNavRailItem extends SideNavItem {
         }
         SideNavRail owner = findOwnerRail();
         if (owner == null) {
+            return;
+        }
+        if (getItems().isEmpty()) {
+            // Leaf popover — gated entirely by the rail's leaf-popover-active
+            // predicate (RailTooltipMode.POPOVER + rail mode active).
+            // PopoverOn does not apply to leaves: it only governs items with children.
+            boolean leafActive = owner.isLeafPopoverActive();
+            popover.setOpenOnHover(leafActive);
+            if (!leafActive && popover.isOpened()) {
+                popover.close();
+            }
             return;
         }
         boolean railMode = owner.isRailMode();
@@ -651,6 +675,11 @@ public class SideNavRailItem extends SideNavItem {
         popover.removeAll();
         renderHeaderIfConfigured();
 
+        if (getItems().isEmpty()) {
+            // Leaf popover (RailTooltipMode.POPOVER): header-only content.
+            return;
+        }
+
         SideNav nested = new SideNav();
         for (SideNavItem child : getItems()) {
             nested.addItem(copyOf(child));
@@ -752,13 +781,14 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Returns the popover of this item, if one has been created. The popover is
-     * lazily attached on first attach for items with children — leaf items never
-     * have a popover, and any item returns an empty {@link Optional} until it
-     * has been attached for the first time.
+     * lazily attached on first attach: items with children always get one, while
+     * leaf items get one only when the owning rail's {@link RailTooltipMode} is
+     * {@code POPOVER} and rail-mode is active (see
+     * {@link SideNavRail#isLeafPopoverActive()}). Items that have not been
+     * attached yet, or that are not part of a rail, return {@link Optional#empty()}.
      *
      * @return an {@link Optional} containing the underlying {@link Popover}, or
-     *     {@link Optional#empty()} if none has been created (leaf item, or item
-     *     not yet attached)
+     *     {@link Optional#empty()} if none has been created
      */
     public Optional<Popover> getPopover() {
         return Optional.ofNullable(popover);
