@@ -26,7 +26,7 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises {@link RailTooltipMode#POPOVER}. "Dashboard" is a leaf root item; "Code" has
+ * Exercises {@link RailTooltipMode#POPOVER_HEADER}. "Dashboard" is a leaf root item; "Code" has
  * children. Both should produce a popover on hover/focus while in rail mode.
  */
 @Route("rail-tooltip-popover")
@@ -36,7 +36,7 @@ public class RailTooltipPopoverModeView extends VerticalLayout {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
         rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        rail.setRailTooltipMode(RailTooltipMode.POPOVER);
+        rail.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
 
         rail.addItem(
                 new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create()),

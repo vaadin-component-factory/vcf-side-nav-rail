@@ -65,7 +65,6 @@ public class SideNavRail extends SideNav {
     private static final String CHILDREN_ONLY_IN_POPOVER_THEME = "inline-children-hidden";
 
     static final String RAIL_TOOLTIP_ATTRIBUTE = "data-rail-tooltip";
-    static final String NATIVE_TOOLTIP_ATTRIBUTE = "title";
 
     private static final int DEFAULT_POPOVER_HOVER_DELAY_MS = 200;
     private static final int DEFAULT_POPOVER_HIDE_DELAY_MS = 300;
@@ -75,7 +74,7 @@ public class SideNavRail extends SideNav {
     private PopoverOn popoverOn = PopoverOn.ALL_COLLAPSED_ITEMS;
     private PopoverHeaderMode popoverHeaderMode = PopoverHeaderMode.NONE;
     private boolean popoverHeaderOnlyInRailMode = true;
-    private RailTooltipMode railTooltipMode = RailTooltipMode.STYLED;
+    private RailTooltipMode railTooltipMode = RailTooltipMode.SIMPLE;
     private int popoverHoverDelay = DEFAULT_POPOVER_HOVER_DELAY_MS;
     private int popoverHideDelay = DEFAULT_POPOVER_HIDE_DELAY_MS;
     private PopoverPosition popoverPosition = DEFAULT_POPOVER_POSITION;
@@ -104,11 +103,11 @@ public class SideNavRail extends SideNav {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         // Auto-coerce: a leaf popover with no header would have no content, so
-        // when POPOVER mode is configured against the default NONE header, we
-        // silently upgrade the header to LABEL_ONLY at attach time. Runtime
+        // when POPOVER_HEADER mode is configured against the default NONE header,
+        // we silently upgrade the header to LABEL_ONLY at attach time. Runtime
         // setters remain un-validated; the demo prevents the invalid combo
         // via disabled select options.
-        if (railTooltipMode == RailTooltipMode.POPOVER
+        if (railTooltipMode == RailTooltipMode.POPOVER_HEADER
                 && popoverHeaderMode == PopoverHeaderMode.NONE) {
             popoverHeaderMode = PopoverHeaderMode.LABEL_ONLY;
         }
@@ -293,12 +292,12 @@ public class SideNavRail extends SideNav {
     /**
      * Whether the rail currently asks {@link SideNavRailItem} to create a popover for a
      * leaf (childless) root item, so the popover can act as a Vaadin-themed tooltip.
-     * True iff rail mode is active and {@link RailTooltipMode#POPOVER} is selected.
+     * True iff rail mode is active and {@link RailTooltipMode#POPOVER_HEADER} is selected.
      *
      * @return {@code true} if leaf items should have a popover, {@code false} otherwise
      */
     public boolean isLeafPopoverActive() {
-        return railMode && railTooltipMode == RailTooltipMode.POPOVER;
+        return railMode && railTooltipMode == RailTooltipMode.POPOVER_HEADER;
     }
 
     /**
@@ -538,13 +537,11 @@ public class SideNavRail extends SideNav {
 
     /**
      * Sets or clears the tooltip attribute on a single root item based on the current
-     * rail-mode and {@link RailTooltipMode}. Always wipes both the native {@code title}
-     * and the custom {@code data-rail-tooltip} first so flipping the mode doesn't leave
-     * a stale attribute on the item.
+     * rail-mode and {@link RailTooltipMode}. Always wipes the {@code data-rail-tooltip}
+     * attribute first so flipping the mode doesn't leave a stale attribute on the item.
      */
     private void applyTooltipFor(SideNavItem item) {
         item.getElement().removeAttribute(RAIL_TOOLTIP_ATTRIBUTE);
-        item.getElement().removeAttribute(NATIVE_TOOLTIP_ATTRIBUTE);
         if (!railMode || railTooltipMode == RailTooltipMode.NONE) {
             return;
         }
@@ -553,9 +550,8 @@ public class SideNavRail extends SideNav {
             return;
         }
         switch (railTooltipMode) {
-            case STYLED -> item.getElement().setAttribute(RAIL_TOOLTIP_ATTRIBUTE, label);
-            case BROWSER_NATIVE -> item.getElement().setAttribute(NATIVE_TOOLTIP_ATTRIBUTE, label);
-            case POPOVER -> { /* No attribute; leaf-popover wiring (Task 4) handles this. */ }
+            case SIMPLE -> item.getElement().setAttribute(RAIL_TOOLTIP_ATTRIBUTE, label);
+            case POPOVER_HEADER -> { /* No attribute; leaf-popover wiring handles this. */ }
             case NONE -> { /* Already short-circuited by the early return above. */ }
         }
     }

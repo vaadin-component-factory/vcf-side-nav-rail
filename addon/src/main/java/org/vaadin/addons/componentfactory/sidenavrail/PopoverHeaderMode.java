@@ -21,7 +21,7 @@ package org.vaadin.addons.componentfactory.sidenavrail;
  * identifies the item itself. Opt-in — the default is {@link #NONE}.
  *
  * <p>The header is rendered above the nested {@code SideNav} that shows children, when
- * the item has children. For leaf items shown via {@link RailTooltipMode#POPOVER}, the
+ * the item has children. For leaf items shown via {@link RailTooltipMode#POPOVER_HEADER}, the
  * header is the only content of the popover.
  *
  * <p>If the configured mode would produce an empty header (e.g. {@link #ICON_ONLY} on a

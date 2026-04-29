@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { hoverItem, openPopover, popoverDescendant } from '../lib/popover';
 
 /**
- * Coverage for {@code RailTooltipMode.POPOVER}: leaf and parent root items both
+ * Coverage for {@code RailTooltipMode.POPOVER_HEADER}: leaf and parent root items both
  * produce a popover on hover/focus while in rail mode. The view boots in normal
  * mode and {@code beforeEach} toggles rail mode on (matches the pattern in the
  * other rail-mode specs and ensures the rail's first paint runs without the
@@ -49,7 +49,7 @@ async function enableRailMode(page: Page): Promise<void> {
     }, undefined, { timeout: 10_000 });
 }
 
-test.describe('RailTooltipMode.POPOVER', () => {
+test.describe('RailTooltipMode.POPOVER_HEADER', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto(ROUTE);
         await enableRailMode(page);
@@ -93,7 +93,7 @@ test.describe('RailTooltipMode.POPOVER', () => {
         await expect(openPopover(page)).toHaveCount(0);
     });
 
-    test('POPOVER mode does not set data-rail-tooltip or title on root items', async ({ page }) => {
+    test('POPOVER_HEADER mode does not set data-rail-tooltip or title on root items', async ({ page }) => {
         // beforeEach put us in rail mode; verify both root items are clean.
         for (const path of ['dashboard', 'code']) {
             const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);

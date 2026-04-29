@@ -145,7 +145,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         tooltipSelect.setItemLabelGenerator(MainLayout::humanize);
         tooltipSelect.setValue(nav.getRailTooltipMode());
 
-        // Mirror the addon's auto-coerce: RailTooltipMode.POPOVER together with
+        // Mirror the addon's auto-coerce: RailTooltipMode.POPOVER_HEADER together with
         // PopoverHeaderMode.NONE would silently flip to LABEL_ONLY at attach.
         // Snap headerSelect to LABEL_ONLY whenever the user enters that combination
         // from either side, so the demo UI stays consistent with the rail.
@@ -153,7 +153,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             if (e.getValue() != null) {
                 nav.setPopoverHeaderMode(e.getValue());
             }
-            if (tooltipSelect.getValue() == RailTooltipMode.POPOVER
+            if (tooltipSelect.getValue() == RailTooltipMode.POPOVER_HEADER
                     && e.getValue() == PopoverHeaderMode.NONE) {
                 headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
             }
@@ -163,7 +163,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
             if (e.getValue() != null) {
                 nav.setRailTooltipMode(e.getValue());
             }
-            if (e.getValue() == RailTooltipMode.POPOVER
+            if (e.getValue() == RailTooltipMode.POPOVER_HEADER
                     && headerSelect.getValue() == PopoverHeaderMode.NONE) {
                 headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
             }
@@ -224,9 +224,8 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
     private static String humanize(RailTooltipMode mode) {
         return switch (mode) {
             case NONE -> "None";
-            case BROWSER_NATIVE -> "Browser-native (title)";
-            case STYLED -> "Styled (CSS pseudo-element)";
-            case POPOVER -> "Popover";
+            case SIMPLE -> "Simple (CSS pseudo-element)";
+            case POPOVER_HEADER -> "Popover header";
         };
     }
 

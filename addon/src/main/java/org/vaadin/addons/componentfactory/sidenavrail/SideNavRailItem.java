@@ -156,25 +156,19 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Keeps the installed tooltip attribute in sync with the label. The owning rail
-     * decides <em>whether</em> a tooltip is installed and <em>which</em> attribute
-     * (custom pseudo-element vs. native {@code title}) is used; we don't change that
-     * here, we just refresh the text on whichever attribute is currently set so a
-     * relabelled item doesn't carry a stale tooltip. No-op if no tooltip is installed.
+     * decides <em>whether</em> a tooltip is installed; we just refresh the text on the
+     * {@code data-rail-tooltip} attribute if it is currently set so a relabelled item
+     * doesn't carry a stale tooltip. No-op if no tooltip is installed.
      */
     private void refreshTooltipTextIfInstalled() {
-        String attr;
-        if (getElement().hasAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE)) {
-            attr = SideNavRail.RAIL_TOOLTIP_ATTRIBUTE;
-        } else if (getElement().hasAttribute(SideNavRail.NATIVE_TOOLTIP_ATTRIBUTE)) {
-            attr = SideNavRail.NATIVE_TOOLTIP_ATTRIBUTE;
-        } else {
+        if (!getElement().hasAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE)) {
             return;
         }
         String label = getLabel();
         if (label != null && !label.isBlank()) {
-            getElement().setAttribute(attr, label);
+            getElement().setAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE, label);
         } else {
-            getElement().removeAttribute(attr);
+            getElement().removeAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE);
         }
     }
 
@@ -311,7 +305,7 @@ public class SideNavRailItem extends SideNavItem {
             return;
         }
         // Owner-driven settings may now require a popover on a previously-bare leaf
-        // (RailTooltipMode.POPOVER ⇒ owner.isLeafPopoverActive()). ensurePopover()
+        // (RailTooltipMode.POPOVER_HEADER ⇒ owner.isLeafPopoverActive()). ensurePopover()
         // is a no-op when one already exists.
         ensurePopover();
         if (popover == null) {
@@ -563,7 +557,7 @@ public class SideNavRailItem extends SideNavItem {
         }
         if (getItems().isEmpty()) {
             // Leaf popover — gated entirely by the rail's leaf-popover-active
-            // predicate (RailTooltipMode.POPOVER + rail mode active).
+            // predicate (RailTooltipMode.POPOVER_HEADER + rail mode active).
             // PopoverOn does not apply to leaves: it only governs items with children.
             boolean leafActive = owner.isLeafPopoverActive();
             popover.setOpenOnHover(leafActive);
@@ -676,7 +670,7 @@ public class SideNavRailItem extends SideNavItem {
         renderHeaderIfConfigured();
 
         if (getItems().isEmpty()) {
-            // Leaf popover (RailTooltipMode.POPOVER): header-only content.
+            // Leaf popover (RailTooltipMode.POPOVER_HEADER): header-only content.
             return;
         }
 
@@ -783,7 +777,7 @@ public class SideNavRailItem extends SideNavItem {
      * Returns the popover of this item, if one has been created. The popover is
      * lazily attached on first attach: items with children always get one, while
      * leaf items get one only when the owning rail's {@link RailTooltipMode} is
-     * {@code POPOVER} and rail-mode is active (see
+     * {@code POPOVER_HEADER} and rail-mode is active (see
      * {@link SideNavRail#isLeafPopoverActive()}). Items that have not been
      * attached yet, or that are not part of a rail, return {@link Optional#empty()}.
      *

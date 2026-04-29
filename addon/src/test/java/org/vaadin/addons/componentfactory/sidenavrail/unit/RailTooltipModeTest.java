@@ -41,16 +41,16 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Verifies the {@link RailTooltipMode} behaviour: depending on the active mode the rail
- * sets either a {@code data-rail-tooltip} attribute (STYLED, default — CSS turns it
- * into a pseudo-element tooltip), the native {@code title} attribute (BROWSER_NATIVE),
- * neither (NONE / POPOVER — POPOVER is wired up via the parent / leaf popover, not via
- * an attribute). Tooltips are only applied while rail mode is engaged.
+ * Verifies the {@link RailTooltipMode} behaviour: the rail sets a {@code data-rail-tooltip}
+ * attribute on every root item when {@code SIMPLE} (default) is active and rail mode is
+ * engaged — CSS turns that attribute into a Lumo-themed pseudo-element tooltip. {@code
+ * POPOVER_HEADER} uses the popover (parent or leaf) instead, so no attribute is written.
+ * {@code NONE}
+ * suppresses tooltips entirely. Tooltips are only applied while rail mode is engaged.
  */
 class RailTooltipModeTest {
 
-    private static final String STYLED_ATTR = "data-rail-tooltip";
-    private static final String NATIVE_ATTR = "title";
+    private static final String TOOLTIP_ATTR = "data-rail-tooltip";
 
     @BeforeEach
     void setUp() {
@@ -63,53 +63,39 @@ class RailTooltipModeTest {
     }
 
     @Test
-    void defaultIsStyled() {
+    void defaultIsSimple() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(RailTooltipMode.STYLED, nav.getRailTooltipMode());
+        assertEquals(RailTooltipMode.SIMPLE, nav.getRailTooltipMode());
     }
 
     @Test
-    void styledSetsCustomAttributeInRailMode() {
+    void simpleSetsTooltipAttributeInRailMode() {
         SideNavRail nav = railWithItem("Dashboard");
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         SideNavItem item = nav.getItems().get(0);
-        assertEquals("Dashboard", item.getElement().getAttribute(STYLED_ATTR));
-        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+        assertEquals("Dashboard", item.getElement().getAttribute(TOOLTIP_ATTR));
     }
 
     @Test
-    void browserNativeSetsTitleAttributeInRailMode() {
+    void popoverModeClearsTooltipAttribute() {
         SideNavRail nav = railWithItem("Dashboard");
-        nav.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         SideNavItem item = nav.getItems().get(0);
-        assertEquals("Dashboard", item.getElement().getAttribute(NATIVE_ATTR));
-        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(TOOLTIP_ATTR));
     }
 
     @Test
-    void popoverModeClearsBothTooltipAttributes() {
-        SideNavRail nav = railWithItem("Dashboard");
-        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);  // valid combo
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-        SideNavItem item = nav.getItems().get(0);
-        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
-        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
-    }
-
-    @Test
-    void noneRemovesBothAttributes() {
+    void noneRemovesTooltipAttribute() {
         SideNavRail nav = railWithItem("Dashboard");
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         nav.setRailTooltipMode(RailTooltipMode.NONE);
         SideNavItem item = nav.getItems().get(0);
-        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
-        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+        assertFalse(item.getElement().hasAttribute(TOOLTIP_ATTR));
     }
 
     @Test
@@ -120,21 +106,20 @@ class RailTooltipModeTest {
         for (RailTooltipMode mode : RailTooltipMode.values()) {
             nav.setRailTooltipMode(mode);
             SideNavItem item = nav.getItems().get(0);
-            assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
-            assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+            assertFalse(item.getElement().hasAttribute(TOOLTIP_ATTR));
         }
     }
 
     @Test
-    void switchingFromNativeToStyledClearsTitleAttribute() {
+    void switchingFromPopoverToSimpleSetsTooltipAttribute() {
         SideNavRail nav = railWithItem("Dashboard");
-        nav.setRailTooltipMode(RailTooltipMode.BROWSER_NATIVE);
+        nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
-        nav.setRailTooltipMode(RailTooltipMode.STYLED);
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
         SideNavItem item = nav.getItems().get(0);
-        assertEquals("Dashboard", item.getElement().getAttribute(STYLED_ATTR));
-        assertFalse(item.getElement().hasAttribute(NATIVE_ATTR));
+        assertEquals("Dashboard", item.getElement().getAttribute(TOOLTIP_ATTR));
     }
 
     @Test
@@ -149,7 +134,7 @@ class RailTooltipModeTest {
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         SideNavItem item = nav.getItems().get(0);
-        assertFalse(item.getElement().hasAttribute(STYLED_ATTR));
+        assertFalse(item.getElement().hasAttribute(TOOLTIP_ATTR));
     }
 
     @Test
@@ -159,7 +144,7 @@ class RailTooltipModeTest {
 
         UI.getCurrent().add(nav);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         nav.setRailMode(true);
         assertTrue(nav.isLeafPopoverActive());
 
@@ -167,11 +152,11 @@ class RailTooltipModeTest {
         assertFalse(nav.isLeafPopoverActive());
 
         nav.setRailMode(true);
-        nav.setRailTooltipMode(RailTooltipMode.STYLED);
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
         assertFalse(nav.isLeafPopoverActive());
     }
 
-    // ---- Leaf-popover (RailTooltipMode.POPOVER) tests ----
+    // ---- Leaf-popover (RailTooltipMode.POPOVER_HEADER) tests ----
 
     @Test
     void popoverModeCreatesPopoverOnLeafInRailMode() {
@@ -179,12 +164,12 @@ class RailTooltipModeTest {
         SideNavRailItem leaf = new SideNavRailItem("Dashboard", "/dashboard");
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
         Popover popover = findPopoverFor(leaf);
-        assertNotNull(popover, "Expected a popover on the rail-mode leaf when POPOVER mode is active");
+        assertNotNull(popover, "Expected a popover on the rail-mode leaf when POPOVER_HEADER mode is active");
         assertTrue(popover.isOpenOnHover(), "Leaf popover should be hover-triggered in rail mode");
     }
 
@@ -194,7 +179,7 @@ class RailTooltipModeTest {
         SideNavRailItem leaf = new SideNavRailItem("Dashboard", "/dashboard");
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
         nav.setRailMode(false);
@@ -209,15 +194,15 @@ class RailTooltipModeTest {
     }
 
     @Test
-    void switchingFromPopoverToStyledRemovesLeafPopoverTrigger() {
+    void switchingFromPopoverToSimpleRemovesLeafPopoverTrigger() {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem leaf = new SideNavRailItem("Dashboard", "/dashboard");
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
-        nav.setRailTooltipMode(RailTooltipMode.STYLED);
+        nav.setRailTooltipMode(RailTooltipMode.SIMPLE);
 
         Popover popover = findPopoverFor(leaf);
         if (popover != null) {
@@ -226,7 +211,7 @@ class RailTooltipModeTest {
     }
 
     @Test
-    void styledModeCreatesNoPopoverOnLeaf() {
+    void simpleModeCreatesNoPopoverOnLeaf() {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem leaf = new SideNavRailItem("Dashboard", "/dashboard");
         nav.addItem(leaf);
@@ -234,7 +219,7 @@ class RailTooltipModeTest {
         nav.setRailMode(true);
 
         assertNull(findPopoverFor(leaf),
-                "STYLED mode must not create a popover on a leaf item");
+                "SIMPLE mode must not create a popover on a leaf item");
     }
 
     @Test
@@ -244,7 +229,7 @@ class RailTooltipModeTest {
                 "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
@@ -263,7 +248,7 @@ class RailTooltipModeTest {
                 "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
@@ -282,7 +267,7 @@ class RailTooltipModeTest {
                 "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
@@ -298,7 +283,7 @@ class RailTooltipModeTest {
     void attachWithPopoverAndNoneHeaderCoercesToLabelOnly() {
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         // Header mode left at default NONE.
         UI.getCurrent().add(nav);  // attach
 
@@ -309,7 +294,7 @@ class RailTooltipModeTest {
     void attachWithPopoverAndExplicitHeaderModeIsNotCoerced() {
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
-        nav.setRailTooltipMode(RailTooltipMode.POPOVER);
+        nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
         UI.getCurrent().add(nav);
 
@@ -320,7 +305,7 @@ class RailTooltipModeTest {
     void attachWithoutPopoverDoesNotCoerce() {
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
-        // RailTooltipMode default STYLED, header default NONE.
+        // RailTooltipMode default SIMPLE, header default NONE.
         UI.getCurrent().add(nav);
 
         assertEquals(PopoverHeaderMode.NONE, nav.getPopoverHeaderMode());

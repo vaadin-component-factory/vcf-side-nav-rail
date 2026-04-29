@@ -24,24 +24,14 @@ package org.vaadin.addons.componentfactory.sidenavrail;
  * <p>The label source is the item's own {@code getLabel()}. Tooltips apply to direct
  * children of the rail only; nested items never get a tooltip from the rail.
  *
- * <p>Three of the four modes ({@link #BROWSER_NATIVE}, {@link #STYLED}, {@link #POPOVER})
- * apply to <em>every</em> rail-mode root item. The previous distinction between
- * "items with children" and "all items" is gone — combine with {@link PopoverHeaderMode}
- * if you want fine-grained control over what's shown.
+ * <p>Both active modes ({@link #SIMPLE}, {@link #POPOVER_HEADER}) apply to <em>every</em>
+ * rail-mode root item. Combine with {@link PopoverHeaderMode} when {@link #POPOVER_HEADER} is
+ * selected to control what the popover header shows.
  */
 public enum RailTooltipMode {
 
     /** No tooltips on root items. */
     NONE,
-
-    /**
-     * Browser-native tooltip via the {@code title} HTML attribute. Hover-only — does not
-     * appear on keyboard focus (browser limitation). Browser-decided delay (~500&nbsp;ms)
-     * and styling, so it won't react to {@link SideNavRail#setPopoverHoverDelay(int)} and
-     * may look inconsistent with the rest of the Vaadin UI. Carries zero overlay-interaction
-     * risk and works everywhere {@code title} works, including assistive technologies.
-     */
-    BROWSER_NATIVE,
 
     /**
      * Lumo-themed CSS pseudo-element tooltip. Default. Reacts to both hover and keyboard
@@ -50,10 +40,10 @@ public enum RailTooltipMode {
      *
      * <p>When combined with a parent-popover, the tooltip and popover both appear on the
      * same item — the tooltip sits below the icon (default tooltip position), the popover
-     * opens to the right, so they don't spatially overlap. Use {@link #POPOVER} if you
+     * opens to the right, so they don't spatially overlap. Use {@link #POPOVER_HEADER} if you
      * want a single overlay per item.
      */
-    STYLED,
+    SIMPLE,
 
     /**
      * Tooltip is rendered as a {@link com.vaadin.flow.component.popover.Popover} with the
@@ -68,10 +58,10 @@ public enum RailTooltipMode {
      *
      * <p><b>Constraint:</b> requires a non-{@link PopoverHeaderMode#NONE} header — without
      * one the popover would have no content. If the rail is attached with
-     * {@code RailTooltipMode.POPOVER} and {@code PopoverHeaderMode.NONE} configured, the
+     * {@code RailTooltipMode.POPOVER_HEADER} and {@code PopoverHeaderMode.NONE} configured, the
      * header mode is silently coerced to {@link PopoverHeaderMode#LABEL_ONLY}. Setting the
      * combination via runtime setters after attach is not validated and may produce an
      * empty popover.
      */
-    POPOVER
+    POPOVER_HEADER
 }
