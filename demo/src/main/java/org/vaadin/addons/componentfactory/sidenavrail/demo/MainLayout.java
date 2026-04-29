@@ -137,11 +137,6 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         headerSelect.setItems(PopoverHeaderMode.values());
         headerSelect.setItemLabelGenerator(MainLayout::humanize);
         headerSelect.setValue(nav.getPopoverHeaderMode());
-        headerSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                nav.setPopoverHeaderMode(e.getValue());
-            }
-        });
 
         Select<RailTooltipMode> tooltipSelect = new Select<>();
         tooltipSelect.setId("rail-tooltip-select");
@@ -149,9 +144,28 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         tooltipSelect.setItems(RailTooltipMode.values());
         tooltipSelect.setItemLabelGenerator(MainLayout::humanize);
         tooltipSelect.setValue(nav.getRailTooltipMode());
+
+        // Mirror the addon's auto-coerce: RailTooltipMode.POPOVER together with
+        // PopoverHeaderMode.NONE would silently flip to LABEL_ONLY at attach.
+        // Snap headerSelect to LABEL_ONLY whenever the user enters that combination
+        // from either side, so the demo UI stays consistent with the rail.
+        headerSelect.addValueChangeListener(e -> {
+            if (e.getValue() != null) {
+                nav.setPopoverHeaderMode(e.getValue());
+            }
+            if (tooltipSelect.getValue() == RailTooltipMode.POPOVER
+                    && e.getValue() == PopoverHeaderMode.NONE) {
+                headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
+            }
+        });
+
         tooltipSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 nav.setRailTooltipMode(e.getValue());
+            }
+            if (e.getValue() == RailTooltipMode.POPOVER
+                    && headerSelect.getValue() == PopoverHeaderMode.NONE) {
+                headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
             }
         });
 
