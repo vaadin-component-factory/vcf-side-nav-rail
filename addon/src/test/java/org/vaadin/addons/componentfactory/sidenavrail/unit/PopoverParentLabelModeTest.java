@@ -62,6 +62,13 @@ class PopoverParentLabelModeTest {
     }
 
     @Test
+    void defaultIsRailModeOnly() {
+        SideNavRail nav = new SideNavRail();
+        assertTrue(nav.isPopoverParentLabelOnlyInRailMode(),
+                "Header is rail-mode-only by default");
+    }
+
+    @Test
     void noneRendersNoHeader() {
         SideNavRail nav = railWithParent("Code", VaadinIcon.CODE.create());
         UI.getCurrent().add(nav);
@@ -127,6 +134,7 @@ class PopoverParentLabelModeTest {
         parent.addItem(new SideNavRailItem("Branches", "/branches"));
         nav.addItem(parent);
         nav.setPopoverParentLabelMode(PopoverParentLabelMode.LABEL_ONLY);
+        nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
         assertNull(findHeader(popoverTargeting(parent)),
@@ -162,6 +170,9 @@ class PopoverParentLabelModeTest {
                 : new SideNavRailItem(label, "/parent");
         parent.addItem(new SideNavRailItem("Child", "/parent/child"));
         nav.addItem(parent);
+        // Header is rail-mode-only by default; the per-mode rendering tests below
+        // expect a header to appear, so put the rail into rail mode up front.
+        nav.setRailMode(true);
         return nav;
     }
 

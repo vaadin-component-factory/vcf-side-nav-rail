@@ -678,6 +678,9 @@ public class SideNavRailItem extends SideNavItem {
         if (mode == PopoverParentLabelMode.NONE) {
             return;
         }
+        if (owner != null && owner.isPopoverParentLabelOnlyInRailMode() && !owner.isRailMode()) {
+            return;
+        }
 
         boolean wantsIcon = mode == PopoverParentLabelMode.ICON_ONLY
                 || mode == PopoverParentLabelMode.FULL;

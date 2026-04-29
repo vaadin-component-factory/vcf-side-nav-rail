@@ -119,6 +119,14 @@ rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
 rail.setPopoverParentLabelMode(PopoverParentLabelMode.FULL);
 ```
 
+By default the header is rendered only while the rail is in rail mode — in normal mode the parent label is already visible inline, so the header would be redundant. When the rail uses `setChildrenOnlyInPopover(true)` (popover-only layout in normal mode too) you usually want the header in both modes; opt out via:
+
+```java
+rail.setPopoverParentLabelOnlyInRailMode(false);  // header in both modes
+```
+
+This flag has no effect while `PopoverParentLabelMode` is `NONE`.
+
 ### Popover delays
 
 Popovers match Lumo's hover/hide-delay defaults (200 ms / 300 ms). Adjust them if your rail wants snappier or more forgiving timing:
