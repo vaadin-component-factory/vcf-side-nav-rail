@@ -11,9 +11,14 @@ test.describe('popover parent-label header — only-in-rail-mode flag', () => {
     const root = page.locator('#rail > vaadin-side-nav-item').first();
     await root.hover();
 
+    // Standalone `vaadin-popover-overlay[opened]` for visibility — Playwright pierces
+    // the V25 shadow-root, so the V24 form matches in both versions.
     const popover = page.locator('vaadin-popover-overlay[opened]');
     await expect(popover).toBeVisible({ timeout: 2_000 });
-    await expect(popover.locator('.side-nav-rail-popover-header')).toHaveCount(0);
+    // Descendant selector for the header — must use the dual form: on V25 the header
+    // is a light-DOM child of `vaadin-popover`, not a descendant of the shadow-rooted
+    // overlay, so the V24-only form would give a false-positive `toHaveCount(0)`.
+    await expect(page.locator(HEADER_LOCATOR)).toHaveCount(0);
   });
 
   test('default shows the header in rail mode', async ({ page }) => {
