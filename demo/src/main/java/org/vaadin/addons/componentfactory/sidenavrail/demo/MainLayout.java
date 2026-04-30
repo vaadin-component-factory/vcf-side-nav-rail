@@ -90,7 +90,11 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         // Intentionally icon-less — demonstrates the letter-avatar fallback in rail mode.
         SideNavRailItem admin = new SideNavRailItem("Admin", "/admin");
 
-        nav.addItem(dashboard, code, operate, admin);
+        SideNavRailItem dynamicProjectsDemo = new SideNavRailItem(
+                "Dynamic projects demo", "/dynamic-projects",
+                VaadinIcon.CONNECT.create());
+
+        nav.addItem(dashboard, code, operate, admin, dynamicProjectsDemo);
 
         Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
                 e -> {
