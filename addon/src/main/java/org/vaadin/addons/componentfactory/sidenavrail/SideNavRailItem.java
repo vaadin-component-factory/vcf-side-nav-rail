@@ -208,6 +208,7 @@ public class SideNavRailItem extends SideNavItem {
             SideNavRail.requireRailItem(item);
         }
         super.addItem(items);
+        handleChildrenMutation();
     }
 
     /**
@@ -221,6 +222,23 @@ public class SideNavRailItem extends SideNavItem {
     public void addItemAsFirst(SideNavItem item) {
         SideNavRail.requireRailItem(item);
         super.addItemAsFirst(item);
+        handleChildrenMutation();
+    }
+
+    /**
+     * Reflects a runtime change of this item's children into the popover, if
+     * the item is wired up to a rail. When a popover already exists, its
+     * content is rebuilt so the new/removed child is reflected. When no
+     * popover exists yet (item used to be a leaf), {@link #refreshPopoverFromOwner()}
+     * materializes one if the owning rail's settings now warrant it. No-op
+     * before attach — {@link #onAttach(AttachEvent)} runs the same path.
+     */
+    private void handleChildrenMutation() {
+        if (popover != null) {
+            rebuildPopoverContent();
+        } else {
+            refreshPopoverFromOwner();
+        }
     }
 
     private void wrapLabel() {

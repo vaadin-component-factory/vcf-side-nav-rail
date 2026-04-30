@@ -17,6 +17,9 @@ import com.github.mvysny.kaributesting.v10.MockVaadin;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,6 +125,79 @@ class DynamicAddTest {
         nav.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
         assertTrue(nestedPopover.isOpenOnHover(),
                 "reparented-to-root item must become eligible under ONLY_ROOT_COLLAPSED_ITEMS");
+    }
+
+    @Test
+    void addingChildToAttachedParentUpdatesPopoverContent() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
+        parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        // Sanity: popover already exists with one child copy.
+        Popover popover = parent.getPopover()
+                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        assertEquals(1, popoverChildLabels(popover).size(),
+                "precondition: popover starts with one child");
+
+        // The bug: adding a child to an already-attached item used to leave the
+        // popover stuck with the previous content.
+        parent.addItem(new SideNavRailItem("Tags", "/code/tags"));
+
+        List<String> labels = popoverChildLabels(popover);
+        assertEquals(2, labels.size(), "popover must reflect the new child");
+        assertTrue(labels.contains("Tags"), "popover must contain the newly added child");
+    }
+
+    @Test
+    void addingFirstChildToAttachedLeafMaterializesPopover() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem leaf = new SideNavRailItem("Code", "/code");
+        nav.addItem(leaf);
+        UI.getCurrent().add(nav);
+
+        // Sanity: a leaf item with no children and no leaf-popover-active flag
+        // has no popover.
+        assertTrue(leaf.getPopover().isEmpty(),
+                "precondition: leaf item has no popover");
+
+        leaf.addItem(new SideNavRailItem("Branches", "/code/branches"));
+
+        Popover popover = leaf.getPopover()
+                .orElseThrow(() -> new AssertionError(
+                        "first child added at runtime must materialize the popover"));
+        assertEquals(1, popoverChildLabels(popover).size(),
+                "newly materialized popover must contain the added child");
+    }
+
+    @Test
+    void addItemAsFirstOnAttachedParentUpdatesPopoverContent() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
+        parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        parent.addItemAsFirst(new SideNavRailItem("Tags", "/code/tags"));
+
+        Popover popover = parent.getPopover()
+                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        List<String> labels = popoverChildLabels(popover);
+        assertEquals(2, labels.size(), "popover must reflect the prepended child");
+        assertEquals("Tags", labels.get(0),
+                "addItemAsFirst must place the new child at the popover's start");
+    }
+
+    private static List<String> popoverChildLabels(Popover popover) {
+        return popover.getChildren()
+                .filter(c -> c instanceof SideNav)
+                .findFirst()
+                .map(c -> ((SideNav) c).getItems().stream()
+                        .map(SideNavItem::getLabel)
+                        .toList())
+                .orElseThrow(() -> new AssertionError(
+                        "popover must contain a SideNav with the children"));
     }
 
     @Test
