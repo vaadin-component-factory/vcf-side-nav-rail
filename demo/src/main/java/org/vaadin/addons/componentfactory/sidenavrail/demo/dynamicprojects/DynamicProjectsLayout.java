@@ -36,10 +36,12 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 /**
  * Layout for the dynamic-projects demo. Hosts the rail and a navbar with a
  * {@link MultiSelectComboBox} that drives a {@link ActiveProjectsRegistry
- * session-scoped registry of active projects}. The registry's change events
- * mutate the rail's "Projects" subtree at runtime: each activated project
- * gets its own {@link SideNavRailItem} with three sub-items (Overview /
- * Issues / Settings) wired to the resolved {@code :projectId} route paths.
+ * session-scoped registry of active projects}. All projects are always
+ * present in the rail as childless leaves under the "Projects" parent;
+ * activation adds three sub-items (Overview / Issues / Settings) wired to
+ * the resolved {@code :projectId} route paths, deactivation removes them
+ * again. The project leaf itself is never added or removed at runtime —
+ * only its children list mutates.
  */
 @Layout("dynamic-projects")
 @CssImport("./demo-styles.css")
@@ -50,7 +52,7 @@ public class DynamicProjectsLayout extends VerticalLayout
     private final Span activeItemBreadcrumb = new Span();
     private final SideNavRail nav = new SideNavRail();
     private final SideNavRailItem projectsParent = new SideNavRailItem("Projects");
-    /** Tracks rail items per project ID so {@link #removeProject(String)} can remove them. */
+    /** Project leaf for each project ID, created upfront and reused across activate/deactivate. */
     private final Map<String, SideNavRailItem> projectItems = new HashMap<>();
     private final MultiSelectComboBox<Project> projectSelect = new MultiSelectComboBox<>();
 
@@ -65,6 +67,15 @@ public class DynamicProjectsLayout extends VerticalLayout
                 "Home", "dynamic-projects", VaadinIcon.HOME.create());
         projectsParent.setPrefixComponent(VaadinIcon.FOLDER_O.create());
         nav.addItem(home, projectsParent);
+
+        // Pre-populate the Projects parent with all known projects as childless
+        // leaves. Children (Overview/Issues/Settings) are added on activation and
+        // removed on deactivation, but the project leaf itself stays put.
+        for (Project p : Project.ALL) {
+            SideNavRailItem item = new SideNavRailItem(p.label());
+            projectsParent.addItem(item);
+            projectItems.put(p.id(), item);
+        }
 
         Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
             boolean railMode = !nav.isRailMode();
@@ -131,15 +142,17 @@ public class DynamicProjectsLayout extends VerticalLayout
 
     private void bindToRegistry() {
         ActiveProjectsRegistry registry = ActiveProjectsRegistry.current();
-        // Snap the multiselect and rail to the registry's current state on attach,
-        // so a session that already had projects active when the user navigates back
-        // to this layout still shows them correctly.
+        // Sync each project leaf's children with the registry. addProjectChildren
+        // / removeProjectChildren are idempotent, so we can blindly diff the full
+        // ALL set against the active set.
+        Set<String> active = registry.getActive();
         Set<Project> currentlyActive = new LinkedHashSet<>();
-        for (String id : registry.getActive()) {
-            Project p = Project.byId(id);
-            if (p != null) {
+        for (Project p : Project.ALL) {
+            if (active.contains(p.id())) {
+                addProjectChildren(p.id());
                 currentlyActive.add(p);
-                addProject(p);
+            } else {
+                removeProjectChildren(p.id());
             }
         }
         projectSelect.setValue(currentlyActive);
@@ -151,10 +164,8 @@ public class DynamicProjectsLayout extends VerticalLayout
             registryListenerHandle.remove();
             registryListenerHandle = null;
         }
-        // Drop the rail's project items so a future re-attach doesn't double-render
-        // them on top of the bindToRegistry()-driven re-add.
-        projectsParent.removeAll();
-        projectItems.clear();
+        // Project leaves persist across detach/reattach — children are reapplied
+        // from the registry on every {@link #bindToRegistry()} so no cleanup needed.
     }
 
     private void syncRegistryFromSelection(Set<Project> selected) {
@@ -173,12 +184,10 @@ public class DynamicProjectsLayout extends VerticalLayout
     }
 
     private void onRegistryChange(ActiveProjectsRegistry.ChangeEvent event) {
-        Project project = Project.byId(event.projectId());
-        if (project == null) return;
         if (event.active()) {
-            addProject(project);
+            addProjectChildren(event.projectId());
         } else {
-            removeProject(event.projectId());
+            removeProjectChildren(event.projectId());
         }
         // Keep the multiselect's value in sync if the change was driven by
         // something other than the multiselect itself (e.g. another tab in
@@ -193,23 +202,20 @@ public class DynamicProjectsLayout extends VerticalLayout
         }
     }
 
-    private void addProject(Project project) {
-        if (projectItems.containsKey(project.id())) return;
-        SideNavRailItem item = new SideNavRailItem(project.label());
-        RouteParameters params = new RouteParameters("projectId", project.id());
+    private void addProjectChildren(String projectId) {
+        SideNavRailItem item = projectItems.get(projectId);
+        if (item == null || !item.getItems().isEmpty()) return;
+        RouteParameters params = new RouteParameters("projectId", projectId);
         item.addItem(
                 projectChild("Overview", ProjectOverviewView.class, params),
                 projectChild("Issues", ProjectIssuesView.class, params),
                 projectChild("Settings", ProjectSettingsView.class, params));
-        projectsParent.addItem(item);
-        projectItems.put(project.id(), item);
     }
 
-    private void removeProject(String projectId) {
-        SideNavRailItem item = projectItems.remove(projectId);
-        if (item != null) {
-            projectsParent.remove(item);
-        }
+    private void removeProjectChildren(String projectId) {
+        SideNavRailItem item = projectItems.get(projectId);
+        if (item == null || item.getItems().isEmpty()) return;
+        item.removeAll();
     }
 
     private static SideNavRailItem projectChild(
