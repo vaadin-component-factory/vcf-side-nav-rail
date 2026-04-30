@@ -26,6 +26,8 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
@@ -43,17 +45,18 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
  */
 @Layout
 @CssImport("./demo-styles.css")
-public class MainLayout extends VerticalLayout implements RouterLayout {
+public class MainLayout extends VerticalLayout implements RouterLayout, AfterNavigationObserver {
 
     private final Div contentArea = new Div();
     private final Span activeItemBreadcrumb = new Span();
+    private final SideNavRail nav;
 
     public MainLayout() {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
-        SideNavRail nav = new SideNavRail();
+        nav = new SideNavRail();
 
         SideNavRailItem dashboard =
                 new SideNavRailItem("Dashboard", "/", VaadinIcon.DASHBOARD.create());
@@ -137,14 +140,6 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         content.getStyle().set("padding", "var(--lumo-space-m)");
         content.setFlexGrow(1, contentArea);
 
-        // Demonstrates SideNavRail#getActiveViewItem(): re-render the breadcrumb
-        // after each navigation. The match is path-equality only — matchNested
-        // is intentionally ignored, so a parent doesn't surface as active.
-        addAttachListener(e -> {
-            updateBreadcrumb(nav);
-            e.getUI().addAfterNavigationListener(ev -> updateBreadcrumb(nav));
-        });
-
         HorizontalLayout body = new HorizontalLayout(sidebar, content);
         body.setSizeFull();
         body.setPadding(false);
@@ -155,7 +150,16 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         setFlexGrow(1, body);
     }
 
-    private void updateBreadcrumb(SideNavRail nav) {
+    /**
+     * Demonstrates {@link SideNavRail#getActiveViewItem()}: re-render the
+     * breadcrumb after each navigation. {@code AfterNavigationObserver} fires
+     * for the initial navigation too, so the first paint already shows the
+     * resolved label — no flash through "(no match)". Match is path-equality
+     * only; {@code matchNested} is intentionally ignored, so a parent doesn't
+     * surface as active.
+     */
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
         activeItemBreadcrumb.setText(nav.getActiveViewItem()
                 .map(item -> "Active: " + item.getLabel())
                 .orElse("Active: (no match)"));
