@@ -159,11 +159,12 @@ public class SideNavRail extends SideNav {
         } else {
             getElement().getThemeList().remove(RAIL_THEME);
         }
-        updatePopoverGating();
         applyTooltips();
+        // Recursively refreshes every item's popover (settings + gating + open-on-focus),
+        // covering what setRailMode used to fan out via separate updatePopoverGating /
+        // applyFocusTriggerToRootItems helpers.
         refreshAllPopoversFromOwner();
         applyAriaToRootItems();
-        applyFocusTriggerToRootItems();
         applyNestedTabindex();
         applyRootMatchNested();
         if (popoverHeaderMode != PopoverHeaderMode.NONE
@@ -602,7 +603,7 @@ public class SideNavRail extends SideNav {
     }
 
     private void refreshAllPopoversFromOwner() {
-        forEachRootRailItem(SideNavRailItem::refreshPopoverFromOwner);
+        forEachRailItemRecursive(SideNavRailItem::refreshPopoverFromOwner);
     }
 
     private void applyRootMatchNested() {
@@ -624,10 +625,6 @@ public class SideNavRail extends SideNav {
 
     private void applyAriaToRootItems() {
         forEachRootRailItem(item -> item.applyAriaAttributes(railMode));
-    }
-
-    private void applyFocusTriggerToRootItems() {
-        forEachRootRailItem(item -> item.applyFocusTrigger(railMode));
     }
 
     private void applyNestedTabindex() {

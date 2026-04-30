@@ -75,46 +75,12 @@ class AriaAttributesTest {
         assertFalse(parent.getElement().hasAttribute("aria-expanded"));
     }
 
-    @Test
-    void ariaExpandedTracksPopoverOpenState() {
-        SideNavRail nav = parentAndLeafRail();
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-
-        SideNavRailItem parent = (SideNavRailItem) nav.getItems().get(0);
-
-        parent.syncAriaExpanded(true);
-        assertEquals("true", parent.getElement().getAttribute("aria-expanded"));
-
-        parent.syncAriaExpanded(false);
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
-    }
-
-    @Test
-    void syncAriaExpandedReappliesHaspopupMenu() {
-        // Reproduces the §9.4 regression: the stock <vaadin-side-nav-item> web
-        // component overwrites aria-haspopup to the generic "true" whenever the
-        // popover opens. The listener must put "menu" back on every transition.
-        SideNavRail nav = parentAndLeafRail();
-        UI.getCurrent().add(nav);
-        nav.setRailMode(true);
-
-        SideNavRailItem parent = (SideNavRailItem) nav.getItems().get(0);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
-
-        // Simulate Vaadin's client-side override on popover open.
-        parent.getElement().setAttribute("aria-haspopup", "true");
-
-        parent.syncAriaExpanded(true);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
-        assertEquals("true", parent.getElement().getAttribute("aria-expanded"));
-
-        // Same on close.
-        parent.getElement().setAttribute("aria-haspopup", "true");
-        parent.syncAriaExpanded(false);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
-    }
+    // Note: the runtime aria-expanded sync (popover open/close ↔ aria-expanded)
+    // is owned by Vaadin's <vaadin-popover>.__updateAriaAttributes; the
+    // aria-haspopup="menu" override against Vaadin's "true" default is
+    // enforced by the side-nav-rail.js MutationObserver. Both run in the
+    // browser and have no MockVaadin equivalent — coverage lives in
+    // accessibility.spec.ts.
 
     @Test
     void addingItemWhileRailModeActiveAppliesAria() {

@@ -66,7 +66,6 @@ public class SideNavRailItem extends SideNavItem {
     private Popover popover;
     private SideNavRail ownerRail;
     private boolean expandedListenerWired = false;
-    private boolean lastKnownExpanded = false;
     private Boolean savedMatchNested = null;
 
     /**
@@ -341,11 +340,9 @@ public class SideNavRailItem extends SideNavItem {
         super.onAttach(event);
         ownerRail = lookupOwnerRail();
         ensureLetterAvatar();
-        ensurePopover();
-        // Re-apply owner-driven popover state on every attach. ensurePopover is a
-        // no-op when the popover already exists (after a detach/reattach cycle),
-        // but rail-side settings may have changed during the detach window —
-        // re-syncing here keeps the popover consistent with the live owner state.
+        // Materializes the popover (if warranted) AND re-applies owner-driven
+        // settings + gating + open-on-focus. Single entry point so a fresh
+        // attach and a detach/reattach cycle take the same code path.
         refreshPopoverFromOwner();
         wireExpandedListener();
     }
@@ -429,70 +426,34 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Listens for the {@code expanded-changed} event fired by the underlying
-     * {@code <vaadin-side-nav-item>} web component. Re-evaluates popover gating on
-     * every inline-expand toggle. Effects:
-     * <ul>
-     *   <li>expand ➜ the popover is now redundant — {@code applyPopoverGating} closes it;
-     *   <li>collapse ➜ the children are hidden again; if the user's cursor is still
-     *       on the item (they just clicked the chevron with the mouse), open the
-     *       popover explicitly because Vaadin's hover trigger would otherwise wait
-     *       for the next {@code mouseenter}. The hover guard distinguishes a mouse
-     *       collapse from a keyboard collapse (Arrow-Left in §9.2) — the latter
-     *       should not pop the popover because the user is deliberately
-     *       inline-navigating.
-     * </ul>
-     * The explicit open only fires on a {@code true → false} transition. The event
-     * also fires once at initial attach with the same value the item already had;
-     * without the transition guard that initial fire would pop every item's popover
-     * open on page load.
+     * {@code <vaadin-side-nav-item>} web component and re-evaluates popover
+     * gating on every inline-expand toggle:
      *
-     * <p>The hover check is asynchronous: the client-side hover tracker installed
-     * by {@code side-nav-rail.js#installHoverTracker(rail)} maintains
-     * {@code rail._sideNavRailLastHovered}; we read that via
-     * {@link com.vaadin.flow.dom.Element#executeJs}, and only call
-     * {@code popover.open()} from the {@code .then(...)} callback if the item
-     * itself is still the hovered one. The async hop adds one Vaadin-push
-     * roundtrip but keeps the addon free of any direct JSON-API dependency
-     * (the previous {@code addEventData("element.matches(':hover')")} approach
-     * crossed the elemental.json → Jackson API boundary between Vaadin majors).
+     * <ul>
+     *   <li>expand ➜ inline children are now visible, so the popover would be
+     *       redundant — {@code applyPopoverGating} flips {@code openOnHover}
+     *       off and closes the popover if it was open.
+     *   <li>collapse ➜ inline children are hidden again, so the popover is
+     *       eligible — {@code applyPopoverGating} flips {@code openOnHover}
+     *       back on. Vaadin's hover trigger reopens the popover on the next
+     *       {@code mouseenter}; we don't try to anticipate that.
+     * </ul>
+     *
+     * <p>Wired unconditionally on attach. The body's {@code popover == null}
+     * guard handles leaves and the pre-attach window — wiring once on attach
+     * is robust against runtime-add transitions (leaf gains children later).
      */
     private void wireExpandedListener() {
         if (expandedListenerWired) {
             return;
         }
-        if (getItems().isEmpty()) {
-            return;
-        }
         expandedListenerWired = true;
-        lastKnownExpanded = isExpanded();
 
         getElement().addEventListener("expanded-changed", e -> {
-            SideNavRail owner = findOwnerRail();
-            if (owner == null || popover == null) {
+            if (findOwnerRail() == null || popover == null) {
                 return;
             }
-            boolean wasExpanded = lastKnownExpanded;
-            boolean nowExpanded = isExpanded();
-            lastKnownExpanded = nowExpanded;
-
             applyPopoverGating();
-
-            // In children-only-popover mode the chevron is CSS-hidden and
-            // the user cannot drive a mouse-click collapse, so auto-open
-            // is moot. Skip the executeJs roundtrip entirely.
-            if (wasExpanded && !nowExpanded
-                    && popover.isOpenOnHover()
-                    && !owner.isChildrenOnlyInPopover()) {
-                getElement().executeJs(
-                                "const r = $0.closest('vaadin-side-nav');"
-                                        + " return r != null && r._sideNavRailLastHovered === $0;",
-                                getElement())
-                        .then(Boolean.class, stillHovering -> {
-                            if (Boolean.TRUE.equals(stillHovering)) {
-                                popover.open();
-                            }
-                        });
-            }
         });
     }
 
@@ -532,8 +493,6 @@ public class SideNavRailItem extends SideNavItem {
 
         populatePopover();
 
-        popover.addOpenedChangeListener(e -> syncAriaExpanded(e.isOpened()));
-
         if (owner != null) {
             applyPopoverGating();
         } else {
@@ -544,12 +503,6 @@ public class SideNavRailItem extends SideNavItem {
     private boolean ownerWantsLeafPopover() {
         SideNavRail owner = findOwnerRail();
         return owner != null && owner.isLeafPopoverActive();
-    }
-
-    void applyFocusTrigger(boolean railMode) {
-        if (popover != null) {
-            popover.setOpenOnFocus(railMode);
-        }
     }
 
     /**
@@ -647,10 +600,16 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Applies §4.4.5 ARIA attributes: {@code aria-haspopup="menu"} on items with children
-     * while rail mode is active; cleared otherwise. {@code aria-expanded} is seeded to
-     * "false" and then tracked via {@link #syncAriaExpanded(boolean)} as the popover
-     * opens/closes. Package-private — called by {@link SideNavRail#setRailMode(boolean)}.
+     * Applies §4.4.5 ARIA attributes: {@code aria-haspopup="menu"} on items with
+     * children while rail mode is active; cleared on exit. {@code aria-expanded}
+     * is seeded to {@code "false"} on rail-mode entry and then driven by
+     * Vaadin's {@code <vaadin-popover>}, which sets the attribute on the target
+     * via its {@code __updateAriaAttributes} observer whenever the popover opens
+     * or closes — no server-side bookkeeping needed. The matching
+     * {@code aria-haspopup} override against Vaadin's hardcoded {@code "true"}
+     * is enforced by the {@code installHaspopupGuard} MutationObserver in
+     * {@code side-nav-rail.js}. Package-private — called by
+     * {@link SideNavRail#setRailMode(boolean)}.
      */
     void applyAriaAttributes(boolean railMode) {
         boolean hasChildren = !getItems().isEmpty();
@@ -689,35 +648,6 @@ public class SideNavRailItem extends SideNavItem {
             setMatchNested(savedMatchNested);
             savedMatchNested = null;
         }
-    }
-
-    /**
-     * Updates {@code aria-expanded} to reflect the given popover state, and
-     * re-applies {@code aria-haspopup="menu"}. Called from the popover's
-     * {@code opened-changed} listener (see {@link #ensurePopover()}).
-     *
-     * <p>The {@code aria-haspopup="menu"} re-apply is needed because the stock
-     * {@code <vaadin-side-nav-item>} web component overwrites the attribute to
-     * the generic {@code "true"} whenever the popover opens or closes. Our
-     * §4.4.5 contract mandates the more specific {@code "menu"} value, so we
-     * put it back on every transition.
-     *
-     * <p>Public so tests can drive it directly without the real DOM event; not
-     * intended for production callers.
-     */
-    public void syncAriaExpanded(boolean open) {
-        // Only relevant while the owning rail is in rail mode. Using the
-        // mode as the gate (rather than "aria-haspopup is present") matters
-        // because the stock <vaadin-side-nav-item> natively sets
-        // aria-haspopup="true" on any parent item, even in normal mode —
-        // gating on the attribute's mere presence would flip the value
-        // to "menu" in normal mode, which §4.1 forbids.
-        SideNavRail owner = findOwnerRail();
-        if (owner == null || !owner.isRailMode()) {
-            return;
-        }
-        getElement().setAttribute(ARIA_HASPOPUP, MENU_ROLE);
-        getElement().setAttribute(ARIA_EXPANDED, String.valueOf(open));
     }
 
     private void populatePopover() {
