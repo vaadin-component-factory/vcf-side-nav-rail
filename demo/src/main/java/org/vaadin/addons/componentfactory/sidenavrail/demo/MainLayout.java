@@ -69,7 +69,8 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
         branches.addItem(new SideNavRailItem("Archived", "/code/branches/archived"));
         code.addItem(branches);
-        code.addItem(new SideNavRailItem("Commits", "/code/commits"));
+        SideNavRailItem commits = new SideNavRailItem("Commits", "/code/commits");
+        code.addItem(commits);
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
 
         SideNavRailItem operate = new SideNavRailItem(
@@ -94,8 +95,29 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
                     e.getSource().setIcon((railMode ? VaadinIcon.CHEVRON_RIGHT_SMALL : VaadinIcon.CHEVRON_LEFT_SMALL).create());
                 });
 
+        // Runtime mutation demo: toggles three children under "Commits", one of
+        // which has its own two sub-items. Verifies the popover refresh path
+        // for addItem / removeAll on an already-attached submenu.
+        Button toggleCommitsChildren = new Button("Add Commits children");
+        toggleCommitsChildren.setId("toggle-commits-children");
+        toggleCommitsChildren.addClickListener(e -> {
+            if (commits.getItems().isEmpty()) {
+                SideNavRailItem merged =
+                        new SideNavRailItem("Branches merged", "/code/commits/merged");
+                merged.addItem(new SideNavRailItem("main", "/code/commits/merged/main"));
+                merged.addItem(new SideNavRailItem("develop", "/code/commits/merged/develop"));
+                commits.addItem(
+                        new SideNavRailItem("Initial commit", "/code/commits/initial"),
+                        merged,
+                        new SideNavRailItem("Reverted", "/code/commits/reverted"));
+                toggleCommitsChildren.setText("Remove Commits children");
+            } else {
+                commits.removeAll();
+                toggleCommitsChildren.setText("Add Commits children");
+            }
+        });
 
-        VerticalLayout sidebar = new VerticalLayout(toggle, nav);
+        VerticalLayout sidebar = new VerticalLayout(toggle, nav, toggleCommitsChildren);
         sidebar.setPadding(false);
         sidebar.setSpacing(false);
         sidebar.setWidth(null);
