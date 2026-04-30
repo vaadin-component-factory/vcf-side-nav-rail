@@ -46,6 +46,7 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 public class MainLayout extends VerticalLayout implements RouterLayout {
 
     private final Div contentArea = new Div();
+    private final Span activeItemBreadcrumb = new Span();
 
     public MainLayout() {
         setSizeFull();
@@ -123,16 +124,41 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         sidebar.setWidth(null);
         sidebar.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
 
-        contentArea.getStyle().set("padding", "var(--lumo-space-m)");
+        activeItemBreadcrumb.setId("active-item-breadcrumb");
+        activeItemBreadcrumb.getStyle()
+                .set("font-size", "var(--lumo-font-size-s)")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("margin-bottom", "var(--lumo-space-s)");
 
-        HorizontalLayout body = new HorizontalLayout(sidebar, contentArea);
+        VerticalLayout content = new VerticalLayout(activeItemBreadcrumb, contentArea);
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.setSizeFull();
+        content.getStyle().set("padding", "var(--lumo-space-m)");
+        content.setFlexGrow(1, contentArea);
+
+        // Demonstrates SideNavRail#getActiveViewItem(): re-render the breadcrumb
+        // after each navigation. The match is path-equality only — matchNested
+        // is intentionally ignored, so a parent doesn't surface as active.
+        addAttachListener(e -> {
+            updateBreadcrumb(nav);
+            e.getUI().addAfterNavigationListener(ev -> updateBreadcrumb(nav));
+        });
+
+        HorizontalLayout body = new HorizontalLayout(sidebar, content);
         body.setSizeFull();
         body.setPadding(false);
         body.setSpacing(false);
-        body.setFlexGrow(1, contentArea);
+        body.setFlexGrow(1, content);
 
         add(buildNavbar(nav), body);
         setFlexGrow(1, body);
+    }
+
+    private void updateBreadcrumb(SideNavRail nav) {
+        activeItemBreadcrumb.setText(nav.getActiveViewItem()
+                .map(item -> "Active: " + item.getLabel())
+                .orElse("Active: (no match)"));
     }
 
     private HorizontalLayout buildNavbar(SideNavRail nav) {
