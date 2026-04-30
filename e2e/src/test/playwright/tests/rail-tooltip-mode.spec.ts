@@ -1,16 +1,18 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * For SIMPLE mode (default) the server sets the `data-rail-tooltip` attribute on root
- * items while rail mode is active; CSS renders the attribute as a ::after pseudo-element
- * tooltip. Playwright can't query pseudo-elements directly, but it can observe both the
- * attribute state and the computed ::after styles — together those pin down the
+ * For SIMPLE mode the server sets the `data-rail-tooltip` attribute on root items
+ * while rail mode is active; CSS renders the attribute as a ::after pseudo-element
+ * tooltip. Playwright can't query pseudo-elements directly, but it can observe both
+ * the attribute state and the computed ::after styles — together those pin down the
  * behaviour.
  *
- * Background: SIMPLE was chosen as the default because vaadin-tooltip-mixin auto-dismisses
- * when a peer overlay (our popover) opens, producing a flicker on items that have both a
- * tooltip and a popover. The CSS pseudo-element does not participate in the overlay
- * system, so tooltip + popover coexist cleanly.
+ * The view's default tooltip mode is `POPOVER_HEADER` (matching the addon's default),
+ * so each SIMPLE-specific test below clicks `#mode-simple` first.
+ *
+ * Background: the CSS pseudo-element does not participate in the overlay system, so
+ * the tooltip and the popover coexist cleanly — vaadin-tooltip-mixin would auto-dismiss
+ * on a peer overlay (our popover) and produce a flicker on items that have both.
  *
  * POPOVER_HEADER mode is exercised by a dedicated view/spec — not in this file.
  */
@@ -38,14 +40,16 @@ async function tooltipOpacity(page: Page, path: string): Promise<number> {
 test.describe('rail tooltip', () => {
     test('no tooltip attribute in normal mode even when SIMPLE is active', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
+        await page.locator('#mode-simple').click();
 
-        // Default mode is SIMPLE but rail mode is off — attribute must be absent.
+        // SIMPLE is selected but rail mode is off — attribute must be absent.
         await waitForTooltipAttribute(page, 'dashboard', null);
         await waitForTooltipAttribute(page, 'code', null);
     });
 
     test('SIMPLE writes tooltip attributes on all root items in rail mode', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
+        await page.locator('#mode-simple').click();
         await page.locator('#toggle-rail').click();
 
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
@@ -54,6 +58,7 @@ test.describe('rail tooltip', () => {
 
     test('SIMPLE tooltip becomes visible on hover (pseudo-element opacity)', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
+        await page.locator('#mode-simple').click();
         await page.locator('#toggle-rail').click();
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
 
@@ -72,6 +77,7 @@ test.describe('rail tooltip', () => {
 
     test('SIMPLE tooltip becomes visible on keyboard focus (pseudo-element opacity)', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
+        await page.locator('#mode-simple').click();
         await page.locator('#toggle-rail').click();
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
 
@@ -110,6 +116,7 @@ test.describe('rail tooltip', () => {
 
     test('leaving rail mode clears the tooltip attribute', async ({ page }) => {
         await page.goto('/rail-tooltip-mode');
+        await page.locator('#mode-simple').click();
         await page.locator('#toggle-rail').click();
         await waitForTooltipAttribute(page, 'dashboard', 'Dashboard');
 

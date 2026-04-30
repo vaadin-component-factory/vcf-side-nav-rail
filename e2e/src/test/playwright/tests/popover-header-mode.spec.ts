@@ -4,8 +4,9 @@ const HEADER_LOCATOR =
     'vaadin-popover-overlay[opened] .side-nav-rail-popover-header, vaadin-popover[opened] .side-nav-rail-popover-header';
 
 test.describe('popover parent-label header', () => {
-  test('default NONE renders no header', async ({ page }) => {
+  test('NONE renders no header', async ({ page }) => {
     await page.goto('/popover-header-mode');
+    await page.locator('#mode-none').click();
 
     const root = page.locator('#rail > vaadin-side-nav-item').first();
     await root.hover();

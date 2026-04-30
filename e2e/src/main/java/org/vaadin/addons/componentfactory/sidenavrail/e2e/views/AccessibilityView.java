@@ -14,6 +14,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
@@ -36,6 +37,10 @@ public class AccessibilityView extends VerticalLayout {
     public AccessibilityView() {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
+        // Pin tooltip mode to SIMPLE so leaf items don't get a popover-tooltip,
+        // whose vaadin-popover automatically writes aria-haspopup="true" on its
+        // target and would interfere with the bare aria contract this view tests.
+        rail.setRailTooltipMode(RailTooltipMode.SIMPLE);
 
         SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
