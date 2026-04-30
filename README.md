@@ -203,6 +203,18 @@ rail.addRailModeChangedListener(e ->
         log.info("rail mode now {}", e.isRailMode()));
 ```
 
+### Looking up the active item
+
+`getActiveViewItem()` and `getActiveViewItems()` resolve the currently displayed view to the matching `SideNavRailItem`(s). Useful for breadcrumbs, page titles, or any contextual chrome that needs a typed handle on the navigation tree.
+
+```java
+rail.getActiveViewItem().ifPresent(item -> heading.setText(item.getLabel()));
+```
+
+The match is intentionally narrow: only an item whose own `getPath()` (or one of its `getPathAliases()`) equals the current location surfaces as active. **`matchNested` is deliberately ignored** — a parent does not become active because one of its descendants matches. This mirrors the typical breadcrumb use case where callers want the leaf-most owner of the displayed view. If multiple items share a path (or path-vs-alias collisions occur), `getActiveViewItems()` returns all of them in DFS pre-order; `getActiveViewItem()` returns the first.
+
+The current location is read from Vaadin's `UI.getInternals().getActiveViewLocation()` on demand, so there is no caching to keep in sync — pair it with an `addAfterNavigationListener` if you need a notification.
+
 ### Active marker on rail icons
 
 By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` when its own path matches the URL — so when a deeply nested route is active (e.g. `admin/users/active`), the rail-side root icon (Admin) does not pick up the active marker. Vaadin's own `setMatchNested(true)` flips this for an individual item, but you'd have to call it on every root manually and decide when to toggle it back.
