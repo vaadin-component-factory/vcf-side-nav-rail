@@ -35,9 +35,9 @@ class RootMatchNestedTest {
     }
 
     @Test
-    void defaultIsNone() {
+    void defaultIsOnlyRail() {
         SideNavRail nav = new SideNavRail();
-        assertEquals(RootMatchNested.NONE, nav.getRootMatchNested());
+        assertEquals(RootMatchNested.ONLY_RAIL, nav.getRootMatchNested());
     }
 
     @Test
@@ -45,8 +45,9 @@ class RootMatchNestedTest {
         SideNavRailItem item = new SideNavRailItem("Code", "/code");
         item.setMatchNested(true);
         SideNavRail nav = navWithChild(item);
+        nav.setRootMatchNested(RootMatchNested.NONE);
 
-        // NONE is the default — toggling rail mode must not touch matchNested.
+        // NONE: toggling rail mode must not touch matchNested.
         nav.setRailMode(true);
         assertTrue(item.isMatchNested());
         nav.setRailMode(false);
