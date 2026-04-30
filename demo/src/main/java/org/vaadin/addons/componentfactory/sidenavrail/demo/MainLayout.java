@@ -175,6 +175,12 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         childrenOnlyInPopoverCheckbox.addValueChangeListener(
                 e -> nav.setChildrenOnlyInPopover(Boolean.TRUE.equals(e.getValue())));
 
+        Checkbox headerOnlyInRailModeCheckbox = new Checkbox("Header only in rail mode");
+        headerOnlyInRailModeCheckbox.setId("popover-header-only-in-rail-mode");
+        headerOnlyInRailModeCheckbox.setValue(nav.isPopoverHeaderOnlyInRailMode());
+        headerOnlyInRailModeCheckbox.addValueChangeListener(
+                e -> nav.setPopoverHeaderOnlyInRailMode(Boolean.TRUE.equals(e.getValue())));
+
         Select<RootMatchNested> rootMatchNestedSelect = new Select<>();
         rootMatchNestedSelect.setId("root-match-nested-select");
         rootMatchNestedSelect.setLabel("Root matchNested");
@@ -190,6 +196,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
         HorizontalLayout selects = new HorizontalLayout(
                 modeSelect, headerSelect, tooltipSelect,
                 childrenOnlyInPopoverCheckbox,
+                headerOnlyInRailModeCheckbox,
                 rootMatchNestedSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
