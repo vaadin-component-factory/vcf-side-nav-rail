@@ -77,6 +77,22 @@ class TypeGuardTest {
     }
 
     @Test
+    void sideNavRail_rejectsPlainSideNavItem_inAddItemAtIndex() {
+        SideNavRail nav = new SideNavRail();
+        nav.addItem(new SideNavRailItem("Existing", "/existing"));
+        assertThrows(IllegalArgumentException.class,
+                () -> nav.addItemAtIndex(0, new SideNavItem("Plain", "/plain")));
+    }
+
+    @Test
+    void sideNavRailItem_rejectsPlainSideNavItem_inAddItemAtIndex() {
+        SideNavRailItem parent = new SideNavRailItem("Parent");
+        parent.addItem(new SideNavRailItem("Existing", "/existing"));
+        assertThrows(IllegalArgumentException.class,
+                () -> parent.addItemAtIndex(0, new SideNavItem("Plain", "/plain")));
+    }
+
+    @Test
     void sideNavRailItem_acceptsSideNavRailItemAsChild() {
         SideNavRailItem parent = new SideNavRailItem("Parent");
         parent.addItem(new SideNavRailItem("Child", "/child"));

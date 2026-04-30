@@ -172,6 +172,62 @@ class DynamicAddTest {
     }
 
     @Test
+    void addItemAtIndexOnAttachedParentUpdatesPopoverContent() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
+        parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
+        parent.addItem(new SideNavRailItem("Tags", "/code/tags"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        parent.addItemAtIndex(1, new SideNavRailItem("Commits", "/code/commits"));
+
+        Popover popover = parent.getPopover()
+                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        List<String> labels = popoverChildLabels(popover);
+        assertEquals(List.of("Branches", "Commits", "Tags"), labels,
+                "addItemAtIndex must place the new child at the requested position");
+    }
+
+    @Test
+    void removeOnAttachedParentUpdatesPopoverContent() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
+        SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
+        SideNavRailItem tags = new SideNavRailItem("Tags", "/code/tags");
+        parent.addItem(branches, tags);
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        parent.remove(branches);
+
+        Popover popover = parent.getPopover()
+                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        List<String> labels = popoverChildLabels(popover);
+        assertEquals(List.of("Tags"), labels,
+                "removed child must disappear from the popover");
+    }
+
+    @Test
+    void removeAllOnAttachedParentEmptiesPopover() {
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem parent = new SideNavRailItem("Code", "/code");
+        parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
+        parent.addItem(new SideNavRailItem("Tags", "/code/tags"));
+        nav.addItem(parent);
+        UI.getCurrent().add(nav);
+
+        parent.removeAll();
+
+        Popover popover = parent.getPopover()
+                .orElseThrow(() -> new AssertionError("popover should still exist"));
+        // After removeAll the popover's nested SideNav is no longer rendered;
+        // populatePopover skips it when getItems() is empty.
+        assertTrue(popover.getChildren().noneMatch(c -> c instanceof SideNav),
+                "popover must contain no nested SideNav after removeAll");
+    }
+
+    @Test
     void addItemAsFirstOnAttachedParentUpdatesPopoverContent() {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem parent = new SideNavRailItem("Code", "/code");

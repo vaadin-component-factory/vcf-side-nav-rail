@@ -226,6 +226,43 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @param index where to insert the item
+     * @param item the {@link SideNavRailItem} to insert
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
+     *     see {@link #addItem(SideNavItem...)}
+     */
+    @Override
+    public void addItemAtIndex(int index, SideNavItem item) {
+        SideNavRail.requireRailItem(item);
+        super.addItemAtIndex(index, item);
+        handleChildrenMutation();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Removed children are also reflected in the popover (if any).
+     */
+    @Override
+    public void remove(SideNavItem... items) {
+        super.remove(items);
+        handleChildrenMutation();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The popover (if any) is rebuilt with no children.
+     */
+    @Override
+    public void removeAll() {
+        super.removeAll();
+        handleChildrenMutation();
+    }
+
+    /**
      * Reflects a runtime change of this item's children into the popover, if
      * the item is wired up to a rail. When a popover already exists, its
      * content is rebuilt so the new/removed child is reflected. When no

@@ -614,6 +614,21 @@ public class SideNavRail extends SideNav {
         wireRootItem(item, isRootMatchNestedActive());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param index where to insert the item
+     * @param item the {@link SideNavRailItem} to insert
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
+     *     see {@link #addItem(SideNavItem...)}
+     */
+    @Override
+    public void addItemAtIndex(int index, SideNavItem item) {
+        requireRailItem(item);
+        super.addItemAtIndex(index, item);
+        wireRootItem(item, isRootMatchNestedActive());
+    }
+
     private void wireRootItem(SideNavItem item, boolean overrideMatchNested) {
         markAsRootItem(item);
         applyTooltipFor(item);
