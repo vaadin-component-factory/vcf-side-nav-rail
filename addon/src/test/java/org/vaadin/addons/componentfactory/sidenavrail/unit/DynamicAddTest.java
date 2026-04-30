@@ -151,6 +151,46 @@ class DynamicAddTest {
     }
 
     @Test
+    void addingGrandchildRefreshesAncestorPopoverContent() {
+        // Regression: ancestor popovers mirror the full subtree via copyOf(child),
+        // so adding a child to a nested item must rebuild the ancestor's popover
+        // too. Without this, the dynamic-projects demo's "Projects" popover kept
+        // showing the project leaves as childless even after a project was
+        // activated and its sub-items appeared inline.
+        SideNavRail nav = new SideNavRail();
+        SideNavRailItem grandparent = new SideNavRailItem("Projects");
+        SideNavRailItem child = new SideNavRailItem("Phoenix");
+        grandparent.addItem(child);
+        nav.addItem(grandparent);
+        UI.getCurrent().add(nav);
+
+        // Sanity: grandparent's popover has Phoenix as a childless leaf copy.
+        Popover popover = grandparent.getPopover()
+                .orElseThrow(() -> new AssertionError("grandparent should have a popover"));
+        SideNav nested = popoverNestedSideNav(popover);
+        assertEquals(1, nested.getItems().size());
+        assertTrue(nested.getItems().get(0).getItems().isEmpty(),
+                "precondition: Phoenix copy starts childless in popover");
+
+        // Add grandchildren to Phoenix at runtime.
+        child.addItem(new SideNavRailItem("Overview", "/projects/phoenix/overview"));
+
+        // Ancestor popover must now show Phoenix WITH a child.
+        SideNav refreshed = popoverNestedSideNav(popover);
+        SideNavItem phoenixCopy = refreshed.getItems().get(0);
+        assertEquals(1, phoenixCopy.getItems().size(),
+                "grandchild must propagate into ancestor popover");
+        assertEquals("Overview", phoenixCopy.getItems().get(0).getLabel());
+    }
+
+    private static SideNav popoverNestedSideNav(Popover popover) {
+        return (SideNav) popover.getChildren()
+                .filter(c -> c instanceof SideNav)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("popover must contain a nested SideNav"));
+    }
+
+    @Test
     void addingFirstChildToAttachedLeafMaterializesPopover() {
         SideNavRail nav = new SideNavRail();
         SideNavRailItem leaf = new SideNavRailItem("Code", "/code");

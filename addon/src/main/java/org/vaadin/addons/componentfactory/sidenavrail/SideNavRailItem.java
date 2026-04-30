@@ -275,6 +275,17 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             refreshPopoverFromOwner();
         }
+        // Ancestor popovers mirror the full subtree via copyOf(child), so a
+        // change to a nested item's children isn't reflected by rebuilding only
+        // this item's own popover — every ancestor with a popover needs the
+        // same refresh. Walk up the parent chain.
+        Component p = getParent().orElse(null);
+        while (p != null) {
+            if (p instanceof SideNavRailItem ancestor) {
+                ancestor.rebuildPopoverContent();
+            }
+            p = p.getParent().orElse(null);
+        }
     }
 
     private void wrapLabel() {
