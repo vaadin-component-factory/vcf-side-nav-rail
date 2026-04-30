@@ -646,6 +646,81 @@ Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviou
 - Touch/mobile adaptations (tap-to-open, no-hover variant). Not in `initial.md`; `AppLayout` remains the recommended mobile-navigation approach. Moved here from [§9.3](#93-phase-2--touchmobile).
 - A custom TypeScript / web component — stays pure Java + CSS. The keyboard adapter introduced for [§9.2](#92-phase-2--accessibility) is a small event-handler JS module (`side-nav-rail.js`), not a custom element; it registers delegated listeners on the stock `<vaadin-side-nav>` and does not replace any Vaadin component.
 
+## 11. Active view item lookup (post-9.5)
+
+A pair of getters on `SideNavRail` that resolve the currently active view to the
+matching `SideNavRailItem`(s). The intent is to give application code a typed
+hook on the navigation tree (e.g. for breadcrumbs, page titles, contextual
+secondary chrome) without duplicating the route-matching logic.
+
+### 11.1 Public API
+
+```java
+public class SideNavRail extends SideNav {
+
+    /**
+     * Returns all rail items whose own path (or any path alias) equals the
+     * current view's location, in DFS pre-order. Usually 0 or 1 elements;
+     * more only when the user has configured colliding paths or aliases.
+     */
+    public List<SideNavRailItem> getActiveViewItems();
+
+    /**
+     * The first match from {@link #getActiveViewItems()}, or empty if no item
+     * matches. Convenience accessor for the typical single-match case.
+     */
+    public Optional<SideNavRailItem> getActiveViewItem();
+}
+```
+
+### 11.2 Match semantics
+
+- **Path equality, no nesting.** An item is active iff its own `getPath()` or
+  one of its `getPathAliases()` equals the current location's path. `matchNested`
+  is **deliberately ignored** — a parent does not become active because one of
+  its descendants matches.
+- **Aliases count.** Mirrors Vaadin's client-side `[active]` semantics, which
+  also matches aliases. Without this, server-side answer and visual highlight
+  could diverge.
+- **Path-equality only.** Query parameters and route-template placeholders are
+  not part of V1. Concrete route parameters work transparently because Vaadin's
+  `setPath(view, RouteParameters)` already stores the resolved path.
+- **Tree scope.** Only `SideNavRailItem`s actually inserted by user code are
+  considered. The DFS walks the rail's own item tree — clones generated for
+  popover content are skipped (they live under a separate nested `SideNav`,
+  not in `SideNavRail.getItems()`).
+
+### 11.3 Location source
+
+`UI.getCurrent().getInternals().getActiveViewLocation()` is used as the source
+of truth for the current location. It is technically `@Internal` API on
+Vaadin's side, but has been stable across V24 and V25 in practice and is the
+same value that fires through `AfterNavigationEvent.getLocation()`. A future
+refactor to a self-managed cache populated via `addAfterNavigationListener`
+remains possible without breaking the public API.
+
+### 11.4 Multi-match handling
+
+Two real-world causes of multiple matches:
+
+1. The user wires the same path to two items (typo or intentional duplicate).
+2. Path-alias collision — Item A's `path` matches Item B's alias.
+
+Both are surfaced in `getActiveViewItems()` so consumers can detect them.
+`getActiveViewItem()` returns the first DFS-pre-order match, which is
+deterministic but tied to insertion order; if disambiguation matters, callers
+should iterate the list themselves.
+
+### 11.5 Out of scope for V1
+
+- `matchNested`-style folding (a parent matching when a descendant matches).
+- Active-item change events / listener hook. If demand emerges, the
+  implementation can switch to a self-managed cache fed by an
+  `AfterNavigationListener` and add `addActiveItemChangeListener`
+  non-breakingly.
+- Query-parameter and route-template matching.
+- A `findItemsForLocation(Location)` overload — added later if needed.
+
 ## 10. Verified during implementation
 
 The two points flagged here at design time were both resolved cleanly:
