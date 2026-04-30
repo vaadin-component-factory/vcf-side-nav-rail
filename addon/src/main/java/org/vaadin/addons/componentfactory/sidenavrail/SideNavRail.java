@@ -20,12 +20,18 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Location;
 import com.vaadin.flow.shared.Registration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -456,6 +462,106 @@ public class SideNavRail extends SideNav {
         this.rootMatchNested = java.util.Objects.requireNonNull(
                 mode, "RootMatchNested must not be null");
         applyRootMatchNested();
+    }
+
+    /**
+     * Returns all rail items whose own {@linkplain SideNavItem#getPath() path}
+     * (or any of their {@linkplain SideNavItem#getPathAliases() path aliases})
+     * equals the {@linkplain UI#getInternals() current view's location}.
+     *
+     * <p>Match semantics:</p>
+     * <ul>
+     *   <li><b>Path equality only.</b> An item's {@code matchNested} setting is
+     *       <em>deliberately ignored</em> — a parent does not become active just
+     *       because one of its descendants matches the current view. This mirrors
+     *       the typical use case (breadcrumbs, page titles): callers want the
+     *       leaf-most item that owns the displayed view.</li>
+     *   <li><b>Aliases count.</b> Vaadin's client-side {@code [active]} highlight
+     *       also matches aliases, so server-side answer and visual highlight stay
+     *       aligned.</li>
+     *   <li><b>Real items only.</b> The internal clones used to populate hover
+     *       popovers live under a separate nested {@code SideNav} and are
+     *       skipped — only items the application actually inserted are returned.</li>
+     *   <li><b>DFS pre-order.</b> Multiple matches (e.g. two items wired to the
+     *       same path, or a path-vs-alias collision) are returned in DFS
+     *       pre-order so iteration order is deterministic and tied to insertion
+     *       order.</li>
+     * </ul>
+     *
+     * <p>The current location is read via
+     * {@code UI.getCurrent().getInternals().getActiveViewLocation()}, the same
+     * value that {@code AfterNavigationEvent.getLocation()} surfaces. Returns an
+     * empty list when there is no current {@link UI}.</p>
+     *
+     * @return all matching rail items in DFS pre-order; empty if none match
+     * @see #getActiveViewItem()
+     */
+    public List<SideNavRailItem> getActiveViewItems() {
+        String currentPath = currentLocationPath();
+        if (currentPath == null) {
+            return List.of();
+        }
+        List<SideNavRailItem> matches = new ArrayList<>();
+        forEachRailItemRecursive(item -> {
+            if (matchesLocation(item, currentPath)) {
+                matches.add(item);
+            }
+        });
+        return List.copyOf(matches);
+    }
+
+    /**
+     * The first match from {@link #getActiveViewItems()}, or empty if no item
+     * matches. Convenience accessor for the typical single-match case.
+     *
+     * @return the first matching rail item in DFS pre-order, or empty
+     */
+    public Optional<SideNavRailItem> getActiveViewItem() {
+        List<SideNavRailItem> matches = getActiveViewItems();
+        return matches.isEmpty() ? Optional.empty() : Optional.of(matches.get(0));
+    }
+
+    private static String currentLocationPath() {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return null;
+        }
+        Location location = ui.getInternals().getActiveViewLocation();
+        return location == null ? null : normalizePath(location.getPath());
+    }
+
+    private static boolean matchesLocation(SideNavRailItem item, String currentPath) {
+        String path = normalizePath(item.getPath());
+        if (path != null && path.equals(currentPath)) {
+            return true;
+        }
+        Set<String> aliases = item.getPathAliases();
+        if (aliases != null) {
+            for (String alias : aliases) {
+                if (currentPath.equals(normalizePath(alias))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Strips a leading slash (matching Vaadin's {@code SideNavItem#sanitizePath})
+     * and a trailing slash so {@code "foo"}, {@code "/foo"}, and {@code "foo/"}
+     * all compare equal.
+     */
+    private static String normalizePath(String path) {
+        if (path == null) {
+            return null;
+        }
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
     }
 
     private void forEachRootRailItem(Consumer<SideNavRailItem> action) {
