@@ -208,12 +208,15 @@ rail.addRailModeChangedListener(e ->
 `getActiveViewItem()` and `getActiveViewItems()` resolve the currently displayed view to the matching `SideNavRailItem`(s). Useful for breadcrumbs, page titles, or any contextual chrome that needs a typed handle on the navigation tree.
 
 ```java
-rail.getActiveViewItem().ifPresent(item -> heading.setText(item.getLabel()));
+H2 pageTitle = new H2();
+rail.getActiveViewItem().ifPresent(item -> pageTitle.setText(item.getLabel()));
 ```
 
-The match is intentionally narrow: only an item whose own `getPath()` (or one of its `getPathAliases()`) equals the current location surfaces as active. **`matchNested` is deliberately ignored** — a parent does not become active because one of its descendants matches. This mirrors the typical breadcrumb use case where callers want the leaf-most owner of the displayed view. If multiple items share a path (or path-vs-alias collisions occur), `getActiveViewItems()` returns all of them in DFS pre-order; `getActiveViewItem()` returns the first.
+The match is intentionally narrow: only an item whose own `getPath()` (or one of its `getPathAliases()`) equals the current location surfaces as active. **`matchNested` is deliberately ignored** — a parent does not become active because one of its descendants matches. This mirrors the typical breadcrumb use case where callers want the leaf-most owner of the displayed view, and is independent of the rail's [`setRootMatchNested(...)`](#active-marker-on-rail-icons) setting: even with `RootMatchNested.ALL`, navigating to `/admin/users` returns the `Users` item, not the `Admin` root.
 
-The current location is read from Vaadin's `UI.getInternals().getActiveViewLocation()` on demand, so there is no caching to keep in sync — pair it with an `addAfterNavigationListener` if you need a notification.
+If multiple items share a path (or one item's path matches another item's alias), `getActiveViewItems()` returns all of them traversed depth-first, parents before their children; `getActiveViewItem()` returns the first.
+
+The current location is read from Vaadin's `UI.getInternals().getActiveViewLocation()` on demand, so there is no caching to keep in sync — pair it with `UI#addAfterNavigationListener` if you need a notification on every navigation.
 
 ### Active marker on rail icons
 
