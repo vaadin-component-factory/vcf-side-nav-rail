@@ -32,9 +32,17 @@
 
     <modules>
         <module>addon</module>
-        <module>e2e</module>
         <module>demo</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>e2e</id>
+            <modules>
+                <module>e2e</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>

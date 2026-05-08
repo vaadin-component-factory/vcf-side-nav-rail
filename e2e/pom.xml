@@ -120,7 +120,7 @@
                         <phase>integration-test</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
-                            <executable>npx</executable>
+                            <executable>${project.basedir}/target/node/npx</executable>
                             <workingDirectory>${project.basedir}/src/test/playwright</workingDirectory>
                             <arguments>
                                 <argument>playwright</argument>
