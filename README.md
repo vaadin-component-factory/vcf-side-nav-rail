@@ -361,6 +361,14 @@ vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::par
 - **Dark mode**: supported automatically through Lumo — no extra wiring needed.
 - **RTL layouts**: not currently validated. The rail uses logical CSS properties where possible, but RTL has not been exercised end-to-end.
 - **Touch / mobile**: out of scope. The rail keeps its desktop hover-popover behaviour on touch devices.
+- **Inside an overflow container**: placing the rail inside a container with `overflow: auto` (e.g. a `VerticalLayout` with `setOverflow(Overflow.AUTO)`) can cause an unwanted horizontal scrollbar. The root cause is an internal margin on a slot element inside `vaadin-side-nav-item`'s shadow DOM that cannot be addressed from outside. Workaround — add the following to your theme CSS:
+  ```css
+  vaadin-side-nav[theme~="rail"] {
+      overflow: hidden;
+      max-width: 100%;
+  }
+  ```
+  Be aware that `overflow: hidden` clips the `SIMPLE` tooltip pseudo-element, which extends beyond the rail's bounds. If you apply this workaround, switch to `RailTooltipMode.POPOVER_HEADER` or `RailTooltipMode.NONE` (and provide your own tooltip if needed).
 
 ## Building from source
 
