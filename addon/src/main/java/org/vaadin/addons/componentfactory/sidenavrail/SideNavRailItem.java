@@ -21,6 +21,9 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
@@ -727,14 +730,13 @@ public class SideNavRailItem extends SideNavItem {
             return;  // Would produce an empty header — skip.
         }
 
-        com.vaadin.flow.component.html.Div header = new com.vaadin.flow.component.html.Div();
+        Div header = new Div();
         header.addClassName("side-nav-rail-popover-header");
         if (hasIcon) {
             header.add(copyComponent(prefix));
         }
         if (hasLabel) {
-            com.vaadin.flow.component.html.Span text =
-                    new com.vaadin.flow.component.html.Span(label);
+            Span text = new Span(label);
             text.addClassName("side-nav-rail-popover-header-label");
             header.add(text);
         }
@@ -771,8 +773,8 @@ public class SideNavRailItem extends SideNavItem {
      * sharing the original reference — rare in an icon-driven rail.
      */
     private static Component copyComponent(Component source) {
-        if (source instanceof com.vaadin.flow.component.icon.Icon icon) {
-            com.vaadin.flow.component.icon.Icon copy = new com.vaadin.flow.component.icon.Icon();
+        if (source instanceof Icon icon) {
+            Icon copy = new Icon();
             copy.getElement().setAttribute("icon", icon.getElement().getAttribute("icon"));
             return copy;
         }

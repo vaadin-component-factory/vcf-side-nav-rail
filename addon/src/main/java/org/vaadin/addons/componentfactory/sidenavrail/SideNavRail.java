@@ -30,6 +30,7 @@ import com.vaadin.flow.router.Location;
 import com.vaadin.flow.shared.Registration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -108,6 +109,7 @@ public class SideNavRail extends SideNav {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+
         // Auto-coerce: a leaf popover with no header would have no content, so
         // when POPOVER_HEADER mode is configured against the default NONE header,
         // we silently upgrade the header to LABEL_ONLY at attach time. Runtime
@@ -117,6 +119,7 @@ public class SideNavRail extends SideNav {
                 && popoverHeaderMode == PopoverHeaderMode.NONE) {
             popoverHeaderMode = PopoverHeaderMode.LABEL_ONLY;
         }
+
         // The JS module registers itself on window.vaadinAddonsSideNavRail at
         // @JsModule import time (see side-nav-rail.js). We call the global
         // directly instead of a dynamic import() because dynamic imports
@@ -205,7 +208,7 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setPopoverOn(PopoverOn mode) {
-        this.popoverOn = java.util.Objects.requireNonNull(mode, "PopoverOn must not be null");
+        this.popoverOn = Objects.requireNonNull(mode, "PopoverOn must not be null");
         updatePopoverGating();
     }
 
@@ -233,7 +236,7 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setPopoverHeaderMode(PopoverHeaderMode mode) {
-        this.popoverHeaderMode = java.util.Objects.requireNonNull(
+        this.popoverHeaderMode = Objects.requireNonNull(
                 mode, "PopoverHeaderMode must not be null");
         rebuildPopoverContents();
     }
@@ -294,7 +297,7 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setRailTooltipMode(RailTooltipMode mode) {
-        this.railTooltipMode = java.util.Objects.requireNonNull(
+        this.railTooltipMode = Objects.requireNonNull(
                 mode, "RailTooltipMode must not be null");
         applyTooltips();
         refreshAllPopoversFromOwner();
@@ -371,7 +374,7 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code position} is {@code null}
      */
     public void setPopoverPosition(PopoverPosition position) {
-        this.popoverPosition = java.util.Objects.requireNonNull(
+        this.popoverPosition = Objects.requireNonNull(
                 position, "PopoverPosition must not be null");
         applyPopoverSettings();
     }
@@ -460,7 +463,7 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setRootMatchNested(RootMatchNested mode) {
-        this.rootMatchNested = java.util.Objects.requireNonNull(
+        this.rootMatchNested = Objects.requireNonNull(
                 mode, "RootMatchNested must not be null");
         applyRootMatchNested();
     }
