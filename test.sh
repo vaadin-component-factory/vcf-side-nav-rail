@@ -122,7 +122,9 @@ fi
 if [ "$ADDON_ONLY" -eq 1 ]; then
   CMD=( ./mvnw -pl addon "${MVN_ARGS[@]}" clean test )
 else
-  CMD=( ./mvnw "${MVN_ARGS[@]}" clean verify )
+  # -Pe2e pulls in the e2e module (moved to a profile in 844d450); without it
+  # `clean verify` builds only addon + demo and skips the Playwright suite.
+  CMD=( ./mvnw -Pe2e "${MVN_ARGS[@]}" clean verify )
 fi
 
 echo "==== $(date -Iseconds) ====" | tee "$LOG"
