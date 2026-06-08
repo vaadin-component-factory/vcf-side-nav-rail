@@ -80,11 +80,8 @@ export function dispose(rail) {
  *      shift focus to native focusables (<a href>, <button>, anything with
  *      a positive tabindex) on mousedown. vaadin-popover's
  *      `__onOverlayFocusIn` then sets its private `__focusInside` flag, and
- *      `__handleMouseLeave` will refuse to auto-close while that flag is
- *      true and the `focus` trigger is active:
- *
- *          if (this.__hasTrigger('focus') && this.__focusInside) return;
- *
+ *      `__handleMouseLeave` then refuses to auto-close while that flag is
+ *      set and the `focus` trigger is active (it early-returns in that case).
  *      In rail mode the rail enables the focus trigger (so keyboard nav
  *      works), so once focus enters the overlay it sticks until something
  *      moves focus out. Without this blur, the popover stays open after
@@ -240,8 +237,10 @@ function isClickFocusable(el) {
 }
 
 function handleKeydown(event, rail) {
-    // document.activeElement lands on the inner <a> of vaadin-side-nav-item, not the
-    // custom element itself. Walk up to the nearest side-nav-item to find our scope.
+    // Focus sits on the <a> inside a vaadin-side-nav-item's shadow root, but
+    // document.activeElement does not pierce shadow boundaries — it reports the
+    // item host itself — so resolveItem usually returns that host directly.
+    // closest() also covers the rare case of focus on a light-DOM descendant.
     const item = resolveItem(document.activeElement);
     if (!item || !isItemInScope(item, rail)) {
         return;
@@ -318,7 +317,7 @@ function isRailActive(rail) {
  * Whether the rail is in "children only in popover" mode. The nested items are
  * still in the DOM but CSS-hidden, so for keyboard purposes the tree behaves
  * like rail mode: only root items participate in the up/down walk, and the
- * popover is the sole path to children. See spec §3.x / SideNavRail.setChildrenOnlyInPopover.
+ * popover is the sole path to children. See SideNavRail.setChildrenOnlyInPopover.
  */
 function isPopoverOnlyMode(rail) {
     const theme = rail.getAttribute('theme') || '';
@@ -357,8 +356,7 @@ function visibleItemsInScope(scope) {
 /**
  * Picks the right walk-set for the currently focused item. Three cases:
  *   1. Focus inside a popover overlay → visible-item walk rooted at the overlay
- *      (same tree semantics as normal mode — Arrow-Down on an expanded parent
- *      descends into the first child, stops at boundaries inside the overlay).
+ *      (same tree semantics as normal mode).
  *   2. Root-only tree (rail mode or popover-only mode) + focus on a root item
  *      → walk root items only. Nested items are still in the DOM but visually
  *      hidden under either the rail collapse (§4.4.2) or the
@@ -522,6 +520,13 @@ function parentItemWithin(item, scope) {
  *   A) focus is inside a popover overlay → close it, focus the position target.
  *   B) focus is on a rail-root with an open popover → close it, keep focus.
  * Returns true if the event was handled (caller preventDefaults).
+ *
+ * The focusItem(owner) call in case A is load-bearing, not redundant: although
+ * vaadin-popover closes on Escape on its own and has restoreFocusNode=target,
+ * the target is a <vaadin-side-nav-item> with no delegatesFocus, so the
+ * platform's restore is a no-op and focus would fall to <body>. We must reach
+ * the item's shadow <a> ourselves (verified: dropping this branch breaks the
+ * "Esc returns focus to root" keyboard E2E tests).
  */
 function handleEscape(item, rail) {
     const scope = closestPopoverScope(item);
