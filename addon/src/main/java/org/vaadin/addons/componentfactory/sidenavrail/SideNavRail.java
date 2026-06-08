@@ -505,6 +505,7 @@ public class SideNavRail extends SideNav {
         if (currentPath == null) {
             return List.of();
         }
+
         List<SideNavRailItem> matches = new ArrayList<>();
         forEachRailItemRecursive(item -> {
             if (matchesLocation(item, currentPath)) {
@@ -699,6 +700,7 @@ public class SideNavRail extends SideNav {
         for (SideNavItem item : items) {
             requireRailItem(item);
         }
+
         super.addItem(items);
         boolean overrideMatchNested = isRootMatchNestedActive();
         for (SideNavItem item : items) {

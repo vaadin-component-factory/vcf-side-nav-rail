@@ -277,6 +277,7 @@ public class SideNavRailItem extends SideNavItem {
         } else {
             refreshPopoverFromOwner();
         }
+
         // Ancestor popovers mirror the full subtree via copyOf(child), so a
         // change to a nested item's children isn't reflected by rebuilding only
         // this item's own popover — every ancestor with a popover needs the
@@ -353,6 +354,7 @@ public class SideNavRailItem extends SideNavItem {
         super.onAttach(event);
         ownerRail = lookupOwnerRail();
         ensureLetterAvatar();
+
         // Materializes the popover (if warranted) AND re-applies owner-driven
         // settings + gating + open-on-focus. Single entry point so a fresh
         // attach and a detach/reattach cycle take the same code path.
@@ -369,6 +371,7 @@ public class SideNavRailItem extends SideNavItem {
             // again with the owner in place.
             return;
         }
+
         // Owner-driven settings may now require a popover on a previously-bare leaf
         // (RailTooltipMode.POPOVER_HEADER ⇒ owner.isLeafPopoverActive()). ensurePopover()
         // is a no-op when one already exists.
@@ -534,6 +537,7 @@ public class SideNavRailItem extends SideNavItem {
         }
         popover.setHoverDelay(owner.getPopoverHoverDelay());
         popover.setHideDelay(owner.getPopoverHideDelay());
+
         // Open immediately on focus, with no delay. The focus trigger is only
         // active in rail mode (see setOpenOnFocus). A mouse click focuses the
         // item on mousedown, which makes vaadin-popover schedule a *delayed*
@@ -600,6 +604,7 @@ public class SideNavRailItem extends SideNavItem {
             return;
         }
         boolean railMode = owner.isRailMode();
+
         // When inline children are CSS-hidden by childrenOnlyInPopover, the
         // popover is the only way to access the children. The item's expanded
         // state may still flip (Vaadin auto-expands on route match), but it
@@ -608,6 +613,7 @@ public class SideNavRailItem extends SideNavItem {
             popover.setOpenOnHover(true);
             return;
         }
+
         // An inline-expanded item already shows its children in the outer nav, so a
         // popover would be redundant. In rail mode the inline-expand is visually
         // suppressed anyway, so the popover is still wanted.
