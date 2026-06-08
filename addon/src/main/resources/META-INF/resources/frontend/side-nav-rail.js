@@ -575,13 +575,23 @@ function findOpenPopoverForTarget(rootItem) {
 
 /**
  * Moves focus to a side-nav-item. Vaadin renders the item's anchor inside the
- * shadow root, so focusing the custom element directly is a no-op. We have to
- * reach into shadowRoot to find the <a>. Fall back to the custom element as a
- * last resort; that shouldn't happen for routed items but keeps us defensive.
+ * shadow root, so focusing the custom element directly is a no-op — we have to
+ * reach the <a> ourselves (shadow DOM normally, light DOM as a rare fallback).
+ * A routed nav item always has one; if neither has an anchor, focusing the host
+ * would silently stall keyboard navigation, so we throw instead of swallowing
+ * it — a missing anchor means a non-routed item or a changed Vaadin DOM, and the
+ * next dev should see that, not chase a dead-feeling arrow key.
  */
 function focusItem(item) {
     const anchor = item.shadowRoot?.querySelector('a') || item.querySelector('a');
-    (anchor || item).focus();
+    if (!anchor) {
+        throw new Error(
+            'side-nav-rail: no <a> found in vaadin-side-nav-item; cannot move'
+            + ' focus. The item is not a routed nav item, or Vaadin changed its'
+            + ' DOM structure.');
+    }
+
+    anchor.focus();
 }
 
 // Register as a global so Flow's Page.executeJs can invoke us without a
