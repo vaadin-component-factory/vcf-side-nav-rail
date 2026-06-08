@@ -532,6 +532,18 @@ public class SideNavRailItem extends SideNavItem {
         }
         popover.setHoverDelay(owner.getPopoverHoverDelay());
         popover.setHideDelay(owner.getPopoverHideDelay());
+        // Open immediately on focus, with no delay. The focus trigger is only
+        // active in rail mode (see setOpenOnFocus). A mouse click focuses the
+        // item on mousedown, which makes vaadin-popover schedule a *delayed*
+        // focus-open (focusDelay, default 500 ms). If the cursor then leaves the
+        // item before that timer fires, the popover's opened-state controller
+        // takes the "still opening" branch of close() and only aborts the pending
+        // open instead of scheduling a hide — so a popover that was already shown
+        // on hover gets stuck open. With focusDelay=0 the focus-open fires
+        // synchronously and no such timer is ever pending, so a subsequent
+        // hover-leave closes the popover normally. Immediate open-on-focus is
+        // also the better UX for keyboard-driven discovery of the popover.
+        popover.setFocusDelay(0);
         popover.setPosition(owner.getPopoverPosition());
         if (owner.isPopoverArrowVisible()) {
             popover.addThemeVariants(PopoverVariant.ARROW);

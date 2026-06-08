@@ -109,8 +109,10 @@ function installHaspopupGuard(rail) {
 }
 
 /**
- * Installs a delegated click handler at the document level that, for clicks
- * landing inside a popover overlay owned by this rail, does two things:
+ * Installs a delegated click handler at the document level that handles two
+ * cases:
+ *
+ * Case 1 — click INSIDE a popover overlay owned by this rail:
  *
  *   A) Releases focus that the click landed inside the popover. Browsers
  *      shift focus to native focusables (<a href>, <button>, anything with
@@ -137,7 +139,7 @@ function installHaspopupGuard(rail) {
  *      re-evaluates to "not eligible"), but in rail mode and in
  *      childrenOnlyInPopover that indirect path doesn't fire.
  *
- * Two trigger shapes covered by (A):
+ *   Two trigger shapes covered by (A):
  *   - <a href> activation, mouse or keyboard. Enter on a focused <a href>
  *     dispatches a click event natively in every major browser, so the
  *     single click handler covers both. (B) also fires for this case.
@@ -147,18 +149,19 @@ function installHaspopupGuard(rail) {
  *     (B) does NOT fire for this case — we want the popover to stay open
  *     so the user can see the just-expanded sub-tree.
  *
- * Caveat — implicit assumption that the focus shift happens via a click
- * event. The fix relies on the focus-grabbing trigger being a click, which
- * holds for native <button> activation, <a href> navigation, and most
- * `[tabindex]` widgets we'd embed today. If a future Vaadin component
- * lands focus inside the popover via something else — programmatic
- * focus on mouseenter, focus-trapping nested overlays, an embedded
- * <input> auto-focused on render — this listener would not catch it and
- * the popover would be stuck-open again. A more invasive alternative is
- * to listen for `mouseleave` on the overlay itself and release focus
- * there; that catches every trigger but adds risk of stealing focus from
- * keyboard users who happen to also have the cursor over the overlay
- * (Variant B in the bug-fix discussion). When this caveat bites, revisit.
+ * Case 2 — navigation click on a rail item OUTSIDE any popover overlay:
+ *
+ *   Leaf items in RailTooltipMode.POPOVER_HEADER carry a tooltip popover with
+ *   openOnFocus=true (rail mode). Clicking such an item to navigate gives the
+ *   item's <a> focus, keeping the tooltip open via the focus trigger even after
+ *   the SPA navigation completes (the layout is never torn down). The handler
+ *   detects an <a href> click that is inside this rail but outside any overlay
+ *   and blurs focus, releasing the focus trigger so the tooltip closes normally.
+ *
+ * V24/V25 cross-version note: in V24 the position target is overlay.positionTarget;
+ * in V25 the overlay lives in vaadin-popover.shadowRoot and the target is
+ * popoverHost.target. The handler walks the composedPath past the overlay to
+ * capture the popoverHost and uses whichever property is present.
  *
  * The handler runs at document-level capture because popover overlays may
  * be teleported to <body> (V24) or live in vaadin-popover's shadowRoot
@@ -179,6 +182,7 @@ function installPopoverActivationCloser(rail) {
     const handler = (event) => {
         const path = event.composedPath ? event.composedPath() : [];
         let overlay = null;
+        let popoverHost = null;
         let anchor = null;
         let focusable = null;
         for (const el of path) {
@@ -191,11 +195,35 @@ function installPopoverActivationCloser(rail) {
             }
             if (!overlay && el.localName === 'vaadin-popover-overlay') {
                 overlay = el;
-                break;  // overlay is the outer ancestor; no need to keep walking
+                // Do NOT break: in V25 the vaadin-popover host follows the overlay
+                // in the composed path (overlay lives in vaadin-popover.shadowRoot)
+                // and carries the position target as .target instead of
+                // overlay.positionTarget. Keep walking to capture the host.
+            }
+            if (overlay && el.localName === 'vaadin-popover') {
+                popoverHost = el;
+                break;
             }
         }
-        if (!overlay) return;
-        if (!overlay.positionTarget || !rail.contains(overlay.positionTarget)) {
+        if (!overlay) {
+            // Navigation click on a rail item outside any popover overlay.
+            // openOnFocus=true on tooltip popovers (rail mode) means the tooltip
+            // stays open as long as the item's link holds focus — which persists
+            // across SPA navigation because the layout is never torn down.
+            // Blur focus here so the focus trigger releases and the tooltip closes
+            // normally via its hide-delay.
+            // Use path.includes(rail) rather than rail.contains(anchor): the
+            // anchor lives in the shadow DOM of vaadin-side-nav-item, so contains()
+            // (light-DOM only) returns false even for clicks inside the rail.
+            if (anchor && path.includes(rail) && focusable
+                    && typeof focusable.blur === 'function') {
+                focusable.blur();
+            }
+            return;
+        }
+        // V24: positionTarget on the overlay; V25: target on the popover host.
+        const posTarget = overlay.positionTarget ?? popoverHost?.target ?? null;
+        if (!posTarget || !rail.contains(posTarget)) {
             return;
         }
         // (A) Release any focus the click landed inside the popover so

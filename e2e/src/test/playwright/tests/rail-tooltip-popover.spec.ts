@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { hoverItem, openPopover, popoverDescendant } from '../lib/popover';
+import { hoverItem, leaveItem, openPopover, popoverDescendant, queryOpenedTargetPaths } from '../lib/popover';
 
 /**
  * Coverage for {@code RailTooltipMode.POPOVER_HEADER}: leaf and parent root items both
@@ -134,5 +134,44 @@ test.describe('RailTooltipMode.POPOVER_HEADER', () => {
         const borderWidth = await page.locator(HEADER_LOCATOR).evaluate(
             (el: HTMLElement) => getComputedStyle(el).borderBottomWidth);
         expect(borderWidth).not.toBe('0px');
+    });
+
+    test('leaf tooltip closes after navigation click — hover switch shows only one popover', async ({ page }) => {
+        // Prevent actual navigation so /dashboard (a nav-item path, not a real
+        // route in the test app) doesn't cause a 404 teardown. The click still
+        // gives focus to Dashboard's <a> and lets our activation-closer blur it.
+        await page.evaluate(() => {
+            document.addEventListener('click', (e) => {
+                for (const t of e.composedPath()) {
+                    if (t instanceof Element && t.localName === 'a') {
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }, true);
+        });
+
+        // 1. Hover Dashboard — tooltip appears.
+        await hoverItem(page, DASHBOARD);
+        await expect(openPopover(page)).toBeVisible({ timeout: 3_000 });
+
+        // 2. Click Dashboard (navigation click on leaf item, outside any overlay).
+        //    Browser gives focus to Dashboard's shadow <a> on mousedown; our
+        //    activation-closer runs at capture phase and blurs it so the
+        //    focus trigger releases.
+        await page.locator(DASHBOARD).click();
+
+        // 3. Leave Dashboard so its hover trigger starts the hide-delay, then
+        //    move to Code — Code's tooltip starts opening.
+        await leaveItem(page, DASHBOARD);
+        await hoverItem(page, CODE);
+        await expect(openPopover(page)).toBeVisible({ timeout: 3_000 });
+
+        // 4. Only Code's tooltip must be open. Without the fix, Dashboard's
+        //    focus trigger keeps the old tooltip alive while Code's is also open.
+        await expect.poll(
+            () => queryOpenedTargetPaths(page),
+            { timeout: 3_000 }
+        ).toEqual(['code']);
     });
 });

@@ -75,6 +75,12 @@ class PopoverSettingsTest {
         assertEquals(50, popover.getHoverDelay());
         assertEquals(100, popover.getHideDelay());
         assertEquals(PopoverPosition.BOTTOM_START, popover.getPosition());
+        // Focus-open is always immediate (no delay): a mouse click focuses the
+        // item on mousedown, which would otherwise schedule a delayed focus-open
+        // that, when the cursor leaves before it fires, leaves a hover-opened
+        // popover stuck open (vaadin-popover's close() aborts the pending open
+        // instead of scheduling a hide). focusDelay=0 keeps no such timer pending.
+        assertEquals(0, popover.getFocusDelay());
     }
 
     @Test
