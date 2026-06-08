@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+  CLAUDE_GUIDELINES.md §2 — the mechanizable subset only.
+
+  Enforced (error):
+    Rule 1 — braces on every if/else/for/while/do.
+  Informational (warning, does not fail the build):
+    Rule 4 — no fully-qualified type names in code; use imports.
+
+  Rules 2 (phase blank lines), 3 (blank line before multiline comments),
+  5 (WHY-not-WHAT comments), 6 (test-driven visibility) and 7 (nested types
+  at the bottom) are judgment calls and stay with the /code-readability skill;
+  a regex/Checkstyle rule for them would be brittle or need a custom module.
+
+  The plugin is configured with violationSeverity=error, so only the error-level
+  rules break the build; warnings are reported in target/checkstyle-result.xml.
+-->
+<module name="Checker">
+    <property name="severity" value="error"/>
+    <property name="charset" value="UTF-8"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="TreeWalker">
+
+        <!-- §2 Rule 1 — always use {} blocks, even for one-liner bodies. -->
+        <module name="NeedBraces">
+            <property name="tokens"
+                      value="LITERAL_IF,LITERAL_ELSE,LITERAL_FOR,LITERAL_WHILE,LITERAL_DO"/>
+            <property name="allowSingleLineStatement" value="false"/>
+        </module>
+
+        <!-- §2 Rule 4 — heuristic: a lowercase package path ending in a capitalized
+             type, on a line that is not an import/package declaration. ignoreComments
+             keeps Javadoc {@link com.foo.Bar} references clean. Warning only — the
+             regex can false-positive, so it informs rather than failing the build. -->
+        <module name="RegexpSinglelineJava">
+            <property name="format"
+                      value="^(?!\s*(?:import|package)\b).*\b(?:java|javax|jakarta|com|org)\.(?:[a-z][a-zA-Z0-9_]*\.)+[A-Z][a-zA-Z0-9_]*"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="severity" value="warning"/>
+            <property name="message"
+                      value="CLAUDE_GUIDELINES §2 Rule 4: avoid fully-qualified type names; add an import and use the simple name."/>
+        </module>
+
+    </module>
+</module>
