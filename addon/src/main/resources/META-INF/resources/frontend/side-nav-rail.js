@@ -485,6 +485,13 @@ function moveFocusRightOnRailRoot(item) {
 }
 
 function focusFirstPopoverItemWhenReady(item, attempt = 0) {
+    // Bail if the item left the DOM mid-poll (e.g. SPA navigation detached the
+    // rail after ArrowRight). The rAF chain holds a closure over `item`, so
+    // without this it would keep running for up to ~500ms and could call
+    // focus() on a detached node, stealing focus from a freshly-rendered view.
+    if (!document.contains(item)) {
+        return;
+    }
     const overlay = findOpenPopoverForTarget(item);
     const first = overlay && overlay.querySelector('vaadin-side-nav-item');
     if (first) {
