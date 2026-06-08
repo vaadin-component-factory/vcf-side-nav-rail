@@ -42,20 +42,20 @@ public class RailTooltipPopoverModeView extends VerticalLayout {
                 new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create()),
                 codeParent());
 
-        Button toggleRail = new Button("Toggle rail",
-                e -> rail.setRailMode(!rail.isRailMode()));
+        Button toggleRail = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));
         toggleRail.setId("toggle-rail");
 
-        Button labelOnly = new Button("LABEL_ONLY",
-                e -> rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY));
+        Button labelOnly =
+                new Button(
+                        "LABEL_ONLY", e -> rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY));
         labelOnly.setId("header-label-only");
 
-        Button iconOnly = new Button("ICON_ONLY",
-                e -> rail.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY));
+        Button iconOnly =
+                new Button(
+                        "ICON_ONLY", e -> rail.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY));
         iconOnly.setId("header-icon-only");
 
-        Button full = new Button("FULL",
-                e -> rail.setPopoverHeaderMode(PopoverHeaderMode.FULL));
+        Button full = new Button("FULL", e -> rail.setPopoverHeaderMode(PopoverHeaderMode.FULL));
         full.setId("header-full");
 
         add(new HorizontalLayout(rail, toggleRail, labelOnly, iconOnly, full));

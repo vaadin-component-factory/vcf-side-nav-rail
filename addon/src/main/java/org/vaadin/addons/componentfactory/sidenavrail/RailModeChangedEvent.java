@@ -19,9 +19,8 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 import com.vaadin.flow.component.ComponentEvent;
 
 /**
- * Fired when {@link SideNavRail#setRailMode(boolean)} actually changes the rail-mode
- * state. No-op calls (same value) do not fire. Register via
- * {@link SideNavRail#addRailModeChangedListener}.
+ * Fired when {@link SideNavRail#setRailMode(boolean)} actually changes the rail-mode state. No-op
+ * calls (same value) do not fire. Register via {@link SideNavRail#addRailModeChangedListener}.
  */
 public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
 
@@ -29,12 +28,11 @@ public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
 
     /**
      * @param source the nav that changed state
-     * @param fromClient whether the change originated on the client (currently always
-     *                   {@code false} since the mode is only driven server-side)
+     * @param fromClient whether the change originated on the client (currently always {@code false}
+     *     since the mode is only driven server-side)
      * @param railMode the new rail-mode value
      */
-    public RailModeChangedEvent(SideNavRail source, boolean fromClient,
-            boolean railMode) {
+    public RailModeChangedEvent(SideNavRail source, boolean fromClient, boolean railMode) {
         super(source, fromClient);
         this.railMode = railMode;
     }
@@ -42,8 +40,8 @@ public class RailModeChangedEvent extends ComponentEvent<SideNavRail> {
     /**
      * The new rail-mode value after the change.
      *
-     * @return {@code true} if the rail just switched into rail mode, {@code false} if
-     *     it switched back to normal mode
+     * @return {@code true} if the rail just switched into rail mode, {@code false} if it switched
+     *     back to normal mode
      */
     public boolean isRailMode() {
         return railMode;

@@ -30,18 +30,17 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
+import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
 import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
 import org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Plain layout frame instead of {@code AppLayout} — the rail mode is the point
- * of the demo and an AppLayout drawer + navbar adds chrome that obscures the
- * effect. A thin top navbar hosts a {@link Select} for live-switching the
- * rail's {@link PopoverOn}; the sidebar with the rail sits below it.
+ * Plain layout frame instead of {@code AppLayout} — the rail mode is the point of the demo and an
+ * AppLayout drawer + navbar adds chrome that obscures the effect. A thin top navbar hosts a {@link
+ * Select} for live-switching the rail's {@link PopoverOn}; the sidebar with the rail sits below it.
  */
 @Layout
 @CssImport("./demo-styles.css")
@@ -61,8 +60,7 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         SideNavRailItem dashboard =
                 new SideNavRailItem("Dashboard", "/", VaadinIcon.DASHBOARD.create());
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
 
         SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
         SideNavRailItem activeBranches = new SideNavRailItem("Active", "/code/branches/active");
@@ -77,8 +75,8 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         code.addItem(commits);
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
 
-        SideNavRailItem operate = new SideNavRailItem(
-                "Operate", "/operate", VaadinIcon.COGS.create());
+        SideNavRailItem operate =
+                new SideNavRailItem("Operate", "/operate", VaadinIcon.COGS.create());
 
         SideNavRailItem environments = new SideNavRailItem("Environments", "/operate/environments");
         environments.addItem(new SideNavRailItem("Production", "/operate/environments/prod"));
@@ -90,18 +88,25 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         // Intentionally icon-less — demonstrates the letter-avatar fallback in rail mode.
         SideNavRailItem admin = new SideNavRailItem("Admin", "/admin");
 
-        SideNavRailItem dynamicProjectsDemo = new SideNavRailItem(
-                "Dynamic projects demo", "/dynamic-projects",
-                VaadinIcon.CONNECT.create());
+        SideNavRailItem dynamicProjectsDemo =
+                new SideNavRailItem(
+                        "Dynamic projects demo", "/dynamic-projects", VaadinIcon.CONNECT.create());
 
         nav.addItem(dashboard, code, operate, admin, dynamicProjectsDemo);
 
-        Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(),
-                e -> {
-                    boolean railMode = !nav.isRailMode();
-                    nav.setRailMode(railMode);
-                    e.getSource().setIcon((railMode ? VaadinIcon.CHEVRON_RIGHT_SMALL : VaadinIcon.CHEVRON_LEFT_SMALL).create());
-                });
+        Button toggle =
+                new Button(
+                        VaadinIcon.CHEVRON_LEFT_SMALL.create(),
+                        e -> {
+                            boolean railMode = !nav.isRailMode();
+                            nav.setRailMode(railMode);
+                            e.getSource()
+                                    .setIcon(
+                                            (railMode
+                                                            ? VaadinIcon.CHEVRON_RIGHT_SMALL
+                                                            : VaadinIcon.CHEVRON_LEFT_SMALL)
+                                                    .create());
+                        });
 
         VerticalLayout sidebar = new VerticalLayout(toggle, nav);
         sidebar.setPadding(false);
@@ -110,7 +115,8 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         sidebar.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
 
         activeItemBreadcrumb.setId("active-item-breadcrumb");
-        activeItemBreadcrumb.getStyle()
+        activeItemBreadcrumb
+                .getStyle()
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("margin-bottom", "var(--lumo-space-s)");
@@ -133,25 +139,23 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
     }
 
     /**
-     * Demonstrates {@link SideNavRail#getActiveViewItem()}: re-render the
-     * breadcrumb after each navigation. {@code AfterNavigationObserver} fires
-     * for the initial navigation too, so the first paint already shows the
-     * resolved label — no flash through "(no match)". Match is path-equality
-     * only; {@code matchNested} is intentionally ignored, so a parent doesn't
-     * surface as active.
+     * Demonstrates {@link SideNavRail#getActiveViewItem()}: re-render the breadcrumb after each
+     * navigation. {@code AfterNavigationObserver} fires for the initial navigation too, so the
+     * first paint already shows the resolved label — no flash through "(no match)". Match is
+     * path-equality only; {@code matchNested} is intentionally ignored, so a parent doesn't surface
+     * as active.
      */
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
-        activeItemBreadcrumb.setText(nav.getActiveViewItem()
-                .map(item -> "Active: " + item.getLabel())
-                .orElse("Active: (no match)"));
+        activeItemBreadcrumb.setText(
+                nav.getActiveViewItem()
+                        .map(item -> "Active: " + item.getLabel())
+                        .orElse("Active: (no match)"));
     }
 
     private HorizontalLayout buildNavbar(SideNavRail nav) {
         Span title = new Span("SideNav Rail — Demo");
-        title.getStyle()
-                .set("font-weight", "600")
-                .set("font-size", "var(--lumo-font-size-l)");
+        title.getStyle().set("font-weight", "600").set("font-size", "var(--lumo-font-size-l)");
 
         Select<PopoverOn> modeSelect = new Select<>();
         modeSelect.setId("popover-mode-select");
@@ -159,11 +163,12 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         modeSelect.setItems(PopoverOn.values());
         modeSelect.setItemLabelGenerator(MainLayout::humanize);
         modeSelect.setValue(nav.getPopoverOn());
-        modeSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                nav.setPopoverOn(e.getValue());
-            }
-        });
+        modeSelect.addValueChangeListener(
+                e -> {
+                    if (e.getValue() != null) {
+                        nav.setPopoverOn(e.getValue());
+                    }
+                });
 
         Select<PopoverHeaderMode> headerSelect = new Select<>();
         headerSelect.setId("popover-header-select");
@@ -183,25 +188,27 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         // PopoverHeaderMode.NONE would silently flip to LABEL_ONLY at attach.
         // Snap headerSelect to LABEL_ONLY whenever the user enters that combination
         // from either side, so the demo UI stays consistent with the rail.
-        headerSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                nav.setPopoverHeaderMode(e.getValue());
-            }
-            if (tooltipSelect.getValue() == RailTooltipMode.POPOVER_HEADER
-                    && e.getValue() == PopoverHeaderMode.NONE) {
-                headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
-            }
-        });
+        headerSelect.addValueChangeListener(
+                e -> {
+                    if (e.getValue() != null) {
+                        nav.setPopoverHeaderMode(e.getValue());
+                    }
+                    if (tooltipSelect.getValue() == RailTooltipMode.POPOVER_HEADER
+                            && e.getValue() == PopoverHeaderMode.NONE) {
+                        headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
+                    }
+                });
 
-        tooltipSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                nav.setRailTooltipMode(e.getValue());
-            }
-            if (e.getValue() == RailTooltipMode.POPOVER_HEADER
-                    && headerSelect.getValue() == PopoverHeaderMode.NONE) {
-                headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
-            }
-        });
+        tooltipSelect.addValueChangeListener(
+                e -> {
+                    if (e.getValue() != null) {
+                        nav.setRailTooltipMode(e.getValue());
+                    }
+                    if (e.getValue() == RailTooltipMode.POPOVER_HEADER
+                            && headerSelect.getValue() == PopoverHeaderMode.NONE) {
+                        headerSelect.setValue(PopoverHeaderMode.LABEL_ONLY);
+                    }
+                });
 
         Checkbox childrenOnlyInPopoverCheckbox = new Checkbox("Children only in popover");
         childrenOnlyInPopoverCheckbox.setId("children-only-in-popover");
@@ -221,17 +228,21 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         rootMatchNestedSelect.setItems(RootMatchNested.values());
         rootMatchNestedSelect.setItemLabelGenerator(MainLayout::humanize);
         rootMatchNestedSelect.setValue(nav.getRootMatchNested());
-        rootMatchNestedSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                nav.setRootMatchNested(e.getValue());
-            }
-        });
+        rootMatchNestedSelect.addValueChangeListener(
+                e -> {
+                    if (e.getValue() != null) {
+                        nav.setRootMatchNested(e.getValue());
+                    }
+                });
 
-        HorizontalLayout selects = new HorizontalLayout(
-                modeSelect, headerSelect, tooltipSelect,
-                childrenOnlyInPopoverCheckbox,
-                headerOnlyInRailModeCheckbox,
-                rootMatchNestedSelect);
+        HorizontalLayout selects =
+                new HorizontalLayout(
+                        modeSelect,
+                        headerSelect,
+                        tooltipSelect,
+                        childrenOnlyInPopoverCheckbox,
+                        headerOnlyInRailModeCheckbox,
+                        rootMatchNestedSelect);
         selects.setAlignItems(FlexComponent.Alignment.END);
         selects.setSpacing(true);
 

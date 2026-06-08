@@ -30,9 +30,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Covers the nav-level configuration of popover timings and position: defaults,
- * null-guard on position, live propagation to existing popovers, and seeding of
- * popovers created after a settings change.
+ * Covers the nav-level configuration of popover timings and position: defaults, null-guard on
+ * position, live propagation to existing popovers, and seeding of popovers created after a settings
+ * change.
  */
 class PopoverSettingsTest {
 
@@ -94,7 +94,9 @@ class PopoverSettingsTest {
         assertEquals(200, popover.getHoverDelay(), "precondition: default hover delay");
 
         nav.setPopoverHoverDelay(10);
-        assertEquals(10, popover.getHoverDelay(),
+        assertEquals(
+                10,
+                popover.getHoverDelay(),
                 "Changing the nav's hover delay must update the existing popover");
 
         nav.setPopoverHideDelay(20);
@@ -121,7 +123,9 @@ class PopoverSettingsTest {
         nav.setPopoverPosition(PopoverPosition.START);
 
         for (Popover popover : allPopoversInUi()) {
-            assertEquals(7, popover.getHoverDelay(),
+            assertEquals(
+                    7,
+                    popover.getHoverDelay(),
                     "All popovers, including nested, must receive the new hover delay");
             assertEquals(11, popover.getHideDelay());
             assertEquals(PopoverPosition.START, popover.getPosition());
@@ -135,7 +139,8 @@ class PopoverSettingsTest {
     }
 
     private static Popover findPopover() {
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .findFirst()
@@ -143,7 +148,8 @@ class PopoverSettingsTest {
     }
 
     private static java.util.List<Popover> allPopoversInUi() {
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .toList();

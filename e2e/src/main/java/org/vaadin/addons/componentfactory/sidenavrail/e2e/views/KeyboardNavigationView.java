@@ -18,9 +18,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Covers §9.2 keyboard navigation. Three root items: "Dashboard" (leaf),
- * "Code" (has two flat children), "Admin" (has one parent-child + a leaf).
- * The Admin subtree lets us exercise tree-like expand/collapse via arrow keys.
+ * Covers §9.2 keyboard navigation. Three root items: "Dashboard" (leaf), "Code" (has two flat
+ * children), "Admin" (has one parent-child + a leaf). The Admin subtree lets us exercise tree-like
+ * expand/collapse via arrow keys.
  */
 @Route("keyboard-navigation")
 public class KeyboardNavigationView extends VerticalLayout {
@@ -29,7 +29,8 @@ public class KeyboardNavigationView extends VerticalLayout {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
 
-        SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem dashboard =
+                new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Commits", "/code/commits"));
@@ -43,12 +44,13 @@ public class KeyboardNavigationView extends VerticalLayout {
 
         rail.addItem(dashboard, code, admin);
 
-        Button toggle = new Button("Toggle rail",
-                e -> rail.setRailMode(!rail.isRailMode()));
+        Button toggle = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));
         toggle.setId("toggle-rail");
 
-        Button togglePopoverOnly = new Button("Toggle popover-only",
-                e -> rail.setChildrenOnlyInPopover(!rail.isChildrenOnlyInPopover()));
+        Button togglePopoverOnly =
+                new Button(
+                        "Toggle popover-only",
+                        e -> rail.setChildrenOnlyInPopover(!rail.isChildrenOnlyInPopover()));
         togglePopoverOnly.setId("toggle-popover-only");
 
         add(new HorizontalLayout(rail, toggle, togglePopoverOnly));

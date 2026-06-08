@@ -15,10 +15,10 @@
  */
 
 /**
- * SideNav Rail — a togglable rail-mode {@link com.vaadin.flow.component.sidenav.SideNav}
- * with a configurable hover popover for items with children.
+ * SideNav Rail — a togglable rail-mode {@link com.vaadin.flow.component.sidenav.SideNav} with a
+ * configurable hover popover for items with children.
  *
- * <p>Entry points: {@link org.vaadin.addons.componentfactory.sidenavrail.SideNavRail}
- * and {@link org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem}.
+ * <p>Entry points: {@link org.vaadin.addons.componentfactory.sidenavrail.SideNavRail} and {@link
+ * org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem}.
  */
 package org.vaadin.addons.componentfactory.sidenavrail;

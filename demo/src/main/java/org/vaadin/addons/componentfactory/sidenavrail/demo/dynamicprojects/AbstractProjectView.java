@@ -17,15 +17,13 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 
 /**
- * Base class for project sub-views. Pulls the {@code :projectId} route
- * parameter and renders the matching project's display label as the heading.
- * Implements {@link BeforeEnterObserver} as a guard: when the project ID is
- * not in the {@link ActiveProjectsRegistry session-scoped active set}, the
- * navigation is forwarded to the {@link DynamicProjectsHomeView} and a
- * transient notification explains why.
+ * Base class for project sub-views. Pulls the {@code :projectId} route parameter and renders the
+ * matching project's display label as the heading. Implements {@link BeforeEnterObserver} as a
+ * guard: when the project ID is not in the {@link ActiveProjectsRegistry session-scoped active
+ * set}, the navigation is forwarded to the {@link DynamicProjectsHomeView} and a transient
+ * notification explains why.
  */
-abstract class AbstractProjectView extends VerticalLayout
-        implements BeforeEnterObserver {
+abstract class AbstractProjectView extends VerticalLayout implements BeforeEnterObserver {
 
     private final String pageLabel;
     private final H2 heading = new H2();
@@ -44,14 +42,17 @@ abstract class AbstractProjectView extends VerticalLayout
         Project project = projectId == null ? null : Project.byId(projectId);
         if (project == null || !ActiveProjectsRegistry.current().isActive(projectId)) {
             Notification.show(
-                    "Project '" + projectId + "' is not active. "
+                    "Project '"
+                            + projectId
+                            + "' is not active. "
                             + "Activate it via the navbar to view its pages.",
-                    3500, Notification.Position.MIDDLE);
+                    3500,
+                    Notification.Position.MIDDLE);
             event.forwardTo(DynamicProjectsHomeView.class);
             return;
         }
         heading.setText(project.label() + " — " + pageLabel);
-        body.setText("Stub content for " + project.label() + "'s "
-                + pageLabel.toLowerCase() + " page.");
+        body.setText(
+                "Stub content for " + project.label() + "'s " + pageLabel.toLowerCase() + " page.");
     }
 }

@@ -22,13 +22,20 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * §9.2: nested items must not be keyboard-focusable while rail mode is active, since
- * they are visually hidden. Root items keep their normal tab-order participation.
+ * §9.2: nested items must not be keyboard-focusable while rail mode is active, since they are
+ * visually hidden. Root items keep their normal tab-order participation.
  */
 class NestedTabindexTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     @Test
     void nestedItemsHaveNoTabindexInNormalMode() {

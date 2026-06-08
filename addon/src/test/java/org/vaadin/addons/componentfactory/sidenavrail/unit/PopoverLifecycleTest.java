@@ -48,9 +48,7 @@ class PopoverLifecycleTest {
         nav.addItem(leaf);
         UI.getCurrent().add(nav);
 
-        long popovers = UI.getCurrent().getChildren()
-                .filter(c -> c instanceof Popover)
-                .count();
+        long popovers = UI.getCurrent().getChildren().filter(c -> c instanceof Popover).count();
         assertEquals(0L, popovers);
     }
 
@@ -83,17 +81,15 @@ class PopoverLifecycleTest {
         nav.addItem(parent);
         UI.getCurrent().add(nav);
 
-        long navChildPopovers = nav.getChildren()
-                .filter(c -> c instanceof Popover)
-                .count();
-        assertEquals(0L, navChildPopovers,
+        long navChildPopovers = nav.getChildren().filter(c -> c instanceof Popover).count();
+        assertEquals(
+                0L,
+                navChildPopovers,
                 "Popover must NOT be a child of the nav (auto-add should place it on the UI)");
 
-        long uiChildPopovers = UI.getCurrent().getChildren()
-                .filter(c -> c instanceof Popover)
-                .count();
-        assertEquals(1L, uiChildPopovers,
-                "Popover should auto-add itself as a direct UI child");
+        long uiChildPopovers =
+                UI.getCurrent().getChildren().filter(c -> c instanceof Popover).count();
+        assertEquals(1L, uiChildPopovers, "Popover should auto-add itself as a direct UI child");
     }
 
     @Test
@@ -108,15 +104,17 @@ class PopoverLifecycleTest {
         nav.addItem(parent);
         UI.getCurrent().add(nav);
 
-        assertEquals(1L, UI.getCurrent().getChildren()
-                .filter(c -> c instanceof Popover)
-                .count(), "precondition: popover attached");
+        assertEquals(
+                1L,
+                UI.getCurrent().getChildren().filter(c -> c instanceof Popover).count(),
+                "precondition: popover attached");
 
         UI.getCurrent().remove(nav);
 
-        assertEquals(0L, UI.getCurrent().getChildren()
-                .filter(c -> c instanceof Popover)
-                .count(), "popover must be removed from UI when its target detaches");
+        assertEquals(
+                0L,
+                UI.getCurrent().getChildren().filter(c -> c instanceof Popover).count(),
+                "popover must be removed from UI when its target detaches");
     }
 
     @Test
@@ -128,22 +126,26 @@ class PopoverLifecycleTest {
         nav.addItem(parent);
         UI.getCurrent().add(nav);
 
-        assertEquals(2, parent.getItems().size(),
+        assertEquals(
+                2,
+                parent.getItems().size(),
                 "Outer nav must retain its children for inline expansion");
 
-        Popover popover = UI.getCurrent().getChildren()
-                .filter(c -> c instanceof Popover)
-                .map(c -> (Popover) c)
-                .findFirst().orElseThrow();
+        Popover popover =
+                UI.getCurrent()
+                        .getChildren()
+                        .filter(c -> c instanceof Popover)
+                        .map(c -> (Popover) c)
+                        .findFirst()
+                        .orElseThrow();
 
-        long nestedChildren = popover.getChildren()
-                .flatMap(c -> c.getChildren())
-                .count();
+        long nestedChildren = popover.getChildren().flatMap(c -> c.getChildren()).count();
         assertEquals(2L, nestedChildren, "Popover must render a mirrored copy of the children");
     }
 
     private static Popover findPopoverTargeting(SideNavRailItem item) {
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .filter(p -> p.getTarget() == item)

@@ -39,10 +39,12 @@ class LabelWrapTest {
         SideNavRailItem item = new SideNavRailItem("Dashboard");
         item.setLabel("Overview");
 
-        long spanCount = item.getElement().getChildren()
-                .filter(e -> "span".equals(e.getTag()))
-                .filter(e -> "label".equals(e.getAttribute("class")))
-                .count();
+        long spanCount =
+                item.getElement()
+                        .getChildren()
+                        .filter(e -> "span".equals(e.getTag()))
+                        .filter(e -> "label".equals(e.getAttribute("class")))
+                        .count();
         assertEquals(1L, spanCount, "Expected exactly one label span");
         assertEquals("Overview", findLabelSpan(item.getElement()).getText());
     }
@@ -61,8 +63,10 @@ class LabelWrapTest {
                 com.vaadin.flow.component.icon.VaadinIcon.DASHBOARD.create();
         SideNavRailItem item = new SideNavRailItem("Dashboard", "/", icon);
 
-        boolean iconStillSlotted = item.getElement().getChildren()
-                .anyMatch(e -> "prefix".equals(e.getAttribute("slot")));
+        boolean iconStillSlotted =
+                item.getElement()
+                        .getChildren()
+                        .anyMatch(e -> "prefix".equals(e.getAttribute("slot")));
         assertTrue(iconStillSlotted, "Prefix icon should survive the label wrap");
     }
 
@@ -71,7 +75,10 @@ class LabelWrapTest {
                 .filter(e -> "span".equals(e.getTag()))
                 .filter(e -> "label".equals(e.getAttribute("class")))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        "No <span class=\"label\"> found on element " + root.getOuterHTML()));
+                .orElseThrow(
+                        () ->
+                                new AssertionError(
+                                        "No <span class=\"label\"> found on element "
+                                                + root.getOuterHTML()));
     }
 }

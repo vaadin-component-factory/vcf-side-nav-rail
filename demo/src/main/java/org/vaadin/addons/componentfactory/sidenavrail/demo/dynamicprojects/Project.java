@@ -12,10 +12,9 @@ package org.vaadin.addons.componentfactory.sidenavrail.demo.dynamicprojects;
 import java.util.List;
 
 /**
- * Demo project — fixed catalogue of three entries used by the dynamic-projects
- * demo. The {@code id} field appears in URLs as the {@code :projectId} route
- * parameter, the {@code label} is what users see in the rail and the
- * navbar's multiselect.
+ * Demo project — fixed catalogue of three entries used by the dynamic-projects demo. The {@code id}
+ * field appears in URLs as the {@code :projectId} route parameter, the {@code label} is what users
+ * see in the rail and the navbar's multiselect.
  */
 public record Project(String id, String label) {
 
@@ -26,9 +25,6 @@ public record Project(String id, String label) {
     public static final List<Project> ALL = List.of(PHOENIX, ATLAS, VOYAGER);
 
     public static Project byId(String id) {
-        return ALL.stream()
-                .filter(p -> p.id.equals(id))
-                .findFirst()
-                .orElse(null);
+        return ALL.stream().filter(p -> p.id.equals(id)).findFirst().orElse(null);
     }
 }

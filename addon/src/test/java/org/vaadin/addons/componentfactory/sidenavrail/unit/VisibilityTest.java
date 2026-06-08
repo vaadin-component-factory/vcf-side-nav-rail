@@ -23,18 +23,24 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * setVisible() on the rail or on individual items must keep the addon's state
- * consistent — popover hover-eligibility, ARIA attributes, and tooltip wiring.
- * setVisible(false) is implemented in Vaadin Flow as the element being marked
- * hidden client-side; server-side, the component is still attached. The addon
- * therefore does not need to clean up listeners — but it must not push state
- * onto an item the user explicitly hid, and it must restore everything when the
- * item becomes visible again.
+ * setVisible() on the rail or on individual items must keep the addon's state consistent — popover
+ * hover-eligibility, ARIA attributes, and tooltip wiring. setVisible(false) is implemented in
+ * Vaadin Flow as the element being marked hidden client-side; server-side, the component is still
+ * attached. The addon therefore does not need to clean up listeners — but it must not push state
+ * onto an item the user explicitly hid, and it must restore everything when the item becomes
+ * visible again.
  */
 class VisibilityTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     private static SideNavRailItem parentWithChildren() {
         SideNavRailItem parent = new SideNavRailItem("Code", "/code");
@@ -61,8 +67,9 @@ class VisibilityTest {
         nav.addItem(parent);
         UI.getCurrent().add(nav);
 
-        Popover before = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        Popover before =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
 
         parent.setVisible(false);
 
@@ -86,9 +93,11 @@ class VisibilityTest {
         // ARIA attributes from rail mode should still be present (setVisible
         // doesn't drive a detach cycle, so they were never cleared).
         assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
-        Popover popover = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
-        assertTrue(popover.isOpenOnHover(),
+        Popover popover =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        assertTrue(
+                popover.isOpenOnHover(),
                 "popover hover-eligibility must persist across setVisible cycle");
     }
 
@@ -108,7 +117,7 @@ class VisibilityTest {
         // but inherit the hidden state from the parent. The contract here is
         // that flipping the rail off doesn't corrupt item-level state.
         assertTrue(dashboard.isVisible(), "child isVisible flag is unaffected");
-        assertTrue(parent.isVisible(),    "child isVisible flag is unaffected");
+        assertTrue(parent.isVisible(), "child isVisible flag is unaffected");
     }
 
     @Test
@@ -134,16 +143,21 @@ class VisibilityTest {
         nav.addItem(parent);
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
-        Popover popover = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        Popover popover =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
         int delayBefore = popover.getHoverDelay();
 
         nav.setVisible(false);
         nav.setVisible(true);
 
-        assertEquals(delayBefore, popover.getHoverDelay(),
+        assertEquals(
+                delayBefore,
+                popover.getHoverDelay(),
                 "popover settings must survive a setVisible cycle on the rail");
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
+        assertEquals(
+                "false",
+                parent.getElement().getAttribute("aria-expanded"),
                 "ARIA must survive a setVisible cycle on the rail");
     }
 
@@ -160,11 +174,14 @@ class VisibilityTest {
         nav.setRailMode(false);
         // Toggling rail mode on a hidden item must still update its server-side
         // state — when the user later flips visibility back on, the state is right.
-        assertFalse(parent.getElement().hasAttribute("aria-expanded"),
+        assertFalse(
+                parent.getElement().hasAttribute("aria-expanded"),
                 "rail-mode toggle must reach hidden items");
 
         nav.setRailMode(true);
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
+        assertEquals(
+                "false",
+                parent.getElement().getAttribute("aria-expanded"),
                 "rail-mode re-toggle must reach hidden items");
     }
 }

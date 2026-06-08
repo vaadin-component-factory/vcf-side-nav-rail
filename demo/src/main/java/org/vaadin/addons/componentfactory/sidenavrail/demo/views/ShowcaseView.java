@@ -24,8 +24,9 @@ import com.vaadin.flow.router.Route;
 public class ShowcaseView extends VerticalLayout {
     public ShowcaseView() {
         add(new H1("SideNav Rail"));
-        add(new Paragraph(
-                "Toggle the rail button in the header. Hover over \"Code\" or \"Operate\" "
-                        + "while in rail mode to see the popover."));
+        add(
+                new Paragraph(
+                        "Toggle the rail button in the header. Hover over \"Code\" or \"Operate\" "
+                                + "while in rail mode to see the popover."));
     }
 }

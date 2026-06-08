@@ -42,11 +42,10 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
  * Verifies the {@link RailTooltipMode} behaviour: the rail sets a {@code data-rail-tooltip}
- * attribute on every root item when {@code SIMPLE} is active and rail mode is engaged —
- * CSS turns that attribute into a Lumo-themed pseudo-element tooltip. {@code POPOVER_HEADER}
- * (the default) uses the popover (parent or leaf) instead, so no attribute is written.
- * {@code NONE} suppresses tooltips entirely. Tooltips are only applied while rail mode
- * is engaged.
+ * attribute on every root item when {@code SIMPLE} is active and rail mode is engaged — CSS turns
+ * that attribute into a Lumo-themed pseudo-element tooltip. {@code POPOVER_HEADER} (the default)
+ * uses the popover (parent or leaf) instead, so no attribute is written. {@code NONE} suppresses
+ * tooltips entirely. Tooltips are only applied while rail mode is engaged.
  */
 class RailTooltipModeTest {
 
@@ -141,7 +140,7 @@ class RailTooltipModeTest {
     @Test
     void isLeafPopoverActiveReflectsRailModeAndPopoverMode() {
         SideNavRail nav = new SideNavRail();
-        assertFalse(nav.isLeafPopoverActive());  // not in rail mode
+        assertFalse(nav.isLeafPopoverActive()); // not in rail mode
 
         UI.getCurrent().add(nav);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
@@ -170,7 +169,9 @@ class RailTooltipModeTest {
         nav.setRailMode(true);
 
         Popover popover = findPopoverFor(leaf);
-        assertNotNull(popover, "Expected a popover on the rail-mode leaf when POPOVER_HEADER mode is active");
+        assertNotNull(
+                popover,
+                "Expected a popover on the rail-mode leaf when POPOVER_HEADER mode is active");
         assertTrue(popover.isOpenOnHover(), "Leaf popover should be hover-triggered in rail mode");
     }
 
@@ -188,7 +189,8 @@ class RailTooltipModeTest {
         Popover popover = findPopoverFor(leaf);
         if (popover != null) {
             // Implementation may keep the instance around; if so, hover trigger must be off.
-            assertFalse(popover.isOpenOnHover(),
+            assertFalse(
+                    popover.isOpenOnHover(),
                     "Leaf popover hover trigger must be disarmed when leaving rail mode");
         }
         // Either no popover or a disarmed one is acceptable — both express "leaf-tooltip off".
@@ -220,15 +222,14 @@ class RailTooltipModeTest {
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
-        assertNull(findPopoverFor(leaf),
-                "SIMPLE mode must not create a popover on a leaf item");
+        assertNull(findPopoverFor(leaf), "SIMPLE mode must not create a popover on a leaf item");
     }
 
     @Test
     void popoverModeOnLeafRendersLabelOnlyHeader() {
         SideNavRail nav = new SideNavRail();
-        SideNavRailItem leaf = new SideNavRailItem(
-                "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem leaf =
+                new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);
         nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
@@ -246,8 +247,8 @@ class RailTooltipModeTest {
     @Test
     void popoverModeOnLeafRendersIconOnlyHeader() {
         SideNavRail nav = new SideNavRail();
-        SideNavRailItem leaf = new SideNavRailItem(
-                "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem leaf =
+                new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
         nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
@@ -265,8 +266,8 @@ class RailTooltipModeTest {
     @Test
     void popoverModeOnLeafRendersFullHeader() {
         SideNavRail nav = new SideNavRail();
-        SideNavRailItem leaf = new SideNavRailItem(
-                "Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem leaf =
+                new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         nav.addItem(leaf);
         nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
@@ -287,7 +288,7 @@ class RailTooltipModeTest {
         nav.addItem(new SideNavRailItem("Dashboard", "/dashboard"));
         nav.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
         // Header mode left at default NONE.
-        UI.getCurrent().add(nav);  // attach
+        UI.getCurrent().add(nav); // attach
 
         assertEquals(PopoverHeaderMode.LABEL_ONLY, nav.getPopoverHeaderMode());
     }
@@ -326,7 +327,8 @@ class RailTooltipModeTest {
     }
 
     private static Popover findPopoverFor(SideNavRailItem item) {
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .filter(p -> p.getTarget() == item)
@@ -344,9 +346,7 @@ class RailTooltipModeTest {
     }
 
     private static long iconsIn(Component parent) {
-        return parent.getChildren()
-                .filter(c -> c instanceof Icon)
-                .count();
+        return parent.getChildren().filter(c -> c instanceof Icon).count();
     }
 
     private static String textOf(Component header) {

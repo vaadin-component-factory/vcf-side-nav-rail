@@ -24,10 +24,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Verifies the contract of {@link SideNavRail#setChildrenOnlyInPopover(boolean)}:
- * the {@code inline-children-hidden} theme is added to / removed from the rail
- * element so the bundled CSS hides nested items, and popover gating ignores the
- * item's expanded state while the flag is on.
+ * Verifies the contract of {@link SideNavRail#setChildrenOnlyInPopover(boolean)}: the {@code
+ * inline-children-hidden} theme is added to / removed from the rail element so the bundled CSS
+ * hides nested items, and popover gating ignores the item's expanded state while the flag is on.
  */
 class ChildrenOnlyInPopoverTest {
 
@@ -104,7 +103,8 @@ class ChildrenOnlyInPopoverTest {
         // applyPopoverGating is invoked from setRailMode/setPopoverOn/etc.; trigger
         // it explicitly here to mirror what would happen on a real expand event.
         nav.setChildrenOnlyInPopover(true);
-        assertTrue(popover.isOpenOnHover(),
+        assertTrue(
+                popover.isOpenOnHover(),
                 "popover must remain hover-eligible even when parent is expanded "
                         + "while children-only-in-popover is on");
     }

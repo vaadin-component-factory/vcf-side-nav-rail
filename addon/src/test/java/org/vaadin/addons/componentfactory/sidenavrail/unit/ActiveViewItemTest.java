@@ -33,14 +33,21 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Covers {@link SideNavRail#getActiveViewItem()} and
- * {@link SideNavRail#getActiveViewItems()} — path/alias matching against the
- * current active view location, with {@code matchNested} intentionally ignored.
+ * Covers {@link SideNavRail#getActiveViewItem()} and {@link SideNavRail#getActiveViewItems()} —
+ * path/alias matching against the current active view location, with {@code matchNested}
+ * intentionally ignored.
  */
 class ActiveViewItemTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     @Test
     void emptyListWhenNoItemMatches() {
@@ -49,9 +56,11 @@ class ActiveViewItemTest {
         UI.getCurrent().add(nav);
         setActiveLocation("dashboard");
 
-        assertTrue(nav.getActiveViewItems().isEmpty(),
+        assertTrue(
+                nav.getActiveViewItems().isEmpty(),
                 "no item matches the current location → empty list");
-        assertTrue(nav.getActiveViewItem().isEmpty(),
+        assertTrue(
+                nav.getActiveViewItem().isEmpty(),
                 "convenience accessor must mirror the empty result");
     }
 
@@ -76,7 +85,9 @@ class ActiveViewItemTest {
         UI.getCurrent().add(nav);
         setActiveLocation("source");
 
-        assertEquals(List.of(code), nav.getActiveViewItems(),
+        assertEquals(
+                List.of(code),
+                nav.getActiveViewItems(),
                 "alias match must surface the item just like a path match");
     }
 
@@ -93,7 +104,9 @@ class ActiveViewItemTest {
 
         // matchNested is deliberately ignored — the parent does not surface as
         // active just because a descendant owns the current path.
-        assertEquals(List.of(child), nav.getActiveViewItems(),
+        assertEquals(
+                List.of(child),
+                nav.getActiveViewItems(),
                 "matchNested parent must not appear; only the descendant matches");
     }
 
@@ -111,7 +124,9 @@ class ActiveViewItemTest {
 
         // DFS pre-order: first, then its descendant, then the second root.
         assertEquals(List.of(first, nested, second), nav.getActiveViewItems());
-        assertSame(first, nav.getActiveViewItem().orElseThrow(),
+        assertSame(
+                first,
+                nav.getActiveViewItem().orElseThrow(),
                 "single-match accessor must return the DFS-first item");
     }
 
@@ -126,7 +141,9 @@ class ActiveViewItemTest {
         UI.getCurrent().add(nav);
         setActiveLocation("source");
 
-        assertEquals(List.of(byPath, byAlias), nav.getActiveViewItems(),
+        assertEquals(
+                List.of(byPath, byAlias),
+                nav.getActiveViewItems(),
                 "both the path-owner and the alias-owner must surface");
     }
 
@@ -145,7 +162,9 @@ class ActiveViewItemTest {
         setActiveLocation("code/branches");
 
         List<SideNavRailItem> matches = nav.getActiveViewItems();
-        assertEquals(List.of(branches), matches,
+        assertEquals(
+                List.of(branches),
+                matches,
                 "only the real branches item must surface, not the popover clone");
         assertSame(branches, matches.get(0));
     }
@@ -158,7 +177,8 @@ class ActiveViewItemTest {
         nav.addItem(new SideNavRailItem("Code", "/code"));
         UI.getCurrent().add(nav);
 
-        assertTrue(nav.getActiveViewItems().isEmpty(),
+        assertTrue(
+                nav.getActiveViewItems().isEmpty(),
                 "default empty location must not match any path-bearing item");
         assertTrue(nav.getActiveViewItem().isEmpty());
     }
@@ -171,21 +191,25 @@ class ActiveViewItemTest {
         UI.getCurrent().add(nav);
         setActiveLocation("code");
 
-        assertEquals(List.of(code), nav.getActiveViewItems(),
+        assertEquals(
+                List.of(code),
+                nav.getActiveViewItems(),
                 "trailing slash on item path must not prevent the match");
     }
 
     private static void setActiveLocation(String path) {
         Location location = new Location(path);
         try {
-            Field field = com.vaadin.flow.component.internal.UIInternals.class
-                    .getDeclaredField("viewLocation");
+            Field field =
+                    com.vaadin.flow.component.internal.UIInternals.class.getDeclaredField(
+                            "viewLocation");
             field.setAccessible(true);
             field.set(UI.getCurrent().getInternals(), location);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError(
                     "Failed to set active view location via reflection — Vaadin "
-                            + "internal layout may have changed", e);
+                            + "internal layout may have changed",
+                    e);
         }
     }
 
@@ -198,8 +222,7 @@ class ActiveViewItemTest {
         // Tear the UI down; SideNavRail must return empty rather than NPE.
         MockVaadin.tearDown();
         try {
-            assertTrue(nav.getActiveViewItems().isEmpty(),
-                    "no current UI → empty list, no NPE");
+            assertTrue(nav.getActiveViewItems().isEmpty(), "no current UI → empty list, no NPE");
             assertTrue(nav.getActiveViewItem().isEmpty());
         } finally {
             // Re-establish a UI so the @AfterEach tearDown succeeds.
@@ -213,7 +236,6 @@ class ActiveViewItemTest {
         UI.getCurrent().add(nav);
 
         Optional<SideNavRailItem> match = nav.getActiveViewItem();
-        assertTrue(match.isEmpty(),
-                "must return Optional.empty(), never null");
+        assertTrue(match.isEmpty(), "must return Optional.empty(), never null");
     }
 }

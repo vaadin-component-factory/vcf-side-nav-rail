@@ -32,8 +32,7 @@ public class PopoverAllCollapsedItemsView extends VerticalLayout {
         rail.setPopoverOn(PopoverOn.ALL_COLLAPSED_ITEMS);
         rail.setId("rail");
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
         rail.addItem(code);

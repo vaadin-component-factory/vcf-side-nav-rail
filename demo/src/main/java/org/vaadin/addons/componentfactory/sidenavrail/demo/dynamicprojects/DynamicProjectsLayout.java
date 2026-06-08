@@ -34,14 +34,12 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Layout for the dynamic-projects demo. Hosts the rail and a navbar with a
- * {@link MultiSelectComboBox} that drives a {@link ActiveProjectsRegistry
- * session-scoped registry of active projects}. All projects are always
- * present in the rail as childless leaves under the "Projects" parent;
- * activation adds three sub-items (Overview / Issues / Settings) wired to
- * the resolved {@code :projectId} route paths, deactivation removes them
- * again. The project leaf itself is never added or removed at runtime —
- * only its children list mutates.
+ * Layout for the dynamic-projects demo. Hosts the rail and a navbar with a {@link
+ * MultiSelectComboBox} that drives a {@link ActiveProjectsRegistry session-scoped registry of
+ * active projects}. All projects are always present in the rail as childless leaves under the
+ * "Projects" parent; activation adds three sub-items (Overview / Issues / Settings) wired to the
+ * resolved {@code :projectId} route paths, deactivation removes them again. The project leaf itself
+ * is never added or removed at runtime — only its children list mutates.
  */
 @Layout("dynamic-projects")
 @CssImport("./demo-styles.css")
@@ -52,8 +50,10 @@ public class DynamicProjectsLayout extends VerticalLayout
     private final Span activeItemBreadcrumb = new Span();
     private final SideNavRail nav = new SideNavRail();
     private final SideNavRailItem projectsParent = new SideNavRailItem("Projects");
+
     /** Project leaf for each project ID, created upfront and reused across activate/deactivate. */
     private final Map<String, SideNavRailItem> projectItems = new HashMap<>();
+
     private final MultiSelectComboBox<Project> projectSelect = new MultiSelectComboBox<>();
 
     private Registration registryListenerHandle;
@@ -63,8 +63,8 @@ public class DynamicProjectsLayout extends VerticalLayout
         setPadding(false);
         setSpacing(false);
 
-        SideNavRailItem home = new SideNavRailItem(
-                "Home", "dynamic-projects", VaadinIcon.HOME.create());
+        SideNavRailItem home =
+                new SideNavRailItem("Home", "dynamic-projects", VaadinIcon.HOME.create());
         projectsParent.setPrefixComponent(VaadinIcon.FOLDER_O.create());
         nav.addItem(home, projectsParent);
 
@@ -77,13 +77,19 @@ public class DynamicProjectsLayout extends VerticalLayout
             projectItems.put(p.id(), item);
         }
 
-        Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
-            boolean railMode = !nav.isRailMode();
-            nav.setRailMode(railMode);
-            e.getSource().setIcon((railMode
-                    ? VaadinIcon.CHEVRON_RIGHT_SMALL
-                    : VaadinIcon.CHEVRON_LEFT_SMALL).create());
-        });
+        Button toggle =
+                new Button(
+                        VaadinIcon.CHEVRON_LEFT_SMALL.create(),
+                        e -> {
+                            boolean railMode = !nav.isRailMode();
+                            nav.setRailMode(railMode);
+                            e.getSource()
+                                    .setIcon(
+                                            (railMode
+                                                            ? VaadinIcon.CHEVRON_RIGHT_SMALL
+                                                            : VaadinIcon.CHEVRON_LEFT_SMALL)
+                                                    .create());
+                        });
 
         VerticalLayout sidebar = new VerticalLayout(toggle, nav);
         sidebar.setPadding(false);
@@ -92,7 +98,8 @@ public class DynamicProjectsLayout extends VerticalLayout
         sidebar.getStyle().set("border-right", "1px solid var(--lumo-contrast-10pct)");
 
         activeItemBreadcrumb.setId("active-item-breadcrumb");
-        activeItemBreadcrumb.getStyle()
+        activeItemBreadcrumb
+                .getStyle()
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("margin-bottom", "var(--lumo-space-s)");
@@ -119,9 +126,7 @@ public class DynamicProjectsLayout extends VerticalLayout
 
     private HorizontalLayout buildNavbar() {
         Span title = new Span("Dynamic projects demo");
-        title.getStyle()
-                .set("font-weight", "600")
-                .set("font-size", "var(--lumo-font-size-l)");
+        title.getStyle().set("font-weight", "600").set("font-size", "var(--lumo-font-size-l)");
 
         projectSelect.setId("active-projects-select");
         projectSelect.setLabel("Active projects");
@@ -228,15 +233,16 @@ public class DynamicProjectsLayout extends VerticalLayout
     }
 
     /**
-     * Mirrors the original {@code MainLayout} breadcrumb pattern — re-render
-     * the active item's label after every navigation. Fires for the initial
-     * navigation too, so the first paint already shows the resolved label.
+     * Mirrors the original {@code MainLayout} breadcrumb pattern — re-render the active item's
+     * label after every navigation. Fires for the initial navigation too, so the first paint
+     * already shows the resolved label.
      */
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
-        activeItemBreadcrumb.setText(nav.getActiveViewItem()
-                .map(item -> "Active: " + item.getLabel())
-                .orElse("Active: (no match)"));
+        activeItemBreadcrumb.setText(
+                nav.getActiveViewItem()
+                        .map(item -> "Active: " + item.getLabel())
+                        .orElse("Active: (no match)"));
     }
 
     @Override

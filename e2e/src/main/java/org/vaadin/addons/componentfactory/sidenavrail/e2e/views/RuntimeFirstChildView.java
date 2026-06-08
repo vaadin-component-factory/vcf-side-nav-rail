@@ -23,12 +23,11 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Fixture for the runtime-leaf-becomes-parent regression. {@code parent}
- * starts attached with no children — exactly the dynamic-projects-demo
- * pattern where a "Projects" container exists upfront and per-project
- * sub-items are activated later. The button adds three children at runtime
- * so the spec can verify the expand→popover-gating wiring kicks in for an
- * item that didn't have it at first attach.
+ * Fixture for the runtime-leaf-becomes-parent regression. {@code parent} starts attached with no
+ * children — exactly the dynamic-projects-demo pattern where a "Projects" container exists upfront
+ * and per-project sub-items are activated later. The button adds three children at runtime so the
+ * spec can verify the expand→popover-gating wiring kicks in for an item that didn't have it at
+ * first attach.
  */
 @Route("runtime-first-child")
 public class RuntimeFirstChildView extends VerticalLayout {
@@ -40,13 +39,16 @@ public class RuntimeFirstChildView extends VerticalLayout {
         SideNavRailItem parent = new SideNavRailItem("Projects");
         rail.addItem(parent);
 
-        Button addChildren = new Button("Add children", e -> {
-            if (parent.getItems().isEmpty()) {
-                parent.addItem(new SideNavRailItem("Phoenix"));
-                parent.addItem(new SideNavRailItem("Atlas"));
-                parent.addItem(new SideNavRailItem("Voyager"));
-            }
-        });
+        Button addChildren =
+                new Button(
+                        "Add children",
+                        e -> {
+                            if (parent.getItems().isEmpty()) {
+                                parent.addItem(new SideNavRailItem("Phoenix"));
+                                parent.addItem(new SideNavRailItem("Atlas"));
+                                parent.addItem(new SideNavRailItem("Voyager"));
+                            }
+                        });
         addChildren.setId("add-children");
 
         add(new HorizontalLayout(rail, addChildren));

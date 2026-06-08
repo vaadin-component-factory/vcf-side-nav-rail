@@ -30,8 +30,7 @@ public class NestedPopoverView extends VerticalLayout {
         SideNavRail rail = new SideNavRail();
         rail.setId("rail");
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
 
         SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
         branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));

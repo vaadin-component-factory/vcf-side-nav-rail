@@ -21,11 +21,12 @@ public class DynamicProjectsHomeView extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
         add(new H2("Dynamic projects demo"));
-        add(new Paragraph(
-                "Activate one or more projects via the multiselect at the top "
-                        + "right of the navbar. Each activated project appears under "
-                        + "\"Projects\" in the rail with its own Overview / Issues / "
-                        + "Settings pages. Deactivating removes the rail entries and "
-                        + "blocks direct URL access to that project's pages."));
+        add(
+                new Paragraph(
+                        "Activate one or more projects via the multiselect at the top "
+                                + "right of the navbar. Each activated project appears under "
+                                + "\"Projects\" in the rail with its own Overview / Issues / "
+                                + "Settings pages. Deactivating removes the rail entries and "
+                                + "blocks direct URL access to that project's pages."));
     }
 }

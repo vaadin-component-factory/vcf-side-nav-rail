@@ -36,19 +36,18 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * A {@link SideNav} that can be switched into a compact icon-only <em>rail</em> mode
- * and shows a hover popover for items with children. Use with {@link SideNavRailItem}
- * for the item tree; plain {@link com.vaadin.flow.component.sidenav.SideNavItem}s work
- * but won't participate in the CSS label-wrap or popover gating.
+ * A {@link SideNav} that can be switched into a compact icon-only <em>rail</em> mode and shows a
+ * hover popover for items with children. Use with {@link SideNavRailItem} for the item tree; plain
+ * {@link com.vaadin.flow.component.sidenav.SideNavItem}s work but won't participate in the CSS
+ * label-wrap or popover gating.
  *
  * <p>The component toggles between two visual states:
  *
  * <ul>
  *   <li><b>Normal mode</b> — behaves like a standard {@code SideNav}.
- *   <li><b>Rail mode</b> — the {@code theme="rail"} attribute is set on the root
- *       element and bundled CSS collapses the nav to a narrow icon-only column.
- *       Inline expansion state is preserved (just visually suppressed) and restored
- *       when switching back.
+ *   <li><b>Rail mode</b> — the {@code theme="rail"} attribute is set on the root element and
+ *       bundled CSS collapses the nav to a narrow icon-only column. Inline expansion state is
+ *       preserved (just visually suppressed) and restored when switching back.
  * </ul>
  *
  * <p>Typical usage inside a layout:
@@ -60,9 +59,9 @@ import java.util.function.Consumer;
  * Button toggle = new Button("Rail", e -> rail.setRailMode(!rail.isRailMode()));
  * }</pre>
  *
- * <p>The component does not ship with a toggle button — applications integrate one where
- * it fits their layout. This is intentional: auto-collapse, persistent state, and
- * responsive breakpoint handling are the application's concern.
+ * <p>The component does not ship with a toggle button — applications integrate one where it fits
+ * their layout. This is intentional: auto-collapse, persistent state, and responsive breakpoint
+ * handling are the application's concern.
  */
 @CssImport("./side-nav-rail.css")
 @JsModule("./side-nav-rail.js")
@@ -95,12 +94,12 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Creates a rail with a header label. See
-     * {@link SideNav#setLabel(String)} for the semantics — the label renders above the
-     * item list and can be used to group multiple {@code SideNav} instances visually.
+     * Creates a rail with a header label. See {@link SideNav#setLabel(String)} for the semantics —
+     * the label renders above the item list and can be used to group multiple {@code SideNav}
+     * instances visually.
      *
-     * @param label the header label rendered above the item list; may be {@code null}
-     *     for an unlabelled rail
+     * @param label the header label rendered above the item list; may be {@code null} for an
+     *     unlabelled rail
      */
     public SideNavRail(String label) {
         super(label);
@@ -124,33 +123,35 @@ public class SideNavRail extends SideNav {
         // @JsModule import time (see side-nav-rail.js). We call the global
         // directly instead of a dynamic import() because dynamic imports
         // inside executeJs do not resolve reliably in Vaadin's production bundle.
-        attachEvent.getUI().getPage().executeJs(
-                "window.vaadinAddonsSideNavRail.init($0);",
-                getElement());
+        attachEvent
+                .getUI()
+                .getPage()
+                .executeJs("window.vaadinAddonsSideNavRail.init($0);", getElement());
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        detachEvent.getUI().getPage().executeJs(
-                "window.vaadinAddonsSideNavRail.dispose($0);",
-                getElement());
+        detachEvent
+                .getUI()
+                .getPage()
+                .executeJs("window.vaadinAddonsSideNavRail.dispose($0);", getElement());
     }
 
     /**
-     * Switches the rail between normal mode and icon-only rail mode. Fires a {@link RailModeChangedEvent}.
+     * Switches the rail between normal mode and icon-only rail mode. Fires a {@link
+     * RailModeChangedEvent}.
      */
     public void toggleRailMode() {
         setRailMode(!isRailMode());
     }
 
-
     /**
-     * Switches the rail between normal mode and icon-only rail mode. No-op if the
-     * state is unchanged; otherwise fires a {@link RailModeChangedEvent}.
+     * Switches the rail between normal mode and icon-only rail mode. No-op if the state is
+     * unchanged; otherwise fires a {@link RailModeChangedEvent}.
      *
-     * @param railMode {@code true} to enter rail mode (icon-only), {@code false} to
-     *     return to normal mode (full-width with labels)
+     * @param railMode {@code true} to enter rail mode (icon-only), {@code false} to return to
+     *     normal mode (full-width with labels)
      */
     public void setRailMode(boolean railMode) {
         if (this.railMode == railMode) {
@@ -170,8 +171,7 @@ public class SideNavRail extends SideNav {
         applyAriaToRootItems();
         applyNestedTabindex();
         applyRootMatchNested();
-        if (popoverHeaderMode != PopoverHeaderMode.NONE
-                && popoverHeaderOnlyInRailMode) {
+        if (popoverHeaderMode != PopoverHeaderMode.NONE && popoverHeaderOnlyInRailMode) {
             rebuildPopoverContents();
         }
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
@@ -187,8 +187,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current popover mode. Default: {@link PopoverOn#ALL_COLLAPSED_ITEMS}.
-     * See {@link PopoverOn} for the full behaviour matrix.
+     * The current popover mode. Default: {@link PopoverOn#ALL_COLLAPSED_ITEMS}. See {@link
+     * PopoverOn} for the full behaviour matrix.
      *
      * @return the active {@link PopoverOn}; never {@code null}
      */
@@ -197,12 +197,11 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets the popover mode. Rewires all child items' popover eligibility immediately
-     * so open popovers that are no longer eligible close right away.
+     * Sets the popover mode. Rewires all child items' popover eligibility immediately so open
+     * popovers that are no longer eligible close right away.
      *
-     * <p>Has no effect on root items with children while
-     * {@link #setChildrenOnlyInPopover(boolean)} is enabled — that mode forces the
-     * popover on regardless of this setting.</p>
+     * <p>Has no effect on root items with children while {@link #setChildrenOnlyInPopover(boolean)}
+     * is enabled — that mode forces the popover on regardless of this setting.
      *
      * @param mode the new {@link PopoverOn}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
@@ -213,9 +212,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current header mode for popovers. Default:
-     * {@link PopoverHeaderMode#LABEL_ONLY}. See {@link PopoverHeaderMode} for
-     * the rendering rules per value.
+     * The current header mode for popovers. Default: {@link PopoverHeaderMode#LABEL_ONLY}. See
+     * {@link PopoverHeaderMode} for the rendering rules per value.
      *
      * @return the active {@link PopoverHeaderMode}; never {@code null}
      */
@@ -224,50 +222,46 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets whether (and how) each popover renders a header identifying the
-     * owning item. Rebuilds the content of all existing popovers so the change
-     * is visible immediately.
+     * Sets whether (and how) each popover renders a header identifying the owning item. Rebuilds
+     * the content of all existing popovers so the change is visible immediately.
      *
-     * <p>The header is rail-mode-only by default — see
-     * {@link #setPopoverHeaderOnlyInRailMode(boolean)} to also show it in normal
-     * mode (e.g. together with {@link #setChildrenOnlyInPopover(boolean)}).
+     * <p>The header is rail-mode-only by default — see {@link
+     * #setPopoverHeaderOnlyInRailMode(boolean)} to also show it in normal mode (e.g. together with
+     * {@link #setChildrenOnlyInPopover(boolean)}).
      *
      * @param mode the new {@link PopoverHeaderMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setPopoverHeaderMode(PopoverHeaderMode mode) {
-        this.popoverHeaderMode = Objects.requireNonNull(
-                mode, "PopoverHeaderMode must not be null");
+        this.popoverHeaderMode = Objects.requireNonNull(mode, "PopoverHeaderMode must not be null");
         rebuildPopoverContents();
     }
 
     /**
-     * Whether the popover header is rendered only while the rail is in
-     * rail mode. Default: {@code true} (header is hidden in normal mode, where the
-     * item's label is already visible inline). Has no effect while the
-     * {@link #getPopoverHeaderMode() header mode} is
-     * {@link PopoverHeaderMode#NONE}.
+     * Whether the popover header is rendered only while the rail is in rail mode. Default: {@code
+     * true} (header is hidden in normal mode, where the item's label is already visible inline).
+     * Has no effect while the {@link #getPopoverHeaderMode() header mode} is {@link
+     * PopoverHeaderMode#NONE}.
      *
-     * @return {@code true} if the header is restricted to rail mode, {@code false} if
-     *     it is rendered in both modes
+     * @return {@code true} if the header is restricted to rail mode, {@code false} if it is
+     *     rendered in both modes
      */
     public boolean isPopoverHeaderOnlyInRailMode() {
         return popoverHeaderOnlyInRailMode;
     }
 
     /**
-     * Restricts the popover header to rail mode, or allows it in both
-     * modes. Default: {@code true}. Useful in combination with
-     * {@link #setChildrenOnlyInPopover(boolean)}, where the popover is the only place
-     * children appear even in normal mode and an item-identifying header may still be
-     * desired.
+     * Restricts the popover header to rail mode, or allows it in both modes. Default: {@code true}.
+     * Useful in combination with {@link #setChildrenOnlyInPopover(boolean)}, where the popover is
+     * the only place children appear even in normal mode and an item-identifying header may still
+     * be desired.
      *
-     * <p>Has no visible effect while {@link #getPopoverHeaderMode()} is
-     * {@link PopoverHeaderMode#NONE}. Rebuilds the content of all existing
-     * popovers so the change is visible immediately.
+     * <p>Has no visible effect while {@link #getPopoverHeaderMode()} is {@link
+     * PopoverHeaderMode#NONE}. Rebuilds the content of all existing popovers so the change is
+     * visible immediately.
      *
-     * @param onlyInRailMode {@code true} to render the header only in rail mode,
-     *     {@code false} to render it in both modes
+     * @param onlyInRailMode {@code true} to render the header only in rail mode, {@code false} to
+     *     render it in both modes
      */
     public void setPopoverHeaderOnlyInRailMode(boolean onlyInRailMode) {
         if (this.popoverHeaderOnlyInRailMode == onlyInRailMode) {
@@ -278,9 +272,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current rail-tooltip mode. Default: {@link RailTooltipMode#POPOVER_HEADER}.
-     * Tooltips are only shown while the rail is in rail mode; see
-     * {@link RailTooltipMode} for the per-value semantics.
+     * The current rail-tooltip mode. Default: {@link RailTooltipMode#POPOVER_HEADER}. Tooltips are
+     * only shown while the rail is in rail mode; see {@link RailTooltipMode} for the per-value
+     * semantics.
      *
      * @return the active {@link RailTooltipMode}; never {@code null}
      */
@@ -289,24 +283,23 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Controls how root items surface their label while the rail is in rail mode.
-     * Re-applies the tooltip state to every root item immediately. See
-     * {@link RailTooltipMode} for the per-value semantics.
+     * Controls how root items surface their label while the rail is in rail mode. Re-applies the
+     * tooltip state to every root item immediately. See {@link RailTooltipMode} for the per-value
+     * semantics.
      *
      * @param mode the new {@link RailTooltipMode}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setRailTooltipMode(RailTooltipMode mode) {
-        this.railTooltipMode = Objects.requireNonNull(
-                mode, "RailTooltipMode must not be null");
+        this.railTooltipMode = Objects.requireNonNull(mode, "RailTooltipMode must not be null");
         applyTooltips();
         refreshAllPopoversFromOwner();
     }
 
     /**
-     * Whether the rail currently asks {@link SideNavRailItem} to create a popover for a
-     * leaf (childless) root item, so the popover can act as a Vaadin-themed tooltip.
-     * True iff rail mode is active and {@link RailTooltipMode#POPOVER_HEADER} is selected.
+     * Whether the rail currently asks {@link SideNavRailItem} to create a popover for a leaf
+     * (childless) root item, so the popover can act as a Vaadin-themed tooltip. True iff rail mode
+     * is active and {@link RailTooltipMode#POPOVER_HEADER} is selected.
      *
      * @return {@code true} if leaf items should have a popover, {@code false} otherwise
      */
@@ -324,9 +317,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets the hover delay (ms) before the popover opens. Applied to every existing
-     * popover immediately. Negative values behave as Vaadin's {@code Popover} defines
-     * them — the addon does not validate.
+     * Sets the hover delay (ms) before the popover opens. Applied to every existing popover
+     * immediately. Negative values behave as Vaadin's {@code Popover} defines them — the addon does
+     * not validate.
      *
      * @param hoverDelayMs the new hover delay in milliseconds
      */
@@ -336,8 +329,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The hide delay (ms) after the pointer leaves the target before the popover closes.
-     * Default: 300&nbsp;ms (Lumo-typical).
+     * The hide delay (ms) after the pointer leaves the target before the popover closes. Default:
+     * 300&nbsp;ms (Lumo-typical).
      *
      * @return the hide delay in milliseconds
      */
@@ -346,8 +339,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets the hide delay (ms) after the pointer leaves the target before the popover
-     * closes. Applied to every existing popover immediately.
+     * Sets the hide delay (ms) after the pointer leaves the target before the popover closes.
+     * Applied to every existing popover immediately.
      *
      * @param hideDelayMs the new hide delay in milliseconds
      */
@@ -357,9 +350,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The position the popover opens at relative to its item. Default:
-     * {@link PopoverPosition#END_TOP} — top-aligned, to the inline-end of the item
-     * (right in an LTR layout). Suitable for a rail pinned to the inline-start edge.
+     * The position the popover opens at relative to its item. Default: {@link
+     * PopoverPosition#END_TOP} — top-aligned, to the inline-end of the item (right in an LTR
+     * layout). Suitable for a rail pinned to the inline-start edge.
      *
      * @return the active {@link PopoverPosition}; never {@code null}
      */
@@ -374,15 +367,14 @@ public class SideNavRail extends SideNav {
      * @throws NullPointerException if {@code position} is {@code null}
      */
     public void setPopoverPosition(PopoverPosition position) {
-        this.popoverPosition = Objects.requireNonNull(
-                position, "PopoverPosition must not be null");
+        this.popoverPosition = Objects.requireNonNull(position, "PopoverPosition must not be null");
         applyPopoverSettings();
     }
 
     /**
-     * Whether each popover renders the small Lumo arrow pointing back at its target
-     * item. Default: {@code true} (arrow visible — applies the {@code arrow} theme
-     * variant of {@code <vaadin-popover>}).
+     * Whether each popover renders the small Lumo arrow pointing back at its target item. Default:
+     * {@code true} (arrow visible — applies the {@code arrow} theme variant of {@code
+     * <vaadin-popover>}).
      *
      * @return {@code true} if the arrow is shown, {@code false} if hidden
      */
@@ -391,11 +383,11 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets whether each popover renders the small Lumo arrow pointing back at its
-     * target item. Applied to every existing popover immediately.
+     * Sets whether each popover renders the small Lumo arrow pointing back at its target item.
+     * Applied to every existing popover immediately.
      *
-     * @param visible {@code true} to show the arrow (default), {@code false} to hide
-     *     it (cleaner look when popovers are tightly packed against the rail)
+     * @param visible {@code true} to show the arrow (default), {@code false} to hide it (cleaner
+     *     look when popovers are tightly packed against the rail)
      */
     public void setPopoverArrowVisible(boolean visible) {
         this.popoverArrowVisible = visible;
@@ -403,9 +395,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Whether nested items are rendered only inside the hover popover, never inline
-     * below their parent. Default: {@code false} (children are visible inline and
-     * mirrored into the popover — Vaadin's standard behaviour).
+     * Whether nested items are rendered only inside the hover popover, never inline below their
+     * parent. Default: {@code false} (children are visible inline and mirrored into the popover —
+     * Vaadin's standard behaviour).
      *
      * @return {@code true} if inline children are suppressed
      */
@@ -414,24 +406,22 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Switches between the standard inline-and-popover layout for nested items
-     * ({@code false}, default) and a popover-only layout ({@code true}). When
-     * enabled, nested {@code <vaadin-side-nav-item>}s are CSS-hidden and the
-     * chevron toggle is suppressed, so the only path to a parent's children is
-     * the hover popover. Useful for navigation designs that want a flat,
-     * non-tree appearance in the rail itself.
+     * Switches between the standard inline-and-popover layout for nested items ({@code false},
+     * default) and a popover-only layout ({@code true}). When enabled, nested {@code
+     * <vaadin-side-nav-item>}s are CSS-hidden and the chevron toggle is suppressed, so the only
+     * path to a parent's children is the hover popover. Useful for navigation designs that want a
+     * flat, non-tree appearance in the rail itself.
      *
-     * <p>While enabled, this overrides {@link #setPopoverOn(PopoverOn)}: the hover
-     * popover is always shown on root items with children (in both rail and normal
-     * mode), since it is the only path to their children.</p>
+     * <p>While enabled, this overrides {@link #setPopoverOn(PopoverOn)}: the hover popover is
+     * always shown on root items with children (in both rail and normal mode), since it is the only
+     * path to their children.
      *
-     * <p>Vaadin's auto-expand-on-route-match still fires server-side, but has no
-     * visual effect while this is on; switching the flag back to {@code false}
-     * restores the default tree appearance with whatever expanded state the
-     * items had accumulated.
+     * <p>Vaadin's auto-expand-on-route-match still fires server-side, but has no visual effect
+     * while this is on; switching the flag back to {@code false} restores the default tree
+     * appearance with whatever expanded state the items had accumulated.
      *
-     * @param enabled {@code true} to hide inline children and route everything
-     *     through the popover, {@code false} to use the default layout
+     * @param enabled {@code true} to hide inline children and route everything through the popover,
+     *     {@code false} to use the default layout
      */
     public void setChildrenOnlyInPopover(boolean enabled) {
         this.childrenOnlyInPopover = enabled;
@@ -444,8 +434,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current {@link RootMatchNested} mode. Default: {@link RootMatchNested#NONE}.
-     * See {@link RootMatchNested} for the per-value semantics.
+     * The current {@link RootMatchNested} mode. Default: {@link RootMatchNested#NONE}. See {@link
+     * RootMatchNested} for the per-value semantics.
      *
      * @return the active {@link RootMatchNested}; never {@code null}
      */
@@ -454,48 +444,44 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets the {@link RootMatchNested} mode. The override is applied (or rolled back)
-     * on every root item immediately, snapshotting the original {@code matchNested}
-     * value the first time it is forced so the user-set value can be restored when
-     * the override is disabled again.
+     * Sets the {@link RootMatchNested} mode. The override is applied (or rolled back) on every root
+     * item immediately, snapshotting the original {@code matchNested} value the first time it is
+     * forced so the user-set value can be restored when the override is disabled again.
      *
      * @param mode the new {@link RootMatchNested}; must not be {@code null}
      * @throws NullPointerException if {@code mode} is {@code null}
      */
     public void setRootMatchNested(RootMatchNested mode) {
-        this.rootMatchNested = Objects.requireNonNull(
-                mode, "RootMatchNested must not be null");
+        this.rootMatchNested = Objects.requireNonNull(mode, "RootMatchNested must not be null");
         applyRootMatchNested();
     }
 
     /**
-     * Returns all rail items whose own {@linkplain SideNavItem#getPath() path}
-     * (or any of their {@linkplain SideNavItem#getPathAliases() path aliases})
-     * equals the {@linkplain UI#getInternals() current view's location}.
+     * Returns all rail items whose own {@linkplain SideNavItem#getPath() path} (or any of their
+     * {@linkplain SideNavItem#getPathAliases() path aliases}) equals the {@linkplain
+     * UI#getInternals() current view's location}.
      *
-     * <p>Match semantics:</p>
+     * <p>Match semantics:
+     *
      * <ul>
-     *   <li><b>Path equality only.</b> An item's {@code matchNested} setting is
-     *       <em>deliberately ignored</em> — a parent does not become active just
-     *       because one of its descendants matches the current view. This mirrors
-     *       the typical use case (breadcrumbs, page titles): callers want the
-     *       leaf-most item that owns the displayed view.</li>
-     *   <li><b>Aliases count.</b> Vaadin's client-side {@code [active]} highlight
-     *       also matches aliases, so server-side answer and visual highlight stay
-     *       aligned.</li>
-     *   <li><b>Real items only.</b> The internal clones used to populate hover
-     *       popovers live under a separate nested {@code SideNav} and are
-     *       skipped — only items the application actually inserted are returned.</li>
-     *   <li><b>DFS pre-order.</b> Multiple matches (e.g. two items wired to the
-     *       same path, or a path-vs-alias collision) are returned in DFS
-     *       pre-order so iteration order is deterministic and tied to insertion
-     *       order.</li>
+     *   <li><b>Path equality only.</b> An item's {@code matchNested} setting is <em>deliberately
+     *       ignored</em> — a parent does not become active just because one of its descendants
+     *       matches the current view. This mirrors the typical use case (breadcrumbs, page titles):
+     *       callers want the leaf-most item that owns the displayed view.
+     *   <li><b>Aliases count.</b> Vaadin's client-side {@code [active]} highlight also matches
+     *       aliases, so server-side answer and visual highlight stay aligned.
+     *   <li><b>Real items only.</b> The internal clones used to populate hover popovers live under
+     *       a separate nested {@code SideNav} and are skipped — only items the application actually
+     *       inserted are returned.
+     *   <li><b>DFS pre-order.</b> Multiple matches (e.g. two items wired to the same path, or a
+     *       path-vs-alias collision) are returned in DFS pre-order so iteration order is
+     *       deterministic and tied to insertion order.
      * </ul>
      *
-     * <p>The current location is read via
-     * {@code UI.getCurrent().getInternals().getActiveViewLocation()}, the same
-     * value that {@code AfterNavigationEvent.getLocation()} surfaces. Returns an
-     * empty list when there is no current {@link UI}.</p>
+     * <p>The current location is read via {@code
+     * UI.getCurrent().getInternals().getActiveViewLocation()}, the same value that {@code
+     * AfterNavigationEvent.getLocation()} surfaces. Returns an empty list when there is no current
+     * {@link UI}.
      *
      * @return all matching rail items in DFS pre-order; empty if none match
      * @see #getActiveViewItem()
@@ -507,17 +493,18 @@ public class SideNavRail extends SideNav {
         }
 
         List<SideNavRailItem> matches = new ArrayList<>();
-        forEachRailItemRecursive(item -> {
-            if (matchesLocation(item, currentPath)) {
-                matches.add(item);
-            }
-        });
+        forEachRailItemRecursive(
+                item -> {
+                    if (matchesLocation(item, currentPath)) {
+                        matches.add(item);
+                    }
+                });
         return List.copyOf(matches);
     }
 
     /**
-     * The first match from {@link #getActiveViewItems()}, or empty if no item
-     * matches. Convenience accessor for the typical single-match case.
+     * The first match from {@link #getActiveViewItems()}, or empty if no item matches. Convenience
+     * accessor for the typical single-match case.
      *
      * @return the first matching rail item in DFS pre-order, or empty
      */
@@ -552,9 +539,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Strips a leading slash (matching Vaadin's {@code SideNavItem#sanitizePath})
-     * and a trailing slash so {@code "foo"}, {@code "/foo"}, and {@code "foo/"}
-     * all compare equal.
+     * Strips a leading slash (matching Vaadin's {@code SideNavItem#sanitizePath}) and a trailing
+     * slash so {@code "foo"}, {@code "/foo"}, and {@code "foo/"} all compare equal.
      */
     private static String normalizePath(String path) {
         if (path == null) {
@@ -616,8 +602,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Whether the {@link RootMatchNested} override should currently be active given
-     * the configured mode and the current rail-mode state.
+     * Whether the {@link RootMatchNested} override should currently be active given the configured
+     * mode and the current rail-mode state.
      */
     private boolean isRootMatchNestedActive() {
         return switch (rootMatchNested) {
@@ -651,9 +637,9 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * Sets or clears the tooltip attribute on a single root item based on the current
-     * rail-mode and {@link RailTooltipMode}. Always wipes the {@code data-rail-tooltip}
-     * attribute first so flipping the mode doesn't leave a stale attribute on the item.
+     * Sets or clears the tooltip attribute on a single root item based on the current rail-mode and
+     * {@link RailTooltipMode}. Always wipes the {@code data-rail-tooltip} attribute first so
+     * flipping the mode doesn't leave a stale attribute on the item.
      */
     private void applyTooltipFor(SideNavItem item) {
         item.getElement().removeAttribute(RAIL_TOOLTIP_ATTRIBUTE);
@@ -666,17 +652,20 @@ public class SideNavRail extends SideNav {
         }
         switch (railTooltipMode) {
             case SIMPLE -> item.getElement().setAttribute(RAIL_TOOLTIP_ATTRIBUTE, label);
-            case POPOVER_HEADER -> { /* No attribute; leaf-popover wiring handles this. */ }
-            case NONE -> { /* Already short-circuited by the early return above. */ }
+            case POPOVER_HEADER -> {
+                /* No attribute; leaf-popover wiring handles this. */
+            }
+            case NONE -> {
+                /* Already short-circuited by the early return above. */
+            }
         }
     }
 
     /**
-     * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever
-     * {@link #setRailMode(boolean)} actually changes the state (no-ops don't fire).
+     * Registers a listener for {@link RailModeChangedEvent}. The event fires whenever {@link
+     * #setRailMode(boolean)} actually changes the state (no-ops don't fire).
      *
-     * @param listener the listener to invoke on each rail-mode transition; must not be
-     *     {@code null}
+     * @param listener the listener to invoke on each rail-mode transition; must not be {@code null}
      * @return a {@link Registration} handle that can be used to remove the listener
      */
     public Registration addRailModeChangedListener(
@@ -687,10 +676,9 @@ public class SideNavRail extends SideNav {
     /**
      * {@inheritDoc}
      *
-     * <p>Only accepts {@link SideNavRailItem} instances. Passing a plain
-     * {@link SideNavItem} throws {@link IllegalArgumentException} — the label wrap and
-     * popover lifecycle depend on {@code SideNavRailItem}'s overrides and cannot be
-     * retrofitted onto a parent-class instance.
+     * <p>Only accepts {@link SideNavRailItem} instances. Passing a plain {@link SideNavItem} throws
+     * {@link IllegalArgumentException} — the label wrap and popover lifecycle depend on {@code
+     * SideNavRailItem}'s overrides and cannot be retrofitted onto a parent-class instance.
      *
      * @param items the {@link SideNavRailItem} children to append to the rail
      * @throws IllegalArgumentException if any item is not a {@link SideNavRailItem}
@@ -712,8 +700,8 @@ public class SideNavRail extends SideNav {
      * {@inheritDoc}
      *
      * @param item the {@link SideNavRailItem} to prepend to the rail
-     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
-     *     see {@link #addItem(SideNavItem...)}
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem}; see {@link
+     *     #addItem(SideNavItem...)}
      */
     @Override
     public void addItemAsFirst(SideNavItem item) {
@@ -727,8 +715,8 @@ public class SideNavRail extends SideNav {
      *
      * @param index where to insert the item
      * @param item the {@link SideNavRailItem} to insert
-     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
-     *     see {@link #addItem(SideNavItem...)}
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem}; see {@link
+     *     #addItem(SideNavItem...)}
      */
     @Override
     public void addItemAtIndex(int index, SideNavItem item) {

@@ -26,8 +26,8 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
  * Exercises the {@link SideNavRail#setPopoverHeaderOnlyInRailMode(boolean) only-in-rail-mode}
- * gating: the parent-label header is configured (FULL) and toggles for rail-mode and the flag
- * let Playwright assert all four combinations.
+ * gating: the parent-label header is configured (FULL) and toggles for rail-mode and the flag let
+ * Playwright assert all four combinations.
  */
 @Route("popover-header-only-in-rail-mode")
 public class PopoverHeaderOnlyInRailModeView extends VerticalLayout {
@@ -37,19 +37,21 @@ public class PopoverHeaderOnlyInRailModeView extends VerticalLayout {
         rail.setId("rail");
         rail.setPopoverHeaderMode(PopoverHeaderMode.FULL);
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
         rail.addItem(code);
 
         Button toggleRail = new Button("Toggle rail mode", e -> rail.toggleRailMode());
         toggleRail.setId("toggle-rail");
-        Button flagOn = new Button("only-in-rail-mode = true",
-                e -> rail.setPopoverHeaderOnlyInRailMode(true));
+        Button flagOn =
+                new Button(
+                        "only-in-rail-mode = true", e -> rail.setPopoverHeaderOnlyInRailMode(true));
         flagOn.setId("flag-on");
-        Button flagOff = new Button("only-in-rail-mode = false",
-                e -> rail.setPopoverHeaderOnlyInRailMode(false));
+        Button flagOff =
+                new Button(
+                        "only-in-rail-mode = false",
+                        e -> rail.setPopoverHeaderOnlyInRailMode(false));
         flagOff.setId("flag-off");
 
         add(new HorizontalLayout(rail, new HorizontalLayout(toggleRail, flagOn, flagOff)));

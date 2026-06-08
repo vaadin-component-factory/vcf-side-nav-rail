@@ -26,8 +26,8 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Compare the rendering of a standard {@link SideNav} with {@link SideNavRail} side by
- * side — the text in both should be pixel-identical.
+ * Compare the rendering of a standard {@link SideNav} with {@link SideNavRail} side by side — the
+ * text in both should be pixel-identical.
  */
 @Route("smoke/label-wrap")
 public class LabelWrapSmokeView extends HorizontalLayout {

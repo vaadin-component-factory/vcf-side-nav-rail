@@ -22,13 +22,20 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * §4.2 / §4.4.4: popover auto-opens on keyboard focus only while rail mode is active.
- * Outside rail mode, focus-triggered opening is disabled — the popover stays hover-only.
+ * §4.2 / §4.4.4: popover auto-opens on keyboard focus only while rail mode is active. Outside rail
+ * mode, focus-triggered opening is disabled — the popover stays hover-only.
  */
 class FocusTriggerTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     @Test
     void openOnFocusFalseInNormalMode() {

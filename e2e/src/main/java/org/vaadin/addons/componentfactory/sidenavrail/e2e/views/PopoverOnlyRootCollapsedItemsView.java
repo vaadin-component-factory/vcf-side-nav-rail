@@ -25,10 +25,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * ONLY_ROOT_COLLAPSED_ITEMS scenario — "Code" is a root item with children
- * (should get a popover); "Branches" is nested inside "Code" and itself has
- * children (must NOT get a popover because it is not a direct child of the
- * rail).
+ * ONLY_ROOT_COLLAPSED_ITEMS scenario — "Code" is a root item with children (should get a popover);
+ * "Branches" is nested inside "Code" and itself has children (must NOT get a popover because it is
+ * not a direct child of the rail).
  */
 @Route("only-root-collapsed-items")
 public class PopoverOnlyRootCollapsedItemsView extends VerticalLayout {
@@ -38,8 +37,7 @@ public class PopoverOnlyRootCollapsedItemsView extends VerticalLayout {
         rail.setPopoverOn(PopoverOn.ONLY_ROOT_COLLAPSED_ITEMS);
         rail.setId("rail");
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
 
         SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
         branches.addItem(new SideNavRailItem("Active", "/code/branches/active"));

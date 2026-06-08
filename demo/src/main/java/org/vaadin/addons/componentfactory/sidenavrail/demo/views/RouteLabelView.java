@@ -21,9 +21,9 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 
 /**
- * Shared base for the demo's placeholder views — every navigable route just
- * renders "You are on /&lt;path&gt;" so the SideNav's active-route highlight has
- * something to land on and navigation actually works without 404s.
+ * Shared base for the demo's placeholder views — every navigable route just renders "You are on
+ * /&lt;path&gt;" so the SideNav's active-route highlight has something to land on and navigation
+ * actually works without 404s.
  */
 abstract class RouteLabelView extends VerticalLayout implements BeforeEnterObserver {
 

@@ -26,36 +26,42 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Guards that {@link SideNavRail} and {@link SideNavRailItem} reject plain
- * {@link SideNavItem} children. A plain item lacks the label wrap and popover gating
- * and would silently misbehave, so we fail fast at add-time.
+ * Guards that {@link SideNavRail} and {@link SideNavRailItem} reject plain {@link SideNavItem}
+ * children. A plain item lacks the label wrap and popover gating and would silently misbehave, so
+ * we fail fast at add-time.
  */
 class TypeGuardTest {
 
     @Test
     void sideNavRail_rejectsPlainSideNavItem_inAddItem() {
         SideNavRail nav = new SideNavRail();
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> nav.addItem(new SideNavItem("Plain", "/plain")));
-        assertTrue(ex.getMessage().contains("SideNavRailItem"),
+        IllegalArgumentException ex =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> nav.addItem(new SideNavItem("Plain", "/plain")));
+        assertTrue(
+                ex.getMessage().contains("SideNavRailItem"),
                 "Error message should point the user at SideNavRailItem; got: " + ex.getMessage());
     }
 
     @Test
     void sideNavRail_rejectsPlainSideNavItem_inAddItemAsFirst() {
         SideNavRail nav = new SideNavRail();
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> nav.addItemAsFirst(new SideNavItem("Plain", "/plain")));
     }
 
     @Test
     void sideNavRail_rejectsPlainSideNavItem_amongMultiple() {
         SideNavRail nav = new SideNavRail();
-        assertThrows(IllegalArgumentException.class, () -> nav.addItem(
-                new SideNavRailItem("First", "/first"),
-                new SideNavItem("Plain", "/plain"),
-                new SideNavRailItem("Third", "/third")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        nav.addItem(
+                                new SideNavRailItem("First", "/first"),
+                                new SideNavItem("Plain", "/plain"),
+                                new SideNavRailItem("Third", "/third")));
     }
 
     @Test
@@ -70,9 +76,11 @@ class TypeGuardTest {
     @Test
     void sideNavRailItem_rejectsPlainSideNavItemAsChild() {
         SideNavRailItem parent = new SideNavRailItem("Parent");
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> parent.addItem(new SideNavItem("Plain", "/plain")));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> parent.addItemAsFirst(new SideNavItem("Plain", "/plain")));
     }
 
@@ -80,7 +88,8 @@ class TypeGuardTest {
     void sideNavRail_rejectsPlainSideNavItem_inAddItemAtIndex() {
         SideNavRail nav = new SideNavRail();
         nav.addItem(new SideNavRailItem("Existing", "/existing"));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> nav.addItemAtIndex(0, new SideNavItem("Plain", "/plain")));
     }
 
@@ -88,7 +97,8 @@ class TypeGuardTest {
     void sideNavRailItem_rejectsPlainSideNavItem_inAddItemAtIndex() {
         SideNavRailItem parent = new SideNavRailItem("Parent");
         parent.addItem(new SideNavRailItem("Existing", "/existing"));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> parent.addItemAtIndex(0, new SideNavItem("Plain", "/plain")));
     }
 

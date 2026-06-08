@@ -34,20 +34,20 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * {@link SideNavItem} variant that integrates with {@link SideNavRail}'s rail mode and
- * hover popover. API-compatible with {@code SideNavItem} — drop in anywhere you would
- * use {@code SideNavItem} under a {@link SideNavRail}.
+ * {@link SideNavItem} variant that integrates with {@link SideNavRail}'s rail mode and hover
+ * popover. API-compatible with {@code SideNavItem} — drop in anywhere you would use {@code
+ * SideNavItem} under a {@link SideNavRail}.
  *
  * <p>Two things happen beyond the standard item:
  *
  * <ul>
- *   <li>The string label is wrapped in a {@code <span class="label">} so rail-mode CSS
- *       (which selects {@code vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label})
- *       can hide it. A bare text node cannot be targeted by CSS.
- *   <li>Items that have children lazily attach a {@link Popover} on first attach. The
- *       popover's hover-trigger eligibility is gated by the owning
- *       {@link SideNavRail}'s {@link PopoverOn} and rail state — see
- *       {@link SideNavRail#setPopoverOn(PopoverOn)} for the full behaviour matrix.
+ *   <li>The string label is wrapped in a {@code <span class="label">} so rail-mode CSS (which
+ *       selects {@code vaadin-side-nav[theme~="rail"] vaadin-side-nav-item .label}) can hide it. A
+ *       bare text node cannot be targeted by CSS.
+ *   <li>Items that have children lazily attach a {@link Popover} on first attach. The popover's
+ *       hover-trigger eligibility is gated by the owning {@link SideNavRail}'s {@link PopoverOn}
+ *       and rail state — see {@link SideNavRail#setPopoverOn(PopoverOn)} for the full behaviour
+ *       matrix.
  * </ul>
  *
  * <p>Typical usage:
@@ -73,8 +73,8 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * Non-navigating container item. Click does nothing; useful as a parent for children.
      *
-     * @param label the visible label of the item; may be {@code null} for an unlabelled
-     *     item, in which case the rail-mode letter-avatar fallback is suppressed
+     * @param label the visible label of the item; may be {@code null} for an unlabelled item, in
+     *     which case the rail-mode letter-avatar fallback is suppressed
      */
     public SideNavRailItem(String label) {
         super(label);
@@ -85,8 +85,8 @@ public class SideNavRailItem extends SideNavItem {
      * Item navigating to the given path (server- or client-side route).
      *
      * @param label the visible label of the item; may be {@code null}
-     * @param path the route path the item navigates to on click; may be {@code null}
-     *     for a non-navigating item
+     * @param path the route path the item navigates to on click; may be {@code null} for a
+     *     non-navigating item
      */
     public SideNavRailItem(String label, String path) {
         super(label, path);
@@ -97,8 +97,7 @@ public class SideNavRailItem extends SideNavItem {
      * Item navigating to the given Flow route class.
      *
      * @param label the visible label of the item; may be {@code null}
-     * @param view the Flow view class the item navigates to on click; must not be
-     *     {@code null}
+     * @param view the Flow view class the item navigates to on click; must not be {@code null}
      */
     public SideNavRailItem(String label, Class<? extends Component> view) {
         super(label, view);
@@ -106,15 +105,14 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Item navigating to a path, with a prefix component rendered on the left
-     * (typically an icon).
+     * Item navigating to a path, with a prefix component rendered on the left (typically an icon).
      *
      * @param label the visible label of the item; may be {@code null}
-     * @param path the route path the item navigates to on click; may be {@code null}
-     *     for a non-navigating item
-     * @param prefixComponent the component rendered to the left of the label (typically
-     *     a {@code VaadinIcon} or an {@code Avatar}); may be {@code null}, in which
-     *     case the rail-mode letter-avatar fallback kicks in
+     * @param path the route path the item navigates to on click; may be {@code null} for a
+     *     non-navigating item
+     * @param prefixComponent the component rendered to the left of the label (typically a {@code
+     *     VaadinIcon} or an {@code Avatar}); may be {@code null}, in which case the rail-mode
+     *     letter-avatar fallback kicks in
      */
     public SideNavRailItem(String label, String path, Component prefixComponent) {
         super(label, path, prefixComponent);
@@ -125,11 +123,10 @@ public class SideNavRailItem extends SideNavItem {
      * Item navigating to a Flow route class, with a prefix component on the left.
      *
      * @param label the visible label of the item; may be {@code null}
-     * @param view the Flow view class the item navigates to on click; must not be
-     *     {@code null}
-     * @param prefixComponent the component rendered to the left of the label (typically
-     *     a {@code VaadinIcon} or an {@code Avatar}); may be {@code null}, in which
-     *     case the rail-mode letter-avatar fallback kicks in
+     * @param view the Flow view class the item navigates to on click; must not be {@code null}
+     * @param prefixComponent the component rendered to the left of the label (typically a {@code
+     *     VaadinIcon} or an {@code Avatar}); may be {@code null}, in which case the rail-mode
+     *     letter-avatar fallback kicks in
      */
     public SideNavRailItem(
             String label, Class<? extends Component> view, Component prefixComponent) {
@@ -140,10 +137,10 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * {@inheritDoc}
      *
-     * <p>Overridden to re-wrap the label in {@code <span class="label">} so CSS can hide
-     * it in rail mode, and to refresh the auto-generated letter-avatar fallback (see
-     * {@link #ensureLetterAvatar()}) so it matches the new label's first letter.
-     * Idempotent across repeated calls.
+     * <p>Overridden to re-wrap the label in {@code <span class="label">} so CSS can hide it in rail
+     * mode, and to refresh the auto-generated letter-avatar fallback (see {@link
+     * #ensureLetterAvatar()}) so it matches the new label's first letter. Idempotent across
+     * repeated calls.
      *
      * @param label the new label text; may be {@code null}
      */
@@ -156,10 +153,10 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Keeps the installed tooltip attribute in sync with the label. The owning rail
-     * decides <em>whether</em> a tooltip is installed; we just refresh the text on the
-     * {@code data-rail-tooltip} attribute if it is currently set so a relabelled item
-     * doesn't carry a stale tooltip. No-op if no tooltip is installed.
+     * Keeps the installed tooltip attribute in sync with the label. The owning rail decides
+     * <em>whether</em> a tooltip is installed; we just refresh the text on the {@code
+     * data-rail-tooltip} attribute if it is currently set so a relabelled item doesn't carry a
+     * stale tooltip. No-op if no tooltip is installed.
      */
     private void refreshTooltipTextIfInstalled() {
         if (!getElement().hasAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE)) {
@@ -176,14 +173,13 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * {@inheritDoc}
      *
-     * <p>Overridden so that setting the prefix back to {@code null} re-generates the
-     * letter-avatar fallback (otherwise a user-removed icon would leave the item
-     * unmarked in rail mode). Passing a real component (icon, image, …) replaces the
-     * avatar as usual — the override is a no-op in that case.
+     * <p>Overridden so that setting the prefix back to {@code null} re-generates the letter-avatar
+     * fallback (otherwise a user-removed icon would leave the item unmarked in rail mode). Passing
+     * a real component (icon, image, …) replaces the avatar as usual — the override is a no-op in
+     * that case.
      *
-     * @param prefix the new prefix component (typically a {@code VaadinIcon} or an
-     *     {@code Avatar}); pass {@code null} to fall back to the auto-generated letter
-     *     avatar
+     * @param prefix the new prefix component (typically a {@code VaadinIcon} or an {@code Avatar});
+     *     pass {@code null} to fall back to the auto-generated letter avatar
      */
     @Override
     public void setPrefixComponent(Component prefix) {
@@ -196,9 +192,9 @@ public class SideNavRailItem extends SideNavItem {
     /**
      * {@inheritDoc}
      *
-     * <p>Only accepts {@link SideNavRailItem} children. Passing a plain
-     * {@link SideNavItem} throws {@link IllegalArgumentException} — nested items need
-     * the same label-wrap + popover-gating wiring the parent has.
+     * <p>Only accepts {@link SideNavRailItem} children. Passing a plain {@link SideNavItem} throws
+     * {@link IllegalArgumentException} — nested items need the same label-wrap + popover-gating
+     * wiring the parent has.
      *
      * @param items the {@link SideNavRailItem} children to append below this item
      * @throws IllegalArgumentException if any item is not a {@link SideNavRailItem}
@@ -216,8 +212,8 @@ public class SideNavRailItem extends SideNavItem {
      * {@inheritDoc}
      *
      * @param item the {@link SideNavRailItem} to prepend below this item
-     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
-     *     see {@link #addItem(SideNavItem...)}
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem}; see {@link
+     *     #addItem(SideNavItem...)}
      */
     @Override
     public void addItemAsFirst(SideNavItem item) {
@@ -231,8 +227,8 @@ public class SideNavRailItem extends SideNavItem {
      *
      * @param index where to insert the item
      * @param item the {@link SideNavRailItem} to insert
-     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem};
-     *     see {@link #addItem(SideNavItem...)}
+     * @throws IllegalArgumentException if the item is not a {@link SideNavRailItem}; see {@link
+     *     #addItem(SideNavItem...)}
      */
     @Override
     public void addItemAtIndex(int index, SideNavItem item) {
@@ -264,12 +260,11 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Reflects a runtime change of this item's children into the popover, if
-     * the item is wired up to a rail. When a popover already exists, its
-     * content is rebuilt so the new/removed child is reflected. When no
-     * popover exists yet (item used to be a leaf), {@link #refreshPopoverFromOwner()}
-     * materializes one if the owning rail's settings now warrant it. No-op
-     * before attach — {@link #onAttach(AttachEvent)} runs the same path.
+     * Reflects a runtime change of this item's children into the popover, if the item is wired up
+     * to a rail. When a popover already exists, its content is rebuilt so the new/removed child is
+     * reflected. When no popover exists yet (item used to be a leaf), {@link
+     * #refreshPopoverFromOwner()} materializes one if the owning rail's settings now warrant it.
+     * No-op before attach — {@link #onAttach(AttachEvent)} runs the same path.
      */
     private void handleChildrenMutation() {
         if (popover != null) {
@@ -321,10 +316,10 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Removes the bare text node that {@code super.setLabel(...)} appends directly on
-     * the root element as a child text {@link Element}. Non-text element children
-     * (e.g. prefix icon with {@code slot="prefix"}) are preserved by snapshotting and
-     * re-attaching them around the {@code setText("")} call.
+     * Removes the bare text node that {@code super.setLabel(...)} appends directly on the root
+     * element as a child text {@link Element}. Non-text element children (e.g. prefix icon with
+     * {@code slot="prefix"}) are preserved by snapshotting and re-attaching them around the {@code
+     * setText("")} call.
      */
     private static void removeBareLabelTextNode(Element root) {
         // Check whether there are any child text nodes to remove.
@@ -334,9 +329,7 @@ public class SideNavRailItem extends SideNavItem {
         }
 
         // Snapshot non-text element children before setText("") detaches them.
-        List<Element> elementChildren = root.getChildren()
-                .filter(e -> !e.isTextNode())
-                .toList();
+        List<Element> elementChildren = root.getChildren().filter(e -> !e.isTextNode()).toList();
 
         // setText("") removes text-node children and may also detach element children.
         root.setText("");
@@ -393,20 +386,19 @@ public class SideNavRailItem extends SideNavItem {
     private static final String AVATAR_CLASS = "side-nav-rail-letter-avatar";
 
     /**
-     * Fills an empty prefix slot with a single-letter {@link Avatar} derived from the
-     * label so rail mode is not reduced to a blank tile when the consumer forgot to
-     * provide an icon. Uses {@link AvatarVariant#LUMO_SMALL} (24×24, matching the
-     * standard Lumo icon size used elsewhere in the side nav) with a Lumo-typical
-     * background and secondary text color out of the box.
+     * Fills an empty prefix slot with a single-letter {@link Avatar} derived from the label so rail
+     * mode is not reduced to a blank tile when the consumer forgot to provide an icon. Uses {@link
+     * AvatarVariant#LUMO_SMALL} (24×24, matching the standard Lumo icon size used elsewhere in the
+     * side nav) with a Lumo-typical background and secondary text color out of the box.
      *
-     * <p>Only runs when the prefix slot is empty or still holds the avatar we set
-     * earlier — a user-provided prefix is always left alone. Blank labels produce no
-     * avatar, and any stale avatar that ends up with a blank label is removed.
+     * <p>Only runs when the prefix slot is empty or still holds the avatar we set earlier — a
+     * user-provided prefix is always left alone. Blank labels produce no avatar, and any stale
+     * avatar that ends up with a blank label is removed.
      */
     private void ensureLetterAvatar() {
         Component existing = getPrefixComponent();
         if (existing != null && !isOwnAvatar(existing)) {
-            return;  // User-provided prefix — hands off.
+            return; // User-provided prefix — hands off.
         }
 
         String label = getLabel();
@@ -432,32 +424,31 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Identity check for the auto-generated avatar, done via the CSS marker class.
-     * Framework-agnostic (works whether the wrapped component is an {@link Avatar},
-     * a {@code Span}, or anything else the consumer might have subclassed) — the
-     * marker class is what the addon tracks.
+     * Framework-agnostic (works whether the wrapped component is an {@link Avatar}, a {@code Span},
+     * or anything else the consumer might have subclassed) — the marker class is what the addon
+     * tracks.
      */
     private static boolean isOwnAvatar(Component c) {
         return c != null && c.getElement().getClassList().contains(AVATAR_CLASS);
     }
 
     /**
-     * Listens for the {@code expanded-changed} event fired by the underlying
-     * {@code <vaadin-side-nav-item>} web component and re-evaluates popover
-     * gating on every inline-expand toggle:
+     * Listens for the {@code expanded-changed} event fired by the underlying {@code
+     * <vaadin-side-nav-item>} web component and re-evaluates popover gating on every inline-expand
+     * toggle:
      *
      * <ul>
-     *   <li>expand ➜ inline children are now visible, so the popover would be
-     *       redundant — {@code applyPopoverGating} flips {@code openOnHover}
-     *       off and closes the popover if it was open.
-     *   <li>collapse ➜ inline children are hidden again, so the popover is
-     *       eligible — {@code applyPopoverGating} flips {@code openOnHover}
-     *       back on. Vaadin's hover trigger reopens the popover on the next
-     *       {@code mouseenter}; we don't try to anticipate that.
+     *   <li>expand ➜ inline children are now visible, so the popover would be redundant — {@code
+     *       applyPopoverGating} flips {@code openOnHover} off and closes the popover if it was
+     *       open.
+     *   <li>collapse ➜ inline children are hidden again, so the popover is eligible — {@code
+     *       applyPopoverGating} flips {@code openOnHover} back on. Vaadin's hover trigger reopens
+     *       the popover on the next {@code mouseenter}; we don't try to anticipate that.
      * </ul>
      *
-     * <p>Wired unconditionally on attach. The body's {@code popover == null}
-     * guard handles leaves and the pre-attach window — wiring once on attach
-     * is robust against runtime-add transitions (leaf gains children later).
+     * <p>Wired unconditionally on attach. The body's {@code popover == null} guard handles leaves
+     * and the pre-attach window — wiring once on attach is robust against runtime-add transitions
+     * (leaf gains children later).
      */
     private void wireExpandedListener() {
         if (expandedListenerWired) {
@@ -465,21 +456,23 @@ public class SideNavRailItem extends SideNavItem {
         }
         expandedListenerWired = true;
 
-        getElement().addEventListener("expanded-changed", e -> {
-            if (findOwnerRail() == null || popover == null) {
-                return;
-            }
-            applyPopoverGating();
-        });
+        getElement()
+                .addEventListener(
+                        "expanded-changed",
+                        e -> {
+                            if (findOwnerRail() == null || popover == null) {
+                                return;
+                            }
+                            applyPopoverGating();
+                        });
     }
 
     /**
-     * Creates the item's popover on first attach. The popover is deliberately not
-     * appended anywhere server-side: {@link Popover#setTarget(Component)} installs
-     * attach/detach listeners on the target that auto-add the popover to the UI when
-     * the target enters the tree and remove it again when the target leaves. Adding it
-     * manually would double-parent the element, bypass the auto-remove on detach, and
-     * leak a stale popover if the rail is later removed.
+     * Creates the item's popover on first attach. The popover is deliberately not appended anywhere
+     * server-side: {@link Popover#setTarget(Component)} installs attach/detach listeners on the
+     * target that auto-add the popover to the UI when the target enters the tree and remove it
+     * again when the target leaves. Adding it manually would double-parent the element, bypass the
+     * auto-remove on detach, and leak a stale popover if the rail is later removed.
      */
     private void ensurePopover() {
         if (popover != null) {
@@ -512,7 +505,7 @@ public class SideNavRailItem extends SideNavItem {
         if (owner != null) {
             applyPopoverGating();
         } else {
-            popover.setOpenOnHover(true);  // standalone item — default on
+            popover.setOpenOnHover(true); // standalone item — default on
         }
     }
 
@@ -522,10 +515,10 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Pushes updated hover/hide delays, position, and arrow visibility to the existing
-     * popover, if any. Called by {@link SideNavRail} when one of those settings changes
-     * so a live rail reflects the new values without needing a reattach. No-op when
-     * the popover has not been created yet or when the item has no owning rail.
+     * Pushes updated hover/hide delays, position, and arrow visibility to the existing popover, if
+     * any. Called by {@link SideNavRail} when one of those settings changes so a live rail reflects
+     * the new values without needing a reattach. No-op when the popover has not been created yet or
+     * when the item has no owning rail.
      */
     void applyPopoverSettings() {
         if (popover == null) {
@@ -578,11 +571,10 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Applies the open-eligibility of this item's popover based on the owning
-     * {@link SideNavRail}'s current {@link PopoverOn}, rail state, and
-     * children-only-in-popover flag. Package-private — external callers should
-     * use {@link SideNavRail#setPopoverOn(PopoverOn)} or
-     * {@link SideNavRail#setRailMode(boolean)} instead.
+     * Applies the open-eligibility of this item's popover based on the owning {@link SideNavRail}'s
+     * current {@link PopoverOn}, rail state, and children-only-in-popover flag. Package-private —
+     * external callers should use {@link SideNavRail#setPopoverOn(PopoverOn)} or {@link
+     * SideNavRail#setRailMode(boolean)} instead.
      */
     void applyPopoverGating() {
         if (popover == null) {
@@ -620,8 +612,7 @@ public class SideNavRailItem extends SideNavItem {
         boolean eligible =
                 switch (owner.getPopoverOn()) {
                     case ALL_COLLAPSED_ITEMS -> railMode || !isExpanded();
-                    case ONLY_ROOT_COLLAPSED_ITEMS ->
-                            isRootItem() && (railMode || !isExpanded());
+                    case ONLY_ROOT_COLLAPSED_ITEMS -> isRootItem() && (railMode || !isExpanded());
                     case ONLY_RAIL_MODE -> railMode;
                 };
         popover.setOpenOnHover(eligible);
@@ -631,17 +622,15 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Applies §4.4.5 ARIA attributes. {@code aria-expanded} is seeded to
-     * {@code "false"} on rail-mode entry for items with children and then driven
-     * by Vaadin's {@code <vaadin-popover>}, which sets the attribute on the
-     * target via its {@code __updateAriaAttributes} observer whenever the popover
-     * opens or closes — no server-side bookkeeping needed.
-     * <p>
-     * {@code aria-haspopup} is left to the popover too: it sets {@code "true"} on
-     * the target, which together with {@code role="menu"} on the overlay (see
-     * {@code setOverlayRole} in {@link #ensurePopover()}) is a valid pairing, so
-     * the addon no longer forces a {@code "menu"} value of its own.
-     * Package-private — called by {@link SideNavRail#setRailMode(boolean)}.
+     * Applies §4.4.5 ARIA attributes. {@code aria-expanded} is seeded to {@code "false"} on
+     * rail-mode entry for items with children and then driven by Vaadin's {@code <vaadin-popover>},
+     * which sets the attribute on the target via its {@code __updateAriaAttributes} observer
+     * whenever the popover opens or closes — no server-side bookkeeping needed.
+     *
+     * <p>{@code aria-haspopup} is left to the popover too: it sets {@code "true"} on the target,
+     * which together with {@code role="menu"} on the overlay (see {@code setOverlayRole} in {@link
+     * #ensurePopover()}) is a valid pairing, so the addon no longer forces a {@code "menu"} value
+     * of its own. Package-private — called by {@link SideNavRail#setRailMode(boolean)}.
      */
     void applyAriaAttributes(boolean railMode) {
         boolean hasChildren = !getItems().isEmpty();
@@ -655,18 +644,16 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Applies (or rolls back) the {@link SideNavRail}-managed {@code matchNested}
-     * override on this item. Called by {@link SideNavRail} when rail-mode toggles or
-     * {@link SideNavRail#setRootMatchNested(RootMatchNested)} flips the feature.
-     * Snapshots the user's own {@code matchNested} value on the first activation so
-     * deactivation restores it exactly — repeated activations do not overwrite the
-     * snapshot, so a mid-rail-mode {@code setMatchNested(...)} call by the user is
-     * still rolled back to whatever they had set before the rail mode entered.
-     * Package-private — addon-internal.
+     * Applies (or rolls back) the {@link SideNavRail}-managed {@code matchNested} override on this
+     * item. Called by {@link SideNavRail} when rail-mode toggles or {@link
+     * SideNavRail#setRootMatchNested(RootMatchNested)} flips the feature. Snapshots the user's own
+     * {@code matchNested} value on the first activation so deactivation restores it exactly —
+     * repeated activations do not overwrite the snapshot, so a mid-rail-mode {@code
+     * setMatchNested(...)} call by the user is still rolled back to whatever they had set before
+     * the rail mode entered. Package-private — addon-internal.
      *
-     * @param active {@code true} to force {@code matchNested = true} (snapshotting
-     *     the current value if not yet snapshotted); {@code false} to restore the
-     *     snapshotted value, if any
+     * @param active {@code true} to force {@code matchNested = true} (snapshotting the current
+     *     value if not yet snapshotted); {@code false} to restore the snapshotted value, if any
      */
     void applyRailMatchNestedOverride(boolean active) {
         if (active) {
@@ -697,10 +684,9 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Rebuilds the popover's content using the owning rail's current
-     * {@link PopoverHeaderMode}. Invoked by {@link SideNavRail} when the mode changes
-     * so the header toggles without requiring a full reattach. Safe to call before the
-     * popover is attached — no-op.
+     * Rebuilds the popover's content using the owning rail's current {@link PopoverHeaderMode}.
+     * Invoked by {@link SideNavRail} when the mode changes so the header toggles without requiring
+     * a full reattach. Safe to call before the popover is attached — no-op.
      */
     void rebuildPopoverContent() {
         if (popover == null) {
@@ -720,10 +706,8 @@ public class SideNavRailItem extends SideNavItem {
             return;
         }
 
-        boolean wantsIcon = mode == PopoverHeaderMode.ICON_ONLY
-                || mode == PopoverHeaderMode.FULL;
-        boolean wantsLabel = mode == PopoverHeaderMode.LABEL_ONLY
-                || mode == PopoverHeaderMode.FULL;
+        boolean wantsIcon = mode == PopoverHeaderMode.ICON_ONLY || mode == PopoverHeaderMode.FULL;
+        boolean wantsLabel = mode == PopoverHeaderMode.LABEL_ONLY || mode == PopoverHeaderMode.FULL;
 
         Component prefix = getPrefixComponent();
         String label = getLabel();
@@ -733,7 +717,7 @@ public class SideNavRailItem extends SideNavItem {
         boolean hasIcon = wantsIcon && prefix != null && !isOwnAvatar(prefix);
         boolean hasLabel = wantsLabel && label != null && !label.isBlank();
         if (!hasIcon && !hasLabel) {
-            return;  // Would produce an empty header — skip.
+            return; // Would produce an empty header — skip.
         }
 
         Div header = new Div();
@@ -775,8 +759,8 @@ public class SideNavRailItem extends SideNavItem {
 
     /**
      * Clones a prefix component by reinstantiating via its class. Vaadin icons are the
-     * overwhelmingly common case; for anything else (custom components), fall back to
-     * sharing the original reference — rare in an icon-driven rail.
+     * overwhelmingly common case; for anything else (custom components), fall back to sharing the
+     * original reference — rare in an icon-driven rail.
      */
     private static Component copyComponent(Component source) {
         if (source instanceof Icon icon) {
@@ -788,15 +772,14 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Returns the popover of this item, if one has been created. The popover is
-     * lazily attached on first attach: items with children always get one, while
-     * leaf items get one only when the owning rail's {@link RailTooltipMode} is
-     * {@code POPOVER_HEADER} and rail-mode is active (see
-     * {@link SideNavRail#isLeafPopoverActive()}). Items that have not been
-     * attached yet, or that are not part of a rail, return {@link Optional#empty()}.
+     * Returns the popover of this item, if one has been created. The popover is lazily attached on
+     * first attach: items with children always get one, while leaf items get one only when the
+     * owning rail's {@link RailTooltipMode} is {@code POPOVER_HEADER} and rail-mode is active (see
+     * {@link SideNavRail#isLeafPopoverActive()}). Items that have not been attached yet, or that
+     * are not part of a rail, return {@link Optional#empty()}.
      *
-     * @return an {@link Optional} containing the underlying {@link Popover}, or
-     *     {@link Optional#empty()} if none has been created
+     * @return an {@link Optional} containing the underlying {@link Popover}, or {@link
+     *     Optional#empty()} if none has been created
      */
     public Optional<Popover> getPopover() {
         return Optional.ofNullable(popover);

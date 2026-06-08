@@ -57,7 +57,7 @@ class RailModeStateTest {
         nav.addRailModeChangedListener(e -> received.add(e.isRailMode()));
 
         nav.setRailMode(true);
-        nav.setRailMode(true);   // no-op — same value
+        nav.setRailMode(true); // no-op — same value
         nav.setRailMode(false);
 
         assertEquals(java.util.List.of(true, false), received);

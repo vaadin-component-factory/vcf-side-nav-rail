@@ -64,8 +64,7 @@ class PopoverHeaderModeTest {
     @Test
     void defaultIsRailModeOnly() {
         SideNavRail nav = new SideNavRail();
-        assertTrue(nav.isPopoverHeaderOnlyInRailMode(),
-                "Header is rail-mode-only by default");
+        assertTrue(nav.isPopoverHeaderOnlyInRailMode(), "Header is rail-mode-only by default");
     }
 
     @Test
@@ -121,7 +120,8 @@ class PopoverHeaderModeTest {
         nav.setPopoverHeaderMode(PopoverHeaderMode.ICON_ONLY);
         UI.getCurrent().add(nav);
 
-        assertNull(findHeader(parentPopover()),
+        assertNull(
+                findHeader(parentPopover()),
                 "ICON_ONLY on a parent without a prefix icon must render no header");
     }
 
@@ -138,7 +138,8 @@ class PopoverHeaderModeTest {
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
-        assertNull(findHeader(popoverTargeting(parent)),
+        assertNull(
+                findHeader(popoverTargeting(parent)),
                 "LABEL_ONLY on a parent with a blank label must render no header");
     }
 
@@ -167,9 +168,10 @@ class PopoverHeaderModeTest {
 
     private static SideNavRail railWithParent(String label, Icon prefix) {
         SideNavRail nav = new SideNavRail();
-        SideNavRailItem parent = (prefix != null)
-                ? new SideNavRailItem(label, "/parent", prefix)
-                : new SideNavRailItem(label, "/parent");
+        SideNavRailItem parent =
+                (prefix != null)
+                        ? new SideNavRailItem(label, "/parent", prefix)
+                        : new SideNavRailItem(label, "/parent");
         parent.addItem(new SideNavRailItem("Child", "/parent/child"));
         nav.addItem(parent);
         // Header is rail-mode-only by default; the per-mode rendering tests below
@@ -183,17 +185,21 @@ class PopoverHeaderModeTest {
         // RailTooltipMode.POPOVER_HEADER default, leaves can also have popovers; this
         // helper would otherwise pick the wrong one whenever the iteration order put
         // a leaf first.
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
-                .filter(p -> p.getTarget() instanceof SideNavRailItem item
-                        && !item.getItems().isEmpty())
+                .filter(
+                        p ->
+                                p.getTarget() instanceof SideNavRailItem item
+                                        && !item.getItems().isEmpty())
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No popover targets a parent item"));
     }
 
     private static Popover popoverTargeting(SideNavRailItem target) {
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
                 .filter(p -> p.getTarget() == target)
@@ -211,9 +217,7 @@ class PopoverHeaderModeTest {
     }
 
     private static long iconsIn(Component parent) {
-        return parent.getChildren()
-                .filter(c -> c instanceof Icon)
-                .count();
+        return parent.getChildren().filter(c -> c instanceof Icon).count();
     }
 
     private static String textOf(Component header) {

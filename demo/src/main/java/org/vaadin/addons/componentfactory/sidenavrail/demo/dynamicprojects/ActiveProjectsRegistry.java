@@ -19,12 +19,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
- * Session-scoped registry of active projects driving the dynamic-projects demo.
- * One instance per Vaadin session, lazily created on first access via
- * {@link #current()} and kept on the session as an attribute. Listeners
- * registered through {@link #addChangeListener(Consumer)} fire on every
- * effective transition; calling {@link #activate(String)} on an already-active
- * project (or {@link #deactivate(String)} on an inactive one) is a no-op.
+ * Session-scoped registry of active projects driving the dynamic-projects demo. One instance per
+ * Vaadin session, lazily created on first access via {@link #current()} and kept on the session as
+ * an attribute. Listeners registered through {@link #addChangeListener(Consumer)} fire on every
+ * effective transition; calling {@link #activate(String)} on an already-active project (or {@link
+ * #deactivate(String)} on an inactive one) is a no-op.
  */
 public final class ActiveProjectsRegistry {
 

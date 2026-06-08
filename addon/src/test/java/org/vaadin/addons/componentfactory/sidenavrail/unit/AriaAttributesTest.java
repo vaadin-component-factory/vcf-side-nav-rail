@@ -22,15 +22,21 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * §9.2 / §4.4.5: aria-expanded seeding on root items with children while rail
- * mode is active; cleared on exit. aria-haspopup is left to Vaadin's
- * &lt;vaadin-popover&gt; (sets "true"), so the addon sets none server-side.
- * role="menuitem" on popover items.
+ * §9.2 / §4.4.5: aria-expanded seeding on root items with children while rail mode is active;
+ * cleared on exit. aria-haspopup is left to Vaadin's &lt;vaadin-popover&gt; (sets "true"), so the
+ * addon sets none server-side. role="menuitem" on popover items.
  */
 class AriaAttributesTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     @Test
     void noAriaAttributesInNormalMode() {
@@ -107,11 +113,13 @@ class AriaAttributesTest {
         SideNavRailItem parent = (SideNavRailItem) nav.getItems().get(0);
         com.vaadin.flow.component.popover.Popover popover = parent.getPopover().orElseThrow();
         com.vaadin.flow.component.sidenav.SideNav nested =
-                (com.vaadin.flow.component.sidenav.SideNav) popover.getChildren()
-                        .filter(c -> c instanceof com.vaadin.flow.component.sidenav.SideNav)
-                        .findFirst().orElseThrow();
-        nested.getItems().forEach(i ->
-                assertEquals("menuitem", i.getElement().getAttribute("role")));
+                (com.vaadin.flow.component.sidenav.SideNav)
+                        popover.getChildren()
+                                .filter(c -> c instanceof com.vaadin.flow.component.sidenav.SideNav)
+                                .findFirst()
+                                .orElseThrow();
+        nested.getItems()
+                .forEach(i -> assertEquals("menuitem", i.getElement().getAttribute("role")));
     }
 
     private static SideNavRail parentAndLeafRail() {

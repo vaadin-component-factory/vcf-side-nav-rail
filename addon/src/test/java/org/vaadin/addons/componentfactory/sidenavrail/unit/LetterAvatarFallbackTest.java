@@ -35,11 +35,11 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Verifies the letter-avatar fallback that {@link SideNavRailItem} auto-generates when
- * it has a label but no prefix component. The fallback is the first (uppercase) letter
- * of the label wrapped in a {@code <span class="side-nav-rail-letter-avatar">}; CSS
- * hides it in normal mode and shows it only in rail mode. These tests exercise the
- * server-side state; the visual surfacing is covered by the E2E suite.
+ * Verifies the letter-avatar fallback that {@link SideNavRailItem} auto-generates when it has a
+ * label but no prefix component. The fallback is the first (uppercase) letter of the label wrapped
+ * in a {@code <span class="side-nav-rail-letter-avatar">}; CSS hides it in normal mode and shows it
+ * only in rail mode. These tests exercise the server-side state; the visual surfacing is covered by
+ * the E2E suite.
  */
 class LetterAvatarFallbackTest {
 
@@ -84,7 +84,9 @@ class LetterAvatarFallbackTest {
         rail.addItem(item);
         UI.getCurrent().add(rail);
 
-        assertSame(icon, item.getPrefixComponent(),
+        assertSame(
+                icon,
+                item.getPrefixComponent(),
                 "User icon must remain untouched by the fallback logic");
     }
 
@@ -135,7 +137,8 @@ class LetterAvatarFallbackTest {
         rail.addItem(item);
         UI.getCurrent().add(rail);
 
-        assertNull(item.getPrefixComponent(),
+        assertNull(
+                item.getPrefixComponent(),
                 "Blank label must not synthesize an avatar — there is no letter to derive");
     }
 
@@ -148,19 +151,24 @@ class LetterAvatarFallbackTest {
 
         assertAvatar(item);
         item.setLabel("");
-        assertNull(item.getPrefixComponent(),
+        assertNull(
+                item.getPrefixComponent(),
                 "Clearing the label must also remove the now-meaningless letter avatar");
     }
 
     private static Avatar assertAvatar(SideNavRailItem item) {
         Component prefix = item.getPrefixComponent();
         assertNotNull(prefix, "Expected the fallback avatar to be set");
-        Avatar avatar = assertInstanceOf(Avatar.class, prefix,
-                "Fallback must be a vaadin-avatar (Avatar component)");
+        Avatar avatar =
+                assertInstanceOf(
+                        Avatar.class,
+                        prefix,
+                        "Fallback must be a vaadin-avatar (Avatar component)");
         if (!avatar.getClassNames().contains(AVATAR_CLASS)) {
             throw new AssertionError(
                     "Prefix avatar is not the auto-generated fallback (missing marker class '"
-                            + AVATAR_CLASS + "')");
+                            + AVATAR_CLASS
+                            + "')");
         }
         return avatar;
     }

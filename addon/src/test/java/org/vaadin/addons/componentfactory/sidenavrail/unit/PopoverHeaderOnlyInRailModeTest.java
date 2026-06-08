@@ -49,7 +49,8 @@ class PopoverHeaderOnlyInRailModeTest {
         nav.setPopoverHeaderMode(PopoverHeaderMode.FULL);
         UI.getCurrent().add(nav);
 
-        assertNull(findHeader(parentPopover()),
+        assertNull(
+                findHeader(parentPopover()),
                 "Default (only-in-rail-mode) must hide the header in normal mode");
     }
 
@@ -60,7 +61,8 @@ class PopoverHeaderOnlyInRailModeTest {
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
-        assertNotNull(findHeader(parentPopover()),
+        assertNotNull(
+                findHeader(parentPopover()),
                 "Default (only-in-rail-mode) must render the header in rail mode");
     }
 
@@ -71,11 +73,13 @@ class PopoverHeaderOnlyInRailModeTest {
         nav.setPopoverHeaderOnlyInRailMode(false);
         UI.getCurrent().add(nav);
 
-        assertNotNull(findHeader(parentPopover()),
+        assertNotNull(
+                findHeader(parentPopover()),
                 "Disabling the only-in-rail flag must render the header in normal mode");
 
         nav.setRailMode(true);
-        assertNotNull(findHeader(parentPopover()),
+        assertNotNull(
+                findHeader(parentPopover()),
                 "Disabling the flag must render the header in rail mode too");
     }
 
@@ -91,12 +95,11 @@ class PopoverHeaderOnlyInRailModeTest {
         assertNull(findHeader(popover), "precondition: header hidden in normal mode");
 
         nav.setPopoverHeaderOnlyInRailMode(false);
-        assertNotNull(findHeader(popover),
-                "Flipping the flag to false must add the header live");
+        assertNotNull(findHeader(popover), "Flipping the flag to false must add the header live");
 
         nav.setPopoverHeaderOnlyInRailMode(true);
-        assertNull(findHeader(popover),
-                "Flipping the flag back to true must remove the header live");
+        assertNull(
+                findHeader(popover), "Flipping the flag back to true must remove the header live");
     }
 
     @Test
@@ -111,12 +114,10 @@ class PopoverHeaderOnlyInRailModeTest {
         assertNull(findHeader(popover), "precondition: hidden in normal mode");
 
         nav.setRailMode(true);
-        assertNotNull(findHeader(popover),
-                "Entering rail mode must add the header live");
+        assertNotNull(findHeader(popover), "Entering rail mode must add the header live");
 
         nav.setRailMode(false);
-        assertNull(findHeader(popover),
-                "Leaving rail mode must remove the header live");
+        assertNull(findHeader(popover), "Leaving rail mode must remove the header live");
     }
 
     @Test
@@ -129,7 +130,8 @@ class PopoverHeaderOnlyInRailModeTest {
         nav.setRailMode(true);
         UI.getCurrent().add(nav);
 
-        assertNull(findHeader(parentPopover()),
+        assertNull(
+                findHeader(parentPopover()),
                 "NONE must not render a header even with the flag disabled");
     }
 
@@ -148,11 +150,14 @@ class PopoverHeaderOnlyInRailModeTest {
         // RailTooltipMode.POPOVER_HEADER default, leaves can also have popovers in
         // rail mode; this helper would otherwise pick the wrong one when iteration
         // order put a leaf first.
-        return UI.getCurrent().getChildren()
+        return UI.getCurrent()
+                .getChildren()
                 .filter(c -> c instanceof Popover)
                 .map(c -> (Popover) c)
-                .filter(p -> p.getTarget() instanceof SideNavRailItem item
-                        && !item.getItems().isEmpty())
+                .filter(
+                        p ->
+                                p.getTarget() instanceof SideNavRailItem item
+                                        && !item.getItems().isEmpty())
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No popover targets a parent item"));
     }

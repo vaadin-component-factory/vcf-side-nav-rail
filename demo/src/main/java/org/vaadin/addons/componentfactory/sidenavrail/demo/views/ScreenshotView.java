@@ -24,9 +24,8 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
  * Screenshot-friendly composition for the README. Bypasses {@link
- * org.vaadin.addons.componentfactory.sidenavrail.demo.MainLayout} via {@code
- * autoLayout = false} so the captured frame contains only the rail + a clean
- * content area — no toggle, no debug controls.
+ * org.vaadin.addons.componentfactory.sidenavrail.demo.MainLayout} via {@code autoLayout = false} so
+ * the captured frame contains only the rail + a clean content area — no toggle, no debug controls.
  */
 @Route(value = "screenshot", autoLayout = false)
 public class ScreenshotView extends HorizontalLayout {

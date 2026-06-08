@@ -25,8 +25,8 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises all four {@link PopoverHeaderMode} values via buttons so Playwright can
- * switch at runtime and verify the header (or its absence) directly.
+ * Exercises all four {@link PopoverHeaderMode} values via buttons so Playwright can switch at
+ * runtime and verify the header (or its absence) directly.
  */
 @Route("popover-header-mode")
 public class PopoverHeaderModeView extends VerticalLayout {
@@ -38,17 +38,17 @@ public class PopoverHeaderModeView extends VerticalLayout {
         // four mode values in isolation in normal mode, so disable that gating here.
         rail.setPopoverHeaderOnlyInRailMode(false);
 
-        SideNavRailItem code = new SideNavRailItem(
-                "Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Tags", "/code/tags"));
         rail.addItem(code);
 
-        HorizontalLayout modeButtons = new HorizontalLayout(
-                modeButton(rail, PopoverHeaderMode.NONE, "mode-none"),
-                modeButton(rail, PopoverHeaderMode.LABEL_ONLY, "mode-label"),
-                modeButton(rail, PopoverHeaderMode.ICON_ONLY, "mode-icon"),
-                modeButton(rail, PopoverHeaderMode.FULL, "mode-full"));
+        HorizontalLayout modeButtons =
+                new HorizontalLayout(
+                        modeButton(rail, PopoverHeaderMode.NONE, "mode-none"),
+                        modeButton(rail, PopoverHeaderMode.LABEL_ONLY, "mode-label"),
+                        modeButton(rail, PopoverHeaderMode.ICON_ONLY, "mode-icon"),
+                        modeButton(rail, PopoverHeaderMode.FULL, "mode-full"));
 
         add(new HorizontalLayout(rail, modeButtons));
     }

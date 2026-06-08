@@ -27,10 +27,10 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises the {@code root-item} DOM attribute that SideNavRail sets on each direct
- * child. The attribute is a styling hook for consumer CSS (e.g.
- * {@code vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon}) and is
- * <em>only</em> set on direct children — nested items must not carry it.
+ * Exercises the {@code root-item} DOM attribute that SideNavRail sets on each direct child. The
+ * attribute is a styling hook for consumer CSS (e.g. {@code
+ * vaadin-side-nav-item[root-item]:has([current]) > vaadin-icon}) and is <em>only</em> set on direct
+ * children — nested items must not carry it.
  */
 class RootItemAttributeTest {
 
@@ -76,11 +76,12 @@ class RootItemAttributeTest {
         code.addItem(branches);
         nav.addItem(code);
 
-        assertTrue(code.getElement().hasAttribute(ATTR),
-                "Root item must carry the attribute");
-        assertFalse(branches.getElement().hasAttribute(ATTR),
+        assertTrue(code.getElement().hasAttribute(ATTR), "Root item must carry the attribute");
+        assertFalse(
+                branches.getElement().hasAttribute(ATTR),
                 "Nested parent must not carry the attribute");
-        assertFalse(active.getElement().hasAttribute(ATTR),
+        assertFalse(
+                active.getElement().hasAttribute(ATTR),
                 "Deep nested leaf must not carry the attribute");
     }
 

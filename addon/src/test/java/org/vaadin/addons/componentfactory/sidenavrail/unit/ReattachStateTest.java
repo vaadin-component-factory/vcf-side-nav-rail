@@ -25,15 +25,22 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Verifies that a SideNavRailItem's server-side state stays consistent across detach
- * and reattach cycles — including reattach to a different rail. Several pieces of
- * state are cached on the item (owner reference, popover instance, listener-wired flag);
- * the contract is that nothing goes stale silently after a Vaadin lifecycle round-trip.
+ * Verifies that a SideNavRailItem's server-side state stays consistent across detach and reattach
+ * cycles — including reattach to a different rail. Several pieces of state are cached on the item
+ * (owner reference, popover instance, listener-wired flag); the contract is that nothing goes stale
+ * silently after a Vaadin lifecycle round-trip.
  */
 class ReattachStateTest {
 
-    @BeforeEach void setUp() { MockVaadin.setup(); }
-    @AfterEach void tearDown() { MockVaadin.tearDown(); }
+    @BeforeEach
+    void setUp() {
+        MockVaadin.setup();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockVaadin.tearDown();
+    }
 
     private static SideNavRailItem parentItem() {
         SideNavRailItem parent = new SideNavRailItem("Code", "/code");
@@ -54,7 +61,9 @@ class ReattachStateTest {
         // Switch to rail mode after the reattach. If the cached owner rail had not
         // been refreshed, applyAriaAttributes would silently no-op.
         nav.setRailMode(true);
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
+        assertEquals(
+                "false",
+                parent.getElement().getAttribute("aria-expanded"),
                 "rail-mode ARIA must follow setRailMode after a reattach");
     }
 
@@ -66,8 +75,9 @@ class ReattachStateTest {
         UI.getCurrent().add(nav);
         nav.setRailMode(true);
 
-        Popover popover = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        Popover popover =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
         assertTrue(popover.isOpenOnHover(), "precondition: rail mode → eligible");
 
         UI.getCurrent().remove(nav);
@@ -75,7 +85,8 @@ class ReattachStateTest {
 
         nav.setPopoverOn(PopoverOn.ONLY_RAIL_MODE);
         nav.setRailMode(false);
-        assertFalse(popover.isOpenOnHover(),
+        assertFalse(
+                popover.isOpenOnHover(),
                 "ONLY_RAIL_MODE outside rail mode must disable hover trigger after reattach");
     }
 
@@ -85,8 +96,9 @@ class ReattachStateTest {
         SideNavRailItem parent = parentItem();
         nav.addItem(parent);
         UI.getCurrent().add(nav);
-        Popover popover = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        Popover popover =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
 
         UI.getCurrent().remove(nav);
 
@@ -98,11 +110,17 @@ class ReattachStateTest {
 
         UI.getCurrent().add(nav);
 
-        assertEquals(750, popover.getHoverDelay(),
+        assertEquals(
+                750,
+                popover.getHoverDelay(),
                 "hover delay set while detached must apply on reattach");
-        assertEquals(1500, popover.getHideDelay(),
+        assertEquals(
+                1500,
+                popover.getHideDelay(),
                 "hide delay set while detached must apply on reattach");
-        assertEquals(PopoverPosition.BOTTOM_END, popover.getPosition(),
+        assertEquals(
+                PopoverPosition.BOTTOM_END,
+                popover.getPosition(),
                 "position set while detached must apply on reattach");
     }
 
@@ -114,11 +132,11 @@ class ReattachStateTest {
         UI.getCurrent().add(nav);
 
         UI.getCurrent().remove(nav);
-        nav.setRootMatchNested(
-                org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested.ALL);
+        nav.setRootMatchNested(org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested.ALL);
         UI.getCurrent().add(nav);
 
-        assertTrue(parent.isMatchNested(),
+        assertTrue(
+                parent.isMatchNested(),
                 "RootMatchNested set while detached must apply on reattach");
     }
 
@@ -134,8 +152,9 @@ class ReattachStateTest {
         UI.getCurrent().add(railA);
         UI.getCurrent().add(railB);
 
-        Popover popover = parent.getPopover()
-                .orElseThrow(() -> new AssertionError("parent should have a popover"));
+        Popover popover =
+                parent.getPopover()
+                        .orElseThrow(() -> new AssertionError("parent should have a popover"));
         assertEquals(200, popover.getHoverDelay(), "precondition: rail-A's delay");
 
         // Move the item to rail-B. With the cached ownerRail correctly reset on
@@ -144,7 +163,9 @@ class ReattachStateTest {
         railB.addItem(parent);
 
         railB.setPopoverHoverDelay(1234);
-        assertEquals(1234, popover.getHoverDelay(),
+        assertEquals(
+                1234,
+                popover.getHoverDelay(),
                 "after re-parenting, rail-B's settings must drive the popover");
     }
 
@@ -162,14 +183,17 @@ class ReattachStateTest {
         railB.addItem(parent);
 
         railB.setRailMode(true);
-        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
+        assertEquals(
+                "false",
+                parent.getElement().getAttribute("aria-expanded"),
                 "rail-B's rail mode must reach a re-parented item");
 
         railA.setRailMode(true);
         // setting rail-A to rail mode must NOT touch parent — it now belongs to rail-B
         // (assertion is implicit in the next: rail-B off should clear the attribute)
         railB.setRailMode(false);
-        assertFalse(parent.getElement().hasAttribute("aria-expanded"),
+        assertFalse(
+                parent.getElement().hasAttribute("aria-expanded"),
                 "rail-B exiting rail mode must clear aria-expanded on the moved item");
     }
 

@@ -24,10 +24,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises the letter-avatar fallback: a root item without a prefix icon
- * ("Admin") should display an auto-generated avatar in rail mode. A reference
- * root item with a real icon ("Dashboard") guards against the fallback leaking
- * onto items that already have one.
+ * Exercises the letter-avatar fallback: a root item without a prefix icon ("Admin") should display
+ * an auto-generated avatar in rail mode. A reference root item with a real icon ("Dashboard")
+ * guards against the fallback leaking onto items that already have one.
  */
 @Route("letter-avatar-fallback")
 public class LetterAvatarFallbackView extends VerticalLayout {

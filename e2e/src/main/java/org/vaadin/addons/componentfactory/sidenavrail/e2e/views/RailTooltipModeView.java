@@ -25,9 +25,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Exercises {@link RailTooltipMode}: "Dashboard" is a leaf root item, "Code" has
- * children. Buttons switch the mode at runtime so Playwright can verify each
- * combination of (rail mode × tooltip mode).
+ * Exercises {@link RailTooltipMode}: "Dashboard" is a leaf root item, "Code" has children. Buttons
+ * switch the mode at runtime so Playwright can verify each combination of (rail mode × tooltip
+ * mode).
  */
 @Route("rail-tooltip-mode")
 public class RailTooltipModeView extends VerticalLayout {
@@ -43,9 +43,10 @@ public class RailTooltipModeView extends VerticalLayout {
         Button toggle = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));
         toggle.setId("toggle-rail");
 
-        HorizontalLayout modeButtons = new HorizontalLayout(
-                modeButton(rail, RailTooltipMode.NONE, "mode-none"),
-                modeButton(rail, RailTooltipMode.SIMPLE, "mode-simple"));
+        HorizontalLayout modeButtons =
+                new HorizontalLayout(
+                        modeButton(rail, RailTooltipMode.NONE, "mode-none"),
+                        modeButton(rail, RailTooltipMode.SIMPLE, "mode-simple"));
 
         add(new HorizontalLayout(rail, toggle, modeButtons));
     }

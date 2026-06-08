@@ -18,10 +18,9 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Two SideNavRails on the same page so cross-rail JS-module interactions
- * can be exercised: per-rail keydown listeners, the document-level
- * activation closer's ownership filter, and the document-wide popover
- * lookup in moveFocusRightOnRailRoot.
+ * Two SideNavRails on the same page so cross-rail JS-module interactions can be exercised: per-rail
+ * keydown listeners, the document-level activation closer's ownership filter, and the document-wide
+ * popover lookup in moveFocusRightOnRailRoot.
  */
 @Route("multi-rail")
 public class MultiRailView extends VerticalLayout {
@@ -30,11 +29,9 @@ public class MultiRailView extends VerticalLayout {
         SideNavRail railA = buildRail("rail-a", "code-a", "admin-a");
         SideNavRail railB = buildRail("rail-b", "code-b", "admin-b");
 
-        Button toggleA = new Button("Toggle A",
-                e -> railA.setRailMode(!railA.isRailMode()));
+        Button toggleA = new Button("Toggle A", e -> railA.setRailMode(!railA.isRailMode()));
         toggleA.setId("toggle-rail-a");
-        Button toggleB = new Button("Toggle B",
-                e -> railB.setRailMode(!railB.isRailMode()));
+        Button toggleB = new Button("Toggle B", e -> railB.setRailMode(!railB.isRailMode()));
         toggleB.setId("toggle-rail-b");
 
         add(new HorizontalLayout(railA, railB, toggleA, toggleB));

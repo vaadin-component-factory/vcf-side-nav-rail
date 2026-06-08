@@ -19,17 +19,15 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * Dedicated route for §9.4 a11y E2E assertions. Structure mirrors
- * KeyboardNavigationView but the two views stay decoupled so that a
- * future change to the keyboard tests cannot regress a11y tests.
+ * Dedicated route for §9.4 a11y E2E assertions. Structure mirrors KeyboardNavigationView but the
+ * two views stay decoupled so that a future change to the keyboard tests cannot regress a11y tests.
  *
- * Layout:
- *   - Dashboard : leaf (no children)                  — exercises "no aria-haspopup"
- *   - Code      : two flat children (Branches, Commits) — flat subtree
- *   - Admin     : Users (nested: Active, Archived) + Roles — deeply nested
+ * <p>Layout: - Dashboard : leaf (no children) — exercises "no aria-haspopup" - Code : two flat
+ * children (Branches, Commits) — flat subtree - Admin : Users (nested: Active, Archived) + Roles —
+ * deeply nested
  *
- * A toggle button (#toggle-rail) flips rail mode so tests can exercise
- * the rail-on / rail-off transitions.
+ * <p>A toggle button (#toggle-rail) flips rail mode so tests can exercise the rail-on / rail-off
+ * transitions.
  */
 @Route("accessibility")
 public class AccessibilityView extends VerticalLayout {
@@ -42,7 +40,8 @@ public class AccessibilityView extends VerticalLayout {
         // target and would interfere with the bare aria contract this view tests.
         rail.setRailTooltipMode(RailTooltipMode.SIMPLE);
 
-        SideNavRailItem dashboard = new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
+        SideNavRailItem dashboard =
+                new SideNavRailItem("Dashboard", "/dashboard", VaadinIcon.DASHBOARD.create());
         SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
         code.addItem(new SideNavRailItem("Branches", "/code/branches"));
         code.addItem(new SideNavRailItem("Commits", "/code/commits"));
@@ -56,8 +55,7 @@ public class AccessibilityView extends VerticalLayout {
 
         rail.addItem(dashboard, code, admin);
 
-        Button toggle = new Button("Toggle rail",
-                e -> rail.setRailMode(!rail.isRailMode()));
+        Button toggle = new Button("Toggle rail", e -> rail.setRailMode(!rail.isRailMode()));
         toggle.setId("toggle-rail");
 
         add(new HorizontalLayout(rail, toggle));
