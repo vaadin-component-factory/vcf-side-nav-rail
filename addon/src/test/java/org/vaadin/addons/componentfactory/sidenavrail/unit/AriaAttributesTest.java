@@ -22,8 +22,10 @@ import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 
 /**
- * §9.2 / §4.4.5: aria-haspopup + aria-expanded on root items with children while
- * rail mode is active; cleared on exit. role="menuitem" on popover items.
+ * §9.2 / §4.4.5: aria-expanded seeding on root items with children while rail
+ * mode is active; cleared on exit. aria-haspopup is left to Vaadin's
+ * &lt;vaadin-popover&gt; (sets "true"), so the addon sets none server-side.
+ * role="menuitem" on popover items.
  */
 class AriaAttributesTest {
 
@@ -42,13 +44,15 @@ class AriaAttributesTest {
     }
 
     @Test
-    void railModeSetsHaspopupOnParentOnly() {
+    void railModeDoesNotSetHaspopupServerSide() {
         SideNavRail nav = parentAndLeafRail();
         UI.getCurrent().add(nav);
 
         nav.setRailMode(true);
 
-        assertEquals("menu", nav.getItems().get(0).getElement().getAttribute("aria-haspopup"));
+        // aria-haspopup is owned by Vaadin's <vaadin-popover> (it sets "true" in
+        // the browser); the addon never sets it server-side on either item.
+        assertFalse(nav.getItems().get(0).getElement().hasAttribute("aria-haspopup"));
         assertFalse(nav.getItems().get(1).getElement().hasAttribute("aria-haspopup"));
     }
 
@@ -76,11 +80,9 @@ class AriaAttributesTest {
     }
 
     // Note: the runtime aria-expanded sync (popover open/close ↔ aria-expanded)
-    // is owned by Vaadin's <vaadin-popover>.__updateAriaAttributes; the
-    // aria-haspopup="menu" override against Vaadin's "true" default is
-    // enforced by the side-nav-rail.js MutationObserver. Both run in the
-    // browser and have no MockVaadin equivalent — coverage lives in
-    // accessibility.spec.ts.
+    // and aria-haspopup="true" are both owned by Vaadin's
+    // <vaadin-popover>.__updateAriaAttributes. They run in the browser and have
+    // no MockVaadin equivalent — coverage lives in accessibility.spec.ts.
 
     @Test
     void addingItemWhileRailModeActiveAppliesAria() {
@@ -92,7 +94,7 @@ class AriaAttributesTest {
         parent.addItem(new SideNavRailItem("Sub", "/late/sub"));
         nav.addItem(parent);
 
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
     }
 
     @Test

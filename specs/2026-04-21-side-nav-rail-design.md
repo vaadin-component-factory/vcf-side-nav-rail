@@ -391,7 +391,7 @@ Popover auto-opens on focus (`Popover.setOpenOnFocus(true)` — see §4.2). Arro
 #### 4.4.5 ARIA attributes
 
 - `<vaadin-side-nav>` root role: unchanged — Vaadin's default `role="navigation"` (Landmark). We deliberately do **not** switch to `role="menubar"`: that would alter screen-reader announcements for every SideNav user of the component and lock us into stricter WAI-ARIA menubar semantics (which we don't fully match — e.g., `menubar` prescribes wrap on arrow navigation).
-- Root items with children, while rail mode is active: `aria-haspopup="menu"` + `aria-expanded` synchronized with the popover's open/close state. Both attributes are cleared on leaving rail mode.
+- Root items with children: `aria-haspopup` and `aria-expanded` are owned by Vaadin's `<vaadin-popover>`, which sets them on whichever item it targets. With `setOverlayRole("menu")` (not the dialog role) the popover writes `aria-haspopup="true"`, and `aria-expanded` tracks the popover's open/close state. The addon does **not** force an `aria-haspopup="menu"` value of its own — `aria-haspopup="true"` together with `role="menu"` on the overlay (§4.2) is a valid pairing. It only seeds `aria-expanded="false"` on rail-mode enter (so the value is correct before the first popover interaction) and clears that seed on exit.
 - Popover overlay: `role="menu"` is already set on the overlay (see §4.2). Popover menu items receive `role="menuitem"` via the client adapter.
 - Active route: `aria-current="page"` — Vaadin sets this natively on route matches; no additional work.
 
@@ -401,7 +401,7 @@ Popover auto-opens on focus (`Popover.setOpenOnFocus(true)` — see §4.2). Arro
 
 - `theme="rail"` on the `<vaadin-side-nav>` root marks rail mode. We deliberately do **not** use `[collapsed]` — the latter is already owned by Vaadin's native label-collapse feature (active when `SideNav.setCollapsible(true)` and the user clicks the header).
 - `[root-item]` on a `<vaadin-side-nav-item>` marks a direct child of the rail (top-level navigation). The addon sets the attribute automatically in `SideNavRail.addItem` / `addItemAsFirst` and does not style it itself — it is a hook for consumer CSS that wants to distinguish root items from nested ones. Typical use (e.g. for the active-descendant indicator in [§9.1](#91-phase-2--user-facing-polish)):
-- `aria-haspopup="menu"` and `aria-expanded` on root items with children while rail mode is active (see [§4.4.5](#445-aria-attributes)). Both are addon-managed: set on rail-mode enter + popover open/close, cleared on rail-mode exit. They are not public styling hooks but are documented here as observable DOM state for testing and assistive-tech debugging.
+- `aria-haspopup="true"` and `aria-expanded` on root items with children that have a popover (see [§4.4.5](#445-aria-attributes)). Both are set by Vaadin's `<vaadin-popover>`, not the addon — the addon only seeds `aria-expanded="false"` on rail-mode enter and clears it on exit. They are not public styling hooks but are documented here as observable DOM state for testing and assistive-tech debugging.
 
   ```css
   /* highlight the root item's icon when any descendant route is active */
@@ -616,7 +616,7 @@ The `compile` phase of the e2e module runs `vaadin-maven-plugin:build-frontend`,
 Designed — see [§4.4](#44-keyboard-navigation) for the full keyboard behaviour and [§4.4.5](#445-aria-attributes) for ARIA.
 
 - ~~Keyboard navigation in rail mode (Tab, arrow keys, Esc closes popover).~~ **Designed** as full keyboard navigation in **both** modes (normal + rail). Arrow-Up/Down walks the current level (stop at boundaries), Arrow-Right expands or moves into sub-items / popover, Arrow-Left collapses or returns. Tab is preserved as a conservative fallback. See [§4.4](#44-keyboard-navigation).
-- ~~Correct ARIA roles and attributes (`aria-haspopup`, `aria-expanded`).~~ **Designed** — addon-managed on root items while rail mode is active, cleared on exit. `role="navigation"` (the Vaadin default) is kept over `role="menubar"` to avoid altering screen-reader announcements for existing users. See [§4.4.5](#445-aria-attributes) and [§5.1](#51-marker-attributes).
+- ~~Correct ARIA roles and attributes (`aria-haspopup`, `aria-expanded`).~~ **Designed** — `aria-haspopup="true"` / `aria-expanded` come from Vaadin's `<vaadin-popover>` (overlay `role="menu"`, items `role="menuitem"`); the addon seeds `aria-expanded="false"` on rail-mode enter and clears it on exit. `role="navigation"` (the Vaadin default) is kept over `role="menubar"` to avoid altering screen-reader announcements for existing users. See [§4.4.5](#445-aria-attributes) and [§5.1](#51-marker-attributes).
 - ~~Screen reader labels for items in rail mode.~~ **Covered by the existing DOM:** labels stay in the item DOM (collapsed to `max-width: 0`, not `display: none` — see [§5.2](#52-css-module)), so screen readers still announce them. Verified as part of keyboard-nav E2E tests; no Java API added.
 - ~~Focus management on popover open/close.~~ **Designed** — see [§4.4.4](#444-focus-entry-and-exit). Popover auto-opens on focus, closes on focus-out (Vaadin default `closeOnFocusOut`); Esc returns focus to the rail-root. Arrow-Right moves focus into the popover; Arrow-Left at popover top level exits it.
 

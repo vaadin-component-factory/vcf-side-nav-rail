@@ -15,7 +15,6 @@
  *   - delegated keydown listener at the document level so events originating
  *     in popover overlays (outside the rail's DOM subtree) are still handled
  *     (spec §4.4),
- *   - aria-haspopup guard against the stock <vaadin-side-nav-item> override,
  *   - popover close-on-activate (see installPopoverActivationCloser).
  */
 
@@ -25,8 +24,8 @@ const TEARDOWNS = new WeakMap();
 /**
  * Initializes the client-side adapter for a given <vaadin-side-nav> element
  * owned by a SideNavRail. Safe to call multiple times — a WeakSet guard
- * dedupes. Pair with dispose() on detach so document-level listeners and
- * the MutationObserver don't outlive the rail.
+ * dedupes. Pair with dispose() on detach so document-level listeners don't
+ * outlive the rail.
  *
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
@@ -42,9 +41,6 @@ export function init(rail) {
     document.addEventListener('keydown', keydownHandler, true);
     teardowns.push(() => document.removeEventListener('keydown', keydownHandler, true));
 
-    const observer = installHaspopupGuard(rail);
-    teardowns.push(() => observer.disconnect());
-
     const clickHandler = installPopoverActivationCloser(rail);
     teardowns.push(() => document.removeEventListener('click', clickHandler, true));
 
@@ -53,9 +49,9 @@ export function init(rail) {
 }
 
 /**
- * Releases document-level listeners and the MutationObserver registered by
- * init(rail). Idempotent — safe to call when init never ran or when called
- * twice. Called from SideNavRail#onDetach.
+ * Releases document-level listeners registered by init(rail). Idempotent —
+ * safe to call when init never ran or when called twice. Called from
+ * SideNavRail#onDetach.
  *
  * @param {HTMLElement} rail — the <vaadin-side-nav> root element
  */
@@ -72,40 +68,6 @@ export function dispose(rail) {
     }
     ATTACHED.delete(rail);
     rail.removeAttribute('data-keyboard-ready');
-}
-
-/**
- * Guards `aria-haspopup="menu"` against Vaadin's internal
- * `<vaadin-side-nav-item>` render logic, which otherwise overrides the value
- * back to the generic `"true"` whenever its popover opens. §4.4.5 of the
- * design spec mandates the specific `"menu"` value, so we re-apply it from a
- * MutationObserver each time we see a foreign override in rail mode.
- *
- * @param {HTMLElement} rail — the <vaadin-side-nav> root element
- */
-function installHaspopupGuard(rail) {
-    const obs = new MutationObserver((muts) => {
-        // Only guard while rail mode is active — in normal mode Vaadin's
-        // native aria-haspopup="true" on parent items is the expected value
-        // and we must not override it.
-        if (!isRailActive(rail)) return;
-        for (const m of muts) {
-            if (m.type !== 'attributes' || m.attributeName !== 'aria-haspopup') continue;
-            const target = m.target;
-            if (!(target instanceof Element) || target.localName !== 'vaadin-side-nav-item') continue;
-            if (!target.hasAttribute('aria-haspopup')) continue;
-            if (target.getAttribute('aria-haspopup') !== 'menu') {
-                target.setAttribute('aria-haspopup', 'menu');
-            }
-        }
-    });
-    // Observe the whole rail subtree so newly-added root items are covered too.
-    obs.observe(rail, {
-        attributes: true,
-        attributeFilter: ['aria-haspopup'],
-        subtree: true,
-    });
-    return obs;
 }
 
 /**

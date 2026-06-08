@@ -38,14 +38,14 @@ All assertions are made against the rendered DOM via Playwright locators. Select
 Initial state after navigating to `/accessibility`:
 
 - **Leaf root** (`Dashboard`): has **no** `aria-haspopup` attribute and **no** `aria-expanded` attribute.
-- **Parent roots** (`Code`, `Admin`): Vaadin's stock `<vaadin-side-nav-item>` web component natively sets `aria-haspopup="true"` and `aria-expanded="false"` on any item that has children, regardless of rail mode. We cannot (and should not) fight these values in normal mode. What we assert is the *negative*: `aria-haspopup` is **not** `"menu"` and `aria-expanded` is **not** `"true"` in normal mode. Both of those values are addon-owned rail-mode states (see §4.2–§4.4), and their presence outside rail mode would be a regression.
+- **Parent roots** (`Code`, `Admin`): Vaadin's `<vaadin-popover>` sets `aria-haspopup="true"` and `aria-expanded="false"` on the items it targets — present in normal mode too, since collapsed parents still get a popover. We cannot (and should not) fight these values. What we assert is the *negative*: `aria-haspopup` is **not** `"menu"` and `aria-expanded` is **not** `"true"` in normal mode. The addon adds no `"menu"` value of its own, so a `"menu"` outside rail mode would be a regression.
 - Nested items (`Branches`, `Commits`, `Users`, `Active`, `Archived`, `Roles`) have **no** `tabindex` attribute. (The §9.2 implementation `removeAttribute("tabindex")` on rail-off, and never sets one in normal mode.)
 
 ### 4.2 Rail mode on — popover closed
 
 After clicking `#toggle-rail`:
 
-- `Code` and `Admin` (root items with children) have `aria-haspopup="menu"` and `aria-expanded="false"`.
+- `Code` and `Admin` (root items with children) have `aria-haspopup="true"` (set by Vaadin's `<vaadin-popover>`) and `aria-expanded="false"`.
 - `Dashboard` (leaf) has **neither** `aria-haspopup` nor `aria-expanded`.
 - Nested items (`Branches`, `Commits`, `Users`, `Active`, `Archived`, `Roles`) have `tabindex="-1"`.
 
@@ -59,7 +59,7 @@ Two separate tests — one per root — so a failure on `Code` doesn't mask a fa
 
 **Test A — `Code` (two flat children):**
 
-- `Code` has `aria-expanded="true"` (and `aria-haspopup="menu"` unchanged).
+- `Code` has `aria-expanded="true"` (and `aria-haspopup="true"` unchanged).
 - The overlay itself has `role="menu"` — set by `Popover.setOverlayRole("menu")` on the Java side (see [§4.2](2026-04-21-side-nav-rail-design.md#42-popover-behaviour)). This is a distinct code path from `role="menuitem"` and is asserted separately.
 - Every `vaadin-side-nav-item` inside `vaadin-popover-overlay[opened]` has `role="menuitem"`. Concretely: `Branches` and `Commits`. The `Code` root item itself is the popover's *target* and stays in the rail DOM — it is **not** duplicated inside the overlay.
 
@@ -81,7 +81,7 @@ After closing the popover by pressing `Escape` (deterministic; focus-out also cl
 
 After clicking `#toggle-rail` a second time:
 
-- `Code` and `Admin` no longer have `aria-haspopup="menu"` — the addon's override is removed. Vaadin may re-apply its native `"true"` value (see §4.1); what matters is the *negative*: the value is not `"menu"` after rail-off. Same for `aria-expanded`: the addon does not carry it outside rail mode.
+- `Code` and `Admin` still carry Vaadin's `aria-haspopup="true"` (popover-owned, see §4.1) — the addon adds no rail-specific value, so what matters is the *negative*: the value is never `"menu"`. Same for `aria-expanded`: the addon does not carry it outside rail mode (the popover may still set it).
 - Nested items no longer have `tabindex="-1"`.
 
 ### 4.6 Rail mode toggled back on — re-apply
@@ -96,14 +96,14 @@ Test names read as contracts, e.g.:
 
 - `"rail off — roots have no aria-haspopup / aria-expanded"`
 - `"rail off — nested items have no tabindex"`
-- `"rail on, popover closed — roots with children get aria-haspopup=menu, leaf untouched"`
+- `"rail on, popover closed — roots with children get aria-haspopup=true, leaf untouched"`
 - `"rail on, popover closed — nested items have tabindex=-1"`
 - `"rail on, popover open (Code) — aria-expanded=true on focused root"`
 - `"rail on, popover open (Code) — overlay has role=menu"`
 - `"rail on, popover open (Code) — flat children have role=menuitem"`
 - `"rail on, popover open (Admin) — deeply nested children have role=menuitem"`
 - `"popover closed again — aria-expanded returns to false"`
-- `"rail toggled off — aria-haspopup / aria-expanded cleared"`
+- `"rail toggled off — no rail-specific menu / aria-expanded=true"`
 - `"rail toggled off — tabindex cleared"`
 - `"rail off → on again — contracts re-apply"`
 

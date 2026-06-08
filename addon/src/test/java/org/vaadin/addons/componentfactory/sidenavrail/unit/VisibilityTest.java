@@ -85,7 +85,7 @@ class VisibilityTest {
 
         // ARIA attributes from rail mode should still be present (setVisible
         // doesn't drive a detach cycle, so they were never cleared).
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
         Popover popover = parent.getPopover()
                 .orElseThrow(() -> new AssertionError("parent should have a popover"));
         assertTrue(popover.isOpenOnHover(),
@@ -123,7 +123,7 @@ class VisibilityTest {
 
         // Rail-mode state is server-side; setVisible doesn't undo it. ARIA
         // attributes from rail mode must still be on the item.
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"));
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"));
         assertTrue(nav.isRailMode());
     }
 
@@ -143,7 +143,7 @@ class VisibilityTest {
 
         assertEquals(delayBefore, popover.getHoverDelay(),
                 "popover settings must survive a setVisible cycle on the rail");
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
                 "ARIA must survive a setVisible cycle on the rail");
     }
 
@@ -160,11 +160,11 @@ class VisibilityTest {
         nav.setRailMode(false);
         // Toggling rail mode on a hidden item must still update its server-side
         // state — when the user later flips visibility back on, the state is right.
-        assertFalse(parent.getElement().hasAttribute("aria-haspopup"),
+        assertFalse(parent.getElement().hasAttribute("aria-expanded"),
                 "rail-mode toggle must reach hidden items");
 
         nav.setRailMode(true);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
                 "rail-mode re-toggle must reach hidden items");
     }
 }

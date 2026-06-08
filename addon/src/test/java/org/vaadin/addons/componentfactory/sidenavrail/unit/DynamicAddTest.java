@@ -74,8 +74,8 @@ class DynamicAddTest {
         parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
         nav.addItem(parent);
 
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
-                "item added in rail mode must immediately get aria-haspopup");
+        assertFalse(parent.getElement().hasAttribute("aria-haspopup"),
+                "aria-haspopup is left to <vaadin-popover>, never set server-side");
         assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
                 "item added in rail mode must immediately get aria-expanded");
     }
@@ -307,7 +307,7 @@ class DynamicAddTest {
         parent.addItem(new SideNavRailItem("Branches", "/code/branches"));
         nav.addItemAsFirst(parent);
 
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
                 "addItemAsFirst must apply rail-mode ARIA");
         Popover popover = parent.getPopover()
                 .orElseThrow(() -> new AssertionError("parent should have a popover"));

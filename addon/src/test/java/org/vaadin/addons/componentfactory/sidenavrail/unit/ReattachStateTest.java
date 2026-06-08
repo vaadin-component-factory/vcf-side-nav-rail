@@ -54,8 +54,8 @@ class ReattachStateTest {
         // Switch to rail mode after the reattach. If the cached owner rail had not
         // been refreshed, applyAriaAttributes would silently no-op.
         nav.setRailMode(true);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
-                "aria-haspopup must follow setRailMode after a reattach");
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
+                "rail-mode ARIA must follow setRailMode after a reattach");
     }
 
     @Test
@@ -162,15 +162,15 @@ class ReattachStateTest {
         railB.addItem(parent);
 
         railB.setRailMode(true);
-        assertEquals("menu", parent.getElement().getAttribute("aria-haspopup"),
+        assertEquals("false", parent.getElement().getAttribute("aria-expanded"),
                 "rail-B's rail mode must reach a re-parented item");
 
         railA.setRailMode(true);
         // setting rail-A to rail mode must NOT touch parent — it now belongs to rail-B
         // (assertion is implicit in the next: rail-B off should clear the attribute)
         railB.setRailMode(false);
-        assertFalse(parent.getElement().hasAttribute("aria-haspopup"),
-                "rail-B exiting rail mode must clear haspopup on the moved item");
+        assertFalse(parent.getElement().hasAttribute("aria-expanded"),
+                "rail-B exiting rail mode must clear aria-expanded on the moved item");
     }
 
     // The expanded-changed DOM event survival across reattach cannot be tested

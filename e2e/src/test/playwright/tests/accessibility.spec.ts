@@ -41,11 +41,11 @@ test.describe('rail off — baseline', () => {
     });
 
     test('rail off — parent roots have no aria-haspopup="menu" and no aria-expanded="true"', async ({ page }) => {
-        // Vaadin's <vaadin-side-nav-item> natively sets aria-haspopup="true"
-        // AND aria-expanded="false" on items with children, regardless of
-        // rail mode. We cannot fight those in normal mode; we only assert
-        // the negative — the addon's rail-mode-specific "menu" / "true"
-        // values must NOT be present outside rail mode.
+        // Vaadin's <vaadin-popover> sets aria-haspopup="true" and aria-expanded
+        // (false while closed) on the parents it targets — present in normal
+        // mode too, since collapsed parents still get a popover. We can't fight
+        // those, so we only assert the negative: no rail-specific "menu" /
+        // "true" values, which the addon no longer adds.
         await page.goto('/accessibility');
 
         for (const path of ['code', 'admin']) {
@@ -71,14 +71,14 @@ test.describe('rail off — baseline', () => {
 });
 
 test.describe('rail on, popover closed', () => {
-    test('rail on, popover closed — roots with children get aria-haspopup=menu, leaf untouched', async ({ page }) => {
+    test('rail on, popover closed — roots with children get aria-haspopup=true, leaf untouched', async ({ page }) => {
         await page.goto('/accessibility');
         await page.locator('#toggle-rail').click();
 
         // Roots with children
         for (const path of ['code', 'admin']) {
             const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
-            await expect(item).toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).toHaveAttribute('aria-haspopup', 'true');
             await expect(item).toHaveAttribute('aria-expanded', 'false');
         }
 
@@ -115,7 +115,7 @@ test.describe('rail on, popover open (Code)', () => {
 
         const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
         await expect(code).toHaveAttribute('aria-expanded', 'true');
-        await expect(code).toHaveAttribute('aria-haspopup', 'menu');
+        await expect(code).toHaveAttribute('aria-haspopup', 'true');
     });
 
     test('rail on, popover open (Code) — overlay has role=menu', async ({ page }) => {
@@ -195,16 +195,16 @@ test.describe('popover close — aria-expanded resets', () => {
 
         const code = page.locator('#rail vaadin-side-nav-item[path="code"]');
         await expect(code).toHaveAttribute('aria-expanded', 'false');
-        await expect(code).toHaveAttribute('aria-haspopup', 'menu');
+        await expect(code).toHaveAttribute('aria-haspopup', 'true');
     });
 });
 
 test.describe('rail toggled off — cleanup', () => {
-    test('rail toggled off — aria-haspopup="menu" / aria-expanded="true" cleared', async ({ page }) => {
-        // §4.5: after rail-off, the addon's rail-mode-specific "menu"
-        // override must be gone. Vaadin may still carry its native
-        // aria-haspopup="true" / aria-expanded="false" on parents — we
-        // only assert the negative (no "menu" / no "true").
+    test('rail toggled off — no rail-specific "menu" / aria-expanded="true"', async ({ page }) => {
+        // §4.5: rail-off must leave no rail-mode-specific ARIA. Vaadin's
+        // <vaadin-popover> still carries aria-haspopup="true" /
+        // aria-expanded="false" on the parents it targets — we only assert
+        // the negative (no "menu", no expanded "true").
         await page.goto('/accessibility');
         await page.locator('#toggle-rail').click(); // on
         await page.locator('#toggle-rail').click(); // off again
@@ -243,7 +243,7 @@ test.describe('rail off → on again — re-apply', () => {
         // Roots with children: ARIA restored
         for (const path of ['code', 'admin']) {
             const item = page.locator(`#rail vaadin-side-nav-item[path="${path}"]`);
-            await expect(item).toHaveAttribute('aria-haspopup', 'menu');
+            await expect(item).toHaveAttribute('aria-haspopup', 'true');
             await expect(item).toHaveAttribute('aria-expanded', 'false');
         }
 

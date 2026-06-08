@@ -59,7 +59,6 @@ import java.util.Optional;
 public class SideNavRailItem extends SideNavItem {
 
     private static final String LABEL_SPAN_CLASS = "label";
-    private static final String ARIA_HASPOPUP = "aria-haspopup";
     private static final String ARIA_EXPANDED = "aria-expanded";
     private static final String MENU_ROLE = "menu";
 
@@ -623,26 +622,25 @@ public class SideNavRailItem extends SideNavItem {
     }
 
     /**
-     * Applies §4.4.5 ARIA attributes: {@code aria-haspopup="menu"} on items with
-     * children while rail mode is active; cleared on exit. {@code aria-expanded}
-     * is seeded to {@code "false"} on rail-mode entry and then driven by
-     * Vaadin's {@code <vaadin-popover>}, which sets the attribute on the target
-     * via its {@code __updateAriaAttributes} observer whenever the popover opens
-     * or closes — no server-side bookkeeping needed. The matching
-     * {@code aria-haspopup} override against Vaadin's hardcoded {@code "true"}
-     * is enforced by the {@code installHaspopupGuard} MutationObserver in
-     * {@code side-nav-rail.js}. Package-private — called by
-     * {@link SideNavRail#setRailMode(boolean)}.
+     * Applies §4.4.5 ARIA attributes. {@code aria-expanded} is seeded to
+     * {@code "false"} on rail-mode entry for items with children and then driven
+     * by Vaadin's {@code <vaadin-popover>}, which sets the attribute on the
+     * target via its {@code __updateAriaAttributes} observer whenever the popover
+     * opens or closes — no server-side bookkeeping needed.
+     * <p>
+     * {@code aria-haspopup} is left to the popover too: it sets {@code "true"} on
+     * the target, which together with {@code role="menu"} on the overlay (see
+     * {@code setOverlayRole} in {@link #ensurePopover()}) is a valid pairing, so
+     * the addon no longer forces a {@code "menu"} value of its own.
+     * Package-private — called by {@link SideNavRail#setRailMode(boolean)}.
      */
     void applyAriaAttributes(boolean railMode) {
         boolean hasChildren = !getItems().isEmpty();
         if (railMode && hasChildren) {
-            getElement().setAttribute(ARIA_HASPOPUP, MENU_ROLE);
             if (!getElement().hasAttribute(ARIA_EXPANDED)) {
                 getElement().setAttribute(ARIA_EXPANDED, "false");
             }
         } else {
-            getElement().removeAttribute(ARIA_HASPOPUP);
             getElement().removeAttribute(ARIA_EXPANDED);
         }
     }

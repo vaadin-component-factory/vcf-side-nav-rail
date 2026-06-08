@@ -3,9 +3,9 @@ import { test, expect, Page } from '@playwright/test';
 /**
  * After a SideNavRail is detached + reattached, all per-rail JavaScript wiring
  * must be re-installed: the document-level keydown handler, the click
- * activation-closer, the aria-haspopup MutationObserver, the hover tracker,
- * the data-keyboard-ready marker. The popover's expanded-changed DOM listener
- * (server-wired via Element.addEventListener) must remain functional.
+ * activation-closer, the hover tracker, the data-keyboard-ready marker. The
+ * popover's expanded-changed DOM listener (server-wired via
+ * Element.addEventListener) must remain functional.
  *
  * Server-side, any setting changed while detached must take effect on
  * reattach (regression for the bug that ensurePopover early-returned and
@@ -92,24 +92,6 @@ test.describe('detach + reattach', () => {
 
         await expect(page.locator('vaadin-popover-overlay[opened]'))
             .not.toBeVisible({ timeout: 2_000 });
-    });
-
-    test('aria-haspopup guard MutationObserver still defends after reattach', async ({ page }) => {
-        await page.goto('/detach-reattach');
-        await enableRailMode(page);
-
-        await detach(page);
-        await reattach(page);
-
-        // Vaadin internally overwrites aria-haspopup="true" on parent items;
-        // the addon's MutationObserver re-applies "menu". Force the override
-        // and assert the observer corrects it.
-        await page.locator('#rail vaadin-side-nav-item[path="code"]').evaluate(
-            (el: HTMLElement) => el.setAttribute('aria-haspopup', 'true'));
-        await expect.poll(() =>
-            page.locator('#rail vaadin-side-nav-item[path="code"]')
-                .getAttribute('aria-haspopup')
-        ).toBe('menu');
     });
 
     test('hover-popover still opens after reattach', async ({ page }) => {

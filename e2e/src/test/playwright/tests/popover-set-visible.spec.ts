@@ -110,8 +110,8 @@ test.describe('setVisible(false) on rail', () => {
         await page.locator('#toggle-rail-visible').click();
         await page.locator('#toggle-rail-visible').click();
 
-        // The item still has its rail-mode aria-haspopup applied.
+        // The popover still targets the item, so aria-haspopup persists.
         await expect(page.locator(codeItem))
-            .toHaveAttribute('aria-haspopup', 'menu');
+            .toHaveAttribute('aria-haspopup', 'true');
     });
 });
