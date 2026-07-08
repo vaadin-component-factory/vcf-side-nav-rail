@@ -162,6 +162,7 @@ public class SideNavRailItem extends SideNavItem {
         if (!getElement().hasAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE)) {
             return;
         }
+
         String label = getLabel();
         if (label != null && !label.isBlank()) {
             getElement().setAttribute(SideNavRail.RAIL_TOOLTIP_ATTRIBUTE, label);
@@ -322,7 +323,6 @@ public class SideNavRailItem extends SideNavItem {
      * setText("")} call.
      */
     private static void removeBareLabelTextNode(Element root) {
-        // Check whether there are any child text nodes to remove.
         boolean hasTextNodes = root.getChildren().anyMatch(Element::isTextNode);
         if (!hasTextNodes) {
             return;
@@ -334,7 +334,6 @@ public class SideNavRailItem extends SideNavItem {
         // setText("") removes text-node children and may also detach element children.
         root.setText("");
 
-        // Re-attach any element children that were detached.
         for (Element child : elementChildren) {
             if (child.getParent() == null) {
                 root.appendChild(child);
@@ -372,6 +371,7 @@ public class SideNavRailItem extends SideNavItem {
         if (popover == null) {
             return;
         }
+
         popover.setOpenOnFocus(owner.isRailMode());
         applyPopoverSettings();
         applyPopoverGating();
@@ -415,6 +415,7 @@ public class SideNavRailItem extends SideNavItem {
             avatar.setAbbreviation(letter);
             return;
         }
+
         Avatar avatar = new Avatar();
         avatar.addThemeVariants(AvatarVariant.LUMO_SMALL);
         avatar.setAbbreviation(letter);
@@ -481,6 +482,7 @@ public class SideNavRailItem extends SideNavItem {
         if (getItems().isEmpty() && !ownerWantsLeafPopover()) {
             return;
         }
+
         popover = new Popover();
         popover.setTarget(this);
         popover.setOpenOnClick(false);
@@ -528,6 +530,7 @@ public class SideNavRailItem extends SideNavItem {
         if (owner == null) {
             return;
         }
+
         popover.setHoverDelay(owner.getPopoverHoverDelay());
         popover.setHideDelay(owner.getPopoverHideDelay());
 
@@ -584,6 +587,7 @@ public class SideNavRailItem extends SideNavItem {
         if (owner == null) {
             return;
         }
+
         if (getItems().isEmpty()) {
             // Leaf popover — gated entirely by the rail's leaf-popover-active
             // predicate (RailTooltipMode.POPOVER_HEADER + rail mode active).
@@ -595,6 +599,7 @@ public class SideNavRailItem extends SideNavItem {
             }
             return;
         }
+
         boolean railMode = owner.isRailMode();
 
         // When inline children are CSS-hidden by childrenOnlyInPopover, the
@@ -692,6 +697,7 @@ public class SideNavRailItem extends SideNavItem {
         if (popover == null) {
             return;
         }
+
         populatePopover();
     }
 
@@ -711,19 +717,23 @@ public class SideNavRailItem extends SideNavItem {
 
         Component prefix = getPrefixComponent();
         String label = getLabel();
+
         // The letter-avatar fallback is a rail-mode visual crutch, not a real icon —
         // treat it as "no icon" for popover-header purposes (the header has the label
         // to identify the parent; repeating the letter avatar would be redundant).
-        boolean hasIcon = wantsIcon && prefix != null && !isOwnAvatar(prefix);
+        // copyComponent returns null for a prefix type we cannot safely clone; in that
+        // case the header carries no icon rather than stealing the live prefix.
+        boolean wantsHeaderIcon = wantsIcon && prefix != null && !isOwnAvatar(prefix);
+        Component headerIcon = wantsHeaderIcon ? copyComponent(prefix) : null;
         boolean hasLabel = wantsLabel && label != null && !label.isBlank();
-        if (!hasIcon && !hasLabel) {
+        if (headerIcon == null && !hasLabel) {
             return; // Would produce an empty header — skip.
         }
 
         Div header = new Div();
         header.addClassName("side-nav-rail-popover-header");
-        if (hasIcon) {
-            header.add(copyComponent(prefix));
+        if (headerIcon != null) {
+            header.add(headerIcon);
         }
         if (hasLabel) {
             Span text = new Span(label);
@@ -737,30 +747,36 @@ public class SideNavRailItem extends SideNavItem {
         String label = source.getLabel();
         String path = source.getPath();
         Component prefix = source.getPrefixComponent();
+        Component copiedPrefix = (prefix == null) ? null : copyComponent(prefix);
 
         SideNavItem copy;
-        if (path != null && prefix != null) {
-            copy = new SideNavItem(label, path, copyComponent(prefix));
+        if (path != null && copiedPrefix != null) {
+            copy = new SideNavItem(label, path, copiedPrefix);
         } else if (path != null) {
             copy = new SideNavItem(label, path);
-        } else if (prefix != null) {
-            copy = new SideNavItem(label);
-            copy.setPrefixComponent(copyComponent(prefix));
         } else {
             copy = new SideNavItem(label);
+            if (copiedPrefix != null) {
+                copy.setPrefixComponent(copiedPrefix);
+            }
         }
         copy.getElement().setAttribute("role", "menuitem");
 
         for (SideNavItem grandchild : source.getItems()) {
             copy.addItem(copyOf(grandchild));
         }
+
         return copy;
     }
 
     /**
-     * Clones a prefix component by reinstantiating via its class. Vaadin icons are the
-     * overwhelmingly common case; for anything else (custom components), fall back to sharing the
-     * original reference — rare in an icon-driven rail.
+     * Clones a prefix component so the popover copy is independent of the live item. A Flow {@link
+     * Element} has a single parent, so returning the original instance would reparent it out of the
+     * visible item into the popover — blanking the on-screen prefix and orphaning it on the next
+     * rebuild. {@link Icon} and {@link Avatar} (the auto-generated letter avatar and user avatars)
+     * are the cases that occur in an icon-driven rail and are cloned field-by-field. For any other
+     * component type we cannot generically clone, so we return {@code null} (no prefix on the copy)
+     * rather than stealing the live instance; callers treat {@code null} as "no prefix".
      */
     private static Component copyComponent(Component source) {
         if (source instanceof Icon icon) {
@@ -768,7 +784,28 @@ public class SideNavRailItem extends SideNavItem {
             copy.getElement().setAttribute("icon", icon.getElement().getAttribute("icon"));
             return copy;
         }
-        return source;
+        if (source instanceof Avatar avatar) {
+            return copyAvatar(avatar);
+        }
+        return null;
+    }
+
+    private static Avatar copyAvatar(Avatar source) {
+        Avatar copy = new Avatar();
+        copy.setName(source.getName());
+        if (source.getAbbreviation() != null) {
+            copy.setAbbreviation(source.getAbbreviation());
+        }
+        copy.setImage(source.getImage());
+        if (source.getColorIndex() != null) {
+            copy.setColorIndex(source.getColorIndex());
+        }
+        source.getElement().getClassList().forEach(copy.getElement().getClassList()::add);
+        String theme = source.getElement().getAttribute("theme");
+        if (theme != null) {
+            copy.getElement().setAttribute("theme", theme);
+        }
+        return copy;
     }
 
     /**

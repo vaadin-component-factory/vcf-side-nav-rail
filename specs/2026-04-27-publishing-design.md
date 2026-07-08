@@ -241,7 +241,7 @@ A long-lived branch tracking the most recently released version of the addon. Va
 3. Cache `~/.m2/repository`.
 4. Run `./mvnw -B clean verify`.
 
-The full `verify` runs the unit tests, Karibu UI tests, and the production-mode Playwright suite (the e2e module is configured to always build the production bundle; no separate IT profile). A failed run blocks the PR.
+A plain `verify` runs the unit/Karibu tests, Spotless, and Checkstyle. **Note (updated after this spec):** the e2e module was later moved behind an `e2e` profile, so `verify` no longer runs the Playwright suite unless invoked as `./mvnw -Pe2e -Dvaadin.force.production.build=true clean verify`. A failed run blocks the PR.
 
 Pre-commit hook parity, code style, and linting are not part of CI today — they are local concerns. Adding spotless-check is a one-line follow-up if needed but is out of scope here.
 

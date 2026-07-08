@@ -70,6 +70,10 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>
+            <!-- provided: consumers bring their own Vaadin platform version (via their
+                 vaadin-bom); the addon must not force-pin 24.9.0 or drag the full
+                 platform + dev-mode tooling tree onto them as compile dependencies. -->
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test scope -->

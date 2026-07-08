@@ -30,12 +30,8 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverHeaderMode;
-import org.vaadin.addons.componentfactory.sidenavrail.PopoverOn;
-import org.vaadin.addons.componentfactory.sidenavrail.RailTooltipMode;
-import org.vaadin.addons.componentfactory.sidenavrail.RootMatchNested;
-import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
-import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
+import org.vaadin.addons.componentfactory.sidenavrail.*;
+import org.vaadin.addons.componentfactory.sidenavrail.demo.views.*;
 
 /**
  * Plain layout frame instead of {@code AppLayout} — the rail mode is the point of the demo and an
@@ -58,41 +54,41 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         nav = new SideNavRail();
 
         SideNavRailItem dashboard =
-                new SideNavRailItem("Dashboard", "/", VaadinIcon.DASHBOARD.create());
+                new SideNavRailItem("Dashboard", ShowcaseView.class, VaadinIcon.DASHBOARD.create());
 
-        SideNavRailItem code = new SideNavRailItem("Code", "/code", VaadinIcon.CODE.create());
+        SideNavRailItem branches = new SideNavRailItem("Branches", BranchesView.class);
 
-        SideNavRailItem branches = new SideNavRailItem("Branches", "/code/branches");
-        SideNavRailItem activeBranches = new SideNavRailItem("Active", "/code/branches/active");
-        activeBranches.addItem(new SideNavRailItem("main", "/code/branches/active/main"));
-        activeBranches.addItem(new SideNavRailItem("develop", "/code/branches/active/develop"));
-        activeBranches.addItem(new SideNavRailItem("feature/*", "/code/branches/active/features"));
+        SideNavRailItem activeBranches = new SideNavRailItem("Active", ActiveBranchesView.class);
+        activeBranches.addItem(new SideNavRailItem("main", MainBranchView.class));
+        activeBranches.addItem(new SideNavRailItem("develop", DevelopBranchView.class));
+        activeBranches.addItem(new SideNavRailItem("feature/*", FeatureBranchesView.class));
         branches.addItem(activeBranches);
-        branches.addItem(new SideNavRailItem("Stale", "/code/branches/stale"));
-        branches.addItem(new SideNavRailItem("Archived", "/code/branches/archived"));
+
+        branches.addItem(new SideNavRailItem("Stale", StaleBranchesView.class));
+        branches.addItem(new SideNavRailItem("Archived", ArchivedBranchesView.class));
+
+        SideNavRailItem code =
+                new SideNavRailItem("Code", CodeView.class, VaadinIcon.CODE.create());
         code.addItem(branches);
-        SideNavRailItem commits = new SideNavRailItem("Commits", "/code/commits");
+
+        SideNavRailItem commits = new SideNavRailItem("Commits", CommitsView.class);
         code.addItem(commits);
-        code.addItem(new SideNavRailItem("Tags", "/code/tags"));
+        code.addItem(new SideNavRailItem("Tags", TagsView.class));
+
+        SideNavRailItem environments = new SideNavRailItem("Environments", EnvironmentsView.class);
+        environments.addItem(new SideNavRailItem("Production", ProductionView.class));
+        environments.addItem(new SideNavRailItem("Staging", StagingView.class));
+        environments.addItem(new SideNavRailItem("Development", DevelopmentView.class));
 
         SideNavRailItem operate =
-                new SideNavRailItem("Operate", "/operate", VaadinIcon.COGS.create());
-
-        SideNavRailItem environments = new SideNavRailItem("Environments", "/operate/environments");
-        environments.addItem(new SideNavRailItem("Production", "/operate/environments/prod"));
-        environments.addItem(new SideNavRailItem("Staging", "/operate/environments/staging"));
-        environments.addItem(new SideNavRailItem("Development", "/operate/environments/dev"));
+                new SideNavRailItem("Operate", OperateView.class, VaadinIcon.COGS.create());
         operate.addItem(environments);
-        operate.addItem(new SideNavRailItem("Releases", "/operate/releases"));
+        operate.addItem(new SideNavRailItem("Releases", ReleasesView.class));
 
         // Intentionally icon-less — demonstrates the letter-avatar fallback in rail mode.
-        SideNavRailItem admin = new SideNavRailItem("Admin", "/admin");
+        SideNavRailItem admin = new SideNavRailItem("Admin", AdminView.class);
 
-        SideNavRailItem dynamicProjectsDemo =
-                new SideNavRailItem(
-                        "Dynamic projects demo", "/dynamic-projects", VaadinIcon.CONNECT.create());
-
-        nav.addItem(dashboard, code, operate, admin, dynamicProjectsDemo);
+        nav.addItem(dashboard, code, operate, admin);
 
         Button toggle =
                 new Button(

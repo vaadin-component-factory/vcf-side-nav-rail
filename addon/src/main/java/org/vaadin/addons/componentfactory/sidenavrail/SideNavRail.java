@@ -37,9 +37,10 @@ import java.util.function.Consumer;
 
 /**
  * A {@link SideNav} that can be switched into a compact icon-only <em>rail</em> mode and shows a
- * hover popover for items with children. Use with {@link SideNavRailItem} for the item tree; plain
- * {@link com.vaadin.flow.component.sidenav.SideNavItem}s work but won't participate in the CSS
- * label-wrap or popover gating.
+ * hover popover for items with children. The item tree must be built from {@link SideNavRailItem}s;
+ * {@link #addItem(SideNavItem...)} rejects a plain {@link
+ * com.vaadin.flow.component.sidenav.SideNavItem} with an {@link IllegalArgumentException}, because
+ * only {@code SideNavRailItem} carries the CSS label-wrap and popover-gating wiring.
  *
  * <p>The component toggles between two visual states:
  *
@@ -157,13 +158,16 @@ public class SideNavRail extends SideNav {
         if (this.railMode == railMode) {
             return;
         }
+
         this.railMode = railMode;
         if (railMode) {
             getElement().getThemeList().add(RAIL_THEME);
         } else {
             getElement().getThemeList().remove(RAIL_THEME);
         }
+
         applyTooltips();
+
         // Recursively refreshes every item's popover (settings + gating + open-on-focus),
         // covering what setRailMode used to fan out via separate updatePopoverGating /
         // applyFocusTriggerToRootItems helpers.
@@ -174,6 +178,7 @@ public class SideNavRail extends SideNav {
         if (popoverHeaderMode != PopoverHeaderMode.NONE && popoverHeaderOnlyInRailMode) {
             rebuildPopoverContents();
         }
+
         ComponentUtil.fireEvent(this, new RailModeChangedEvent(this, false, railMode));
     }
 
@@ -267,6 +272,7 @@ public class SideNavRail extends SideNav {
         if (this.popoverHeaderOnlyInRailMode == onlyInRailMode) {
             return;
         }
+
         this.popoverHeaderOnlyInRailMode = onlyInRailMode;
         rebuildPopoverContents();
     }
@@ -434,8 +440,8 @@ public class SideNavRail extends SideNav {
     }
 
     /**
-     * The current {@link RootMatchNested} mode. Default: {@link RootMatchNested#NONE}. See {@link
-     * RootMatchNested} for the per-value semantics.
+     * The current {@link RootMatchNested} mode. Default: {@link RootMatchNested#ONLY_RAIL}. See
+     * {@link RootMatchNested} for the per-value semantics.
      *
      * @return the active {@link RootMatchNested}; never {@code null}
      */
@@ -499,6 +505,7 @@ public class SideNavRail extends SideNav {
                         matches.add(item);
                     }
                 });
+
         return List.copyOf(matches);
     }
 
@@ -518,6 +525,7 @@ public class SideNavRail extends SideNav {
         if (ui == null) {
             return null;
         }
+
         Location location = ui.getInternals().getActiveViewLocation();
         return location == null ? null : normalizePath(location.getPath());
     }
@@ -527,6 +535,7 @@ public class SideNavRail extends SideNav {
         if (path != null && path.equals(currentPath)) {
             return true;
         }
+
         Set<String> aliases = item.getPathAliases();
         if (aliases != null) {
             for (String alias : aliases) {
@@ -546,6 +555,7 @@ public class SideNavRail extends SideNav {
         if (path == null) {
             return null;
         }
+
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
@@ -646,10 +656,12 @@ public class SideNavRail extends SideNav {
         if (!railMode || railTooltipMode == RailTooltipMode.NONE) {
             return;
         }
+
         String label = item.getLabel();
         if (label == null || label.isBlank()) {
             return;
         }
+
         switch (railTooltipMode) {
             case SIMPLE -> item.getElement().setAttribute(RAIL_TOOLTIP_ATTRIBUTE, label);
             case POPOVER_HEADER -> {

@@ -29,17 +29,17 @@ public enum RootMatchNested {
 
     /**
      * No automatic override. Each root item keeps whatever {@code matchNested} value the
-     * application set on it (default for plain {@link SideNavItem} is {@code false}). This is the
-     * default and matches the standard {@link com.vaadin.flow.component.sidenav.SideNav} behaviour.
+     * application set on it (default for plain {@link SideNavItem} is {@code false}). Matches the
+     * standard {@link com.vaadin.flow.component.sidenav.SideNav} behaviour.
      */
     NONE,
 
     /**
      * Override is active only while the rail is in rail mode ({@link SideNavRail#isRailMode()}
-     * {@code == true}). Useful for the typical use case: in rail mode the active route is no longer
-     * visually anchored to an expanded parent, so forcing the root to highlight when a descendant
-     * route is current restores that orientation cue. The original {@code matchNested} value is
-     * restored when leaving rail mode.
+     * {@code == true}). This is the default. Useful for the typical use case: in rail mode the
+     * active route is no longer visually anchored to an expanded parent, so forcing the root to
+     * highlight when a descendant route is current restores that orientation cue. The original
+     * {@code matchNested} value is restored when leaving rail mode.
      */
     ONLY_RAIL,
 

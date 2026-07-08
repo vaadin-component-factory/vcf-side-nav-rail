@@ -33,9 +33,9 @@ public enum RailTooltipMode {
     NONE,
 
     /**
-     * Lumo-themed CSS pseudo-element tooltip. Default. Reacts to both hover and keyboard focus (via
-     * {@code :focus-within}). Immune to {@code vaadin-tooltip-mixin}'s overlay dismissal because it
-     * does not participate in the overlay system.
+     * Lumo-themed CSS pseudo-element tooltip. Reacts to both hover and keyboard focus (via {@code
+     * :focus-within}). Immune to {@code vaadin-tooltip-mixin}'s overlay dismissal because it does
+     * not participate in the overlay system.
      *
      * <p>When combined with a parent-popover, the tooltip and popover both appear on the same item
      * — the tooltip sits below the icon (default tooltip position), the popover opens to the right,
@@ -45,7 +45,7 @@ public enum RailTooltipMode {
     SIMPLE,
 
     /**
-     * Tooltip is rendered as a {@link com.vaadin.flow.component.popover.Popover} with the
+     * Default. Tooltip is rendered as a {@link com.vaadin.flow.component.popover.Popover} with the
      * configured {@link PopoverHeaderMode} as its content. For items with children the existing
      * parent-popover doubles as the tooltip — there is exactly one overlay per item. For leaf items
      * a popover is created on demand whose only content is the header.

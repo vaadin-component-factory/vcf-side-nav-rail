@@ -10,7 +10,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 - **Rail mode toggle** — flip the nav between full-width and rail mode.
 - **Hover popovers** for items with children, configurable in scope, with adjustable hover/hide delays, position, and arrow visibility.
-- **Configurable rail-mode tooltips** on root items — `NONE` / `SIMPLE` (default) / `POPOVER_HEADER` (see `PopoverHeaderMode` for `POPOVER_HEADER` content).
+- **Configurable rail-mode tooltips** on root items — `NONE` / `SIMPLE` / `POPOVER_HEADER` (default) (see `PopoverHeaderMode` for `POPOVER_HEADER` content).
 - **Letter-avatar fallback** for root items without an icon (rail mode).
 - **Subitem indicator** — visual cue on parent items, with full CSS-property control for glyph, color, and size.
 - **Children-only-in-popover layout** — flat rail with descendants reachable only via the hover popover.
@@ -112,9 +112,9 @@ Note: `setChildrenOnlyInPopover(true)` overrides this — when popover-only layo
 
 `PopoverHeaderMode` controls whether (and how) the parent's label appears as a header at the top of its popover:
 
-- `NONE` (default) — no header.
-- `LABEL_ONLY` — header shows the parent's text label only.
-- `ICON_ONLY` — header shows a copy of the parent's prefix component (typically an icon) only.
+- `NONE` — no header.
+- `LABEL_ONLY` (default) — header shows the parent's text label only.
+- `ICON_ONLY` — header shows a copy of the parent's prefix component (typically an icon) only. If the item's only prefix is the auto-generated letter avatar, no header is shown (the avatar is treated as "no icon").
 - `FULL` — header shows both the prefix component and the label, icon first.
 
 ```java
@@ -175,8 +175,8 @@ Because rail mode shows only icons, users may not be able to tell what each icon
 `RailTooltipMode` selects how root items surface their label:
 
 - `NONE` — no tooltips.
-- `SIMPLE` (default) — Lumo-themed CSS pseudo-element tooltip. Reacts to hover and keyboard focus, and is immune to `vaadin-tooltip-mixin`'s overlay-dismissal behaviour.
-- `POPOVER_HEADER` — uses a Vaadin `Popover` (with the configured `PopoverHeaderMode` as content) as the tooltip — see `PopoverHeaderMode` for the per-item content options.
+- `SIMPLE` — Lumo-themed CSS pseudo-element tooltip. Reacts to hover and keyboard focus, and is immune to `vaadin-tooltip-mixin`'s overlay-dismissal behaviour.
+- `POPOVER_HEADER` (default) — uses a Vaadin `Popover` (with the configured `PopoverHeaderMode` as content) as the tooltip — see `PopoverHeaderMode` for the per-item content options.
 
 ```java
 rail.setRailTooltipMode(RailTooltipMode.NONE);  // disable tooltips entirely
@@ -191,7 +191,7 @@ rail.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
 rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);  // or ICON_ONLY / FULL
 ```
 
-- **Auto-coerce constraint:** `POPOVER_HEADER` requires a non-`NONE` `PopoverHeaderMode` (otherwise the popover would have no content). If the rail is attached with `POPOVER_HEADER` selected while the header mode is still the default `NONE`, the addon silently coerces it to `LABEL_ONLY` at attach time. Runtime setters remain un-validated, so it's the caller's responsibility to keep the combination valid afterwards.
+- **Auto-coerce constraint:** `POPOVER_HEADER` requires a non-`NONE` `PopoverHeaderMode` (otherwise the popover would have no content). The default header mode is `LABEL_ONLY`, so the default combination is already valid; but if you explicitly set `PopoverHeaderMode.NONE` while `POPOVER_HEADER` is selected, the addon silently coerces the header mode back to `LABEL_ONLY` at attach time. Runtime setters remain un-validated, so it's the caller's responsibility to keep the combination valid afterwards.
 - **Parent-popover overlap:** when `POPOVER_HEADER` is selected and an item has children, the existing parent-popover doubles as the tooltip — there is exactly one overlay per item. With `SIMPLE`, parent items show both the tooltip and the children popover (two overlays); leaf items only ever show the tooltip.
 
 ### Reacting to mode changes
@@ -226,12 +226,12 @@ By default, Vaadin's `<vaadin-side-nav-item>` only flags an item as `current` wh
 
 | Value | Behaviour |
 | --- | --- |
-| `NONE` (default) | The addon never touches `matchNested`. |
-| `ONLY_RAIL` | Each root's `matchNested` is forced to `true` while the rail is in rail mode and restored on leaving rail mode. Recommended for the typical use case. |
+| `NONE` | The addon never touches `matchNested`. |
+| `ONLY_RAIL` (default) | Each root's `matchNested` is forced to `true` while the rail is in rail mode and restored on leaving rail mode. Recommended for the typical use case. |
 | `ALL` | Each root's `matchNested` is always forced to `true`, regardless of rail mode. Useful in combination with [Children only in popover](#children-only-in-popover) or any other configuration where the visible inline tree doesn't expose deeper levels. |
 
 ```java
-rail.setRootMatchNested(RootMatchNested.ONLY_RAIL);  // default: NONE
+rail.setRootMatchNested(RootMatchNested.ONLY_RAIL);  // this is the default
 ```
 
 ### Items without an icon
@@ -376,13 +376,19 @@ vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::par
 ./mvnw clean verify
 ```
 
-Runs the addon's unit tests (Karibu-Testing in `addon/`) and the production-mode Playwright E2E suite (in `e2e/`).
+Runs the addon's unit tests (Karibu-Testing in `addon/`) plus Spotless and Checkstyle. The production-mode Playwright E2E suite lives in the `e2e/` module, which is only built under the `e2e` profile — a plain `verify` does **not** run it. To include the E2E suite:
+
+```bash
+./mvnw -Pe2e -Dvaadin.force.production.build=true clean verify
+```
 
 ## Running the demo
 
 ```bash
-./mvnw -pl demo spring-boot:run
+./mvnw -pl demo -am spring-boot:run
 ```
+
+(`-am` builds the sibling `addon` module first; without it a fresh clone fails to resolve `vcf-side-nav-rail`.)
 
 The demo runs on [http://localhost:8080](http://localhost:8080) and walks through the configuration options (popover modes, tooltip modes, `matchNested` variants, styling overrides) on a single live nav.
 

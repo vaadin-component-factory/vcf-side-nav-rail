@@ -18,16 +18,16 @@ package org.vaadin.addons.componentfactory.sidenavrail;
 
 /**
  * Controls whether (and how) a {@link SideNavRailItem}'s popover renders a header that identifies
- * the item itself. Opt-in — the default is {@link #NONE}.
+ * the item itself. The default is {@link #LABEL_ONLY}.
  *
  * <p>The header is rendered above the nested {@code SideNav} that shows children, when the item has
  * children. For leaf items shown via {@link RailTooltipMode#POPOVER_HEADER}, the header is the only
  * content of the popover.
  *
- * <p>If the configured mode would produce an empty header (e.g. {@link #ICON_ONLY} on a parent
- * without a prefix component), the header is omitted entirely rather than rendered blank. Note:
- * rail-mode root items always carry a prefix component (the auto-generated letter avatar), so
- * {@link #ICON_ONLY} never produces an empty header in practice.
+ * <p>If the configured mode would produce an empty header, the header is omitted entirely rather
+ * than rendered blank. In particular, {@link #ICON_ONLY} on an item whose only prefix is the
+ * auto-generated letter avatar produces no header at all: that fallback is deliberately treated as
+ * "no icon" for header purposes (it is a rail-mode visual crutch, not a real glyph).
  *
  * <p>Changes made after the popover has been rendered take effect immediately — the rail rewires
  * all existing popovers when {@link SideNavRail#setPopoverHeaderMode} is called. Changes to the
@@ -37,10 +37,10 @@ package org.vaadin.addons.componentfactory.sidenavrail;
  */
 public enum PopoverHeaderMode {
 
-    /** No header. Default. */
+    /** No header. */
     NONE,
 
-    /** Header shows the parent's text label only. */
+    /** Header shows the parent's text label only. Default. */
     LABEL_ONLY,
 
     /** Header shows a copy of the parent's prefix component (typically an icon) only. */
