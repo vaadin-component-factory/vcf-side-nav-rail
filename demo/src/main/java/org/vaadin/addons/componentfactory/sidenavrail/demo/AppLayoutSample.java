@@ -20,22 +20,22 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRail;
 import org.vaadin.addons.componentfactory.sidenavrail.SideNavRailItem;
 import org.vaadin.addons.componentfactory.sidenavrail.demo.views.*;
 
-/**
- * This class shows how to use the SideNavRail in the app layout.
- */
-//@Layout // commented out to not run into conflicts
+/** This class shows how to use the SideNavRail in the app layout. */
+// @Layout // commented out to not run into conflicts
 public class AppLayoutSample extends AppLayout implements RouterLayout {
 
     private final SideNavRail nav;
 
     public AppLayoutSample() {
-        getStyle().set("--vaadin-app-layout-drawer-width", "auto"); // important for LUMO, so that the drawer takes minimal space
+        getStyle()
+                .set(
+                        "--vaadin-app-layout-drawer-width",
+                        "auto"); // important for LUMO, so that the drawer takes minimal space
 
         nav = new SideNavRail();
 
@@ -63,20 +63,23 @@ public class AppLayoutSample extends AppLayout implements RouterLayout {
 
         nav.addItem(dashboard, branches, code);
 
-        Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
-            boolean railMode = !nav.isRailMode();
-            nav.setRailMode(railMode);
-            e.getSource().setIcon((railMode
-                    ? VaadinIcon.CHEVRON_RIGHT_SMALL
-                    : VaadinIcon.CHEVRON_LEFT_SMALL)
-                    .create());
-        });
+        Button toggle =
+                new Button(
+                        VaadinIcon.CHEVRON_LEFT_SMALL.create(),
+                        e -> {
+                            boolean railMode = !nav.isRailMode();
+                            nav.setRailMode(railMode);
+                            e.getSource()
+                                    .setIcon(
+                                            (railMode
+                                                            ? VaadinIcon.CHEVRON_RIGHT_SMALL
+                                                            : VaadinIcon.CHEVRON_LEFT_SMALL)
+                                                    .create());
+                        });
         toggle.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        toggle.getStyle()
-                .setWidth("fit-content");
+        toggle.getStyle().setWidth("fit-content");
 
         addToNavbar(new DrawerToggle());
         addToDrawer(nav, toggle);
     }
-
 }
