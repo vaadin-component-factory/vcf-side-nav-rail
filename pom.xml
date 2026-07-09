@@ -32,7 +32,11 @@
 
     <modules>
         <module>addon</module>
+        <!-- demo = Vaadin 25 (Aura), demo-v24 = Vaadin 24 (Lumo). Each self-pins its
+             platform version (see the module POMs), so they build side by side. The
+             whole reactor builds under JDK 21; the addon still targets Java 17. -->
         <module>demo</module>
+        <module>demo-v24</module>
     </modules>
 
     <profiles>

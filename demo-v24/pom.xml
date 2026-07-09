@@ -10,23 +10,22 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>vcf-side-nav-rail-demo</artifactId>
+    <artifactId>vcf-side-nav-rail-demo-v24</artifactId>
     <packaging>jar</packaging>
 
-    <name>SideNav Rail — Demo (Vaadin 25)</name>
-    <description>Showcase running on Vaadin 25 (Aura). Its twin, demo-v24, runs the same
-        showcase on Vaadin 24 (Lumo) so the addon can be eyeballed on both platforms in
-        parallel. Requires JDK 21 to build (release 21); the addon itself still targets
-        Java 17.</description>
+    <name>SideNav Rail — Demo (Vaadin 24)</name>
+    <description>Showcase running on Vaadin 24 (Lumo) — the addon's compatibility floor.
+        Twin of the demo module (Vaadin 25 / Aura); both run the same showcase so the addon
+        can be eyeballed on both platforms in parallel.</description>
 
     <properties>
-        <!-- Version-locked to Vaadin 25 / Spring Boot 4, independent of the reactor's
-             ${vaadin.version} (which test.sh flips via -Dvaadin.version). The BOM imports
-             below are declared FIRST in this module's dependencyManagement so they win
-             over the parent's inherited imports regardless of any -D override. -->
-        <maven.compiler.release>21</maven.compiler.release>
-        <demo.vaadin.version>25.1.3</demo.vaadin.version>
-        <demo.spring-boot.version>4.0.6</demo.spring-boot.version>
+        <!-- Version-locked to Vaadin 24 / Spring Boot 3.5, independent of the reactor's
+             ${vaadin.version} (which test.sh flips to 25.x via -Dvaadin.version). The BOM
+             imports below are declared FIRST so they win over the parent's inherited
+             imports regardless of any -D override, keeping this demo on V24 always. -->
+        <maven.compiler.release>17</maven.compiler.release>
+        <demo.vaadin.version>24.10.1</demo.vaadin.version>
+        <demo.spring-boot.version>3.5.13</demo.spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -57,14 +56,6 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
-        </dependency>
-        <!-- V25 split the dev server out of vaadin-core into this optional artifact.
-             Required for dev-mode (spring-boot:run); harmless in production builds.
-             V24 bundled the dev server in vaadin-core, so demo-v24 doesn't need it. -->
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-dev</artifactId>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 

@@ -15,10 +15,7 @@
  */
 package org.vaadin.addons.componentfactory.sidenavrail.demo;
 
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasElement;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -28,14 +25,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.ColorScheme;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLayout;
-import com.vaadin.flow.shared.Registration;
-import com.vaadin.flow.theme.aura.Aura;
 import com.vaadin.flow.theme.lumo.Lumo;
 import org.vaadin.addons.componentfactory.sidenavrail.*;
 import org.vaadin.addons.componentfactory.sidenavrail.demo.views.*;
@@ -48,9 +43,6 @@ import org.vaadin.addons.componentfactory.sidenavrail.demo.views.*;
 @Layout
 @CssImport("./demo-styles.css")
 public class MainLayout extends VerticalLayout implements RouterLayout, AfterNavigationObserver {
-
-    /** UI-scoped key under which the current theme stylesheet {@link Registration} is stored. */
-    private static final String THEME_REG = "demo-theme-stylesheet";
 
     private final Div contentArea = new Div();
     private final Span activeItemBreadcrumb = new Span();
@@ -159,61 +151,30 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
                         .orElse("Active: (no match)"));
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        // DemoAppShell suppresses V25's auto-loaded Aura, so apply the default theme (Aura)
-        // here — once per UI. Idempotent: skip if a theme stylesheet is already registered.
-        UI ui = attachEvent.getUI();
-        if (ComponentUtil.getData(ui, THEME_REG) == null) {
-            applyTheme(ui, ThemeChoice.AURA.stylesheet);
-        }
-    }
-
-    /**
-     * Swap the active theme stylesheet (Aura &harr; Lumo) at runtime by removing the previous
-     * dynamic stylesheet and adding the new one, per Vaadin's "loading stylesheets dynamically"
-     * pattern. The {@link Registration} is stashed on the UI so the next switch can remove it.
-     */
-    private void applyTheme(UI ui, String cssUrl) {
-        Object previous = ComponentUtil.getData(ui, THEME_REG);
-        if (previous instanceof Registration registration) {
-            registration.remove();
-        }
-        ComponentUtil.setData(ui, THEME_REG, ui.getPage().addStyleSheet(cssUrl));
-    }
-
     private HorizontalLayout buildNavbar(SideNavRail nav) {
         Span title = new Span("SideNav Rail — Demo");
         title.getStyle().set("font-weight", "600").set("font-size", "var(--lumo-font-size-l)");
 
-        // Theme + color scheme pickers — the point of this V25 demo: eyeball the addon
-        // under both Aura and Lumo, in light and dark, and against demo-v24 (Vaadin 24).
-        Select<ThemeChoice> themeSelect = new Select<>();
-        themeSelect.setId("theme-select");
-        themeSelect.setLabel("Theme");
-        themeSelect.setItems(ThemeChoice.values());
-        themeSelect.setItemLabelGenerator(t -> t.label);
-        themeSelect.setValue(ThemeChoice.AURA);
-        themeSelect.addValueChangeListener(
-                e -> {
-                    if (e.getValue() != null) {
-                        getUI().ifPresent(ui -> applyTheme(ui, e.getValue().stylesheet));
-                    }
-                });
-
-        Select<ColorScheme.Value> schemeSelect = new Select<>();
+        // Vaadin 24 has only Lumo (no Aura), so there's no theme picker here — just a
+        // light/dark toggle. In V24 the color scheme is the Lumo.DARK theme variant on the
+        // UI element (V25's demo twin uses Page.setColorScheme instead).
+        Select<String> schemeSelect = new Select<>();
         schemeSelect.setId("color-scheme-select");
         schemeSelect.setLabel("Color scheme");
-        schemeSelect.setItems(
-                ColorScheme.Value.LIGHT, ColorScheme.Value.DARK, ColorScheme.Value.LIGHT_DARK);
-        schemeSelect.setItemLabelGenerator(MainLayout::humanize);
-        schemeSelect.setValue(ColorScheme.Value.LIGHT);
+        schemeSelect.setItems("Light", "Dark");
+        schemeSelect.setValue("Light");
         schemeSelect.addValueChangeListener(
                 e -> {
-                    if (e.getValue() != null) {
-                        getUI().ifPresent(ui -> ui.getPage().setColorScheme(e.getValue()));
-                    }
+                    boolean dark = "Dark".equals(e.getValue());
+                    getUI().ifPresent(
+                                    ui -> {
+                                        ThemeList themes = ui.getElement().getThemeList();
+                                        if (dark) {
+                                            themes.add(Lumo.DARK);
+                                        } else {
+                                            themes.remove(Lumo.DARK);
+                                        }
+                                    });
                 });
 
         Select<PopoverOn> modeSelect = new Select<>();
@@ -296,7 +257,6 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
 
         HorizontalLayout selects =
                 new HorizontalLayout(
-                        themeSelect,
                         schemeSelect,
                         modeSelect,
                         headerSelect,
@@ -350,36 +310,11 @@ public class MainLayout extends VerticalLayout implements RouterLayout, AfterNav
         };
     }
 
-    private static String humanize(ColorScheme.Value scheme) {
-        return switch (scheme) {
-            case LIGHT -> "Light";
-            case DARK -> "Dark";
-            case LIGHT_DARK, DARK_LIGHT, SYSTEM -> "System";
-            case NORMAL -> "Normal";
-        };
-    }
-
     @Override
     public void showRouterLayoutContent(HasElement content) {
         contentArea.removeAll();
         if (content != null) {
             contentArea.getElement().appendChild(content.getElement());
-        }
-    }
-
-    /**
-     * The two built-in Vaadin 25 themes, each identified by its dynamically-loadable stylesheet.
-     */
-    private enum ThemeChoice {
-        AURA(Aura.STYLESHEET, "Aura"),
-        LUMO(Lumo.STYLESHEET, "Lumo");
-
-        private final String stylesheet;
-        private final String label;
-
-        ThemeChoice(String stylesheet, String label) {
-            this.stylesheet = stylesheet;
-            this.label = label;
         }
     }
 }

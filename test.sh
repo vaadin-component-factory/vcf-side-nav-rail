@@ -97,24 +97,31 @@ if [ "$VERSION" = "25" ]; then
     "-Dkaribu.version=$V25_KARIBU"
     "-Dmaven.compiler.release=$V25_JAVA_RELEASE"
   )
-  # V25 needs Java 21+. Use whatever JAVA_HOME points to — but verify it's
-  # new enough and bail with a clear instruction if not. Don't presume any
-  # local path: the user/CI is responsible for pointing JAVA_HOME at a 21+ JDK.
-  java_bin="${JAVA_HOME:+$JAVA_HOME/bin/java}"
-  if [ -z "$java_bin" ] || [ ! -x "$java_bin" ]; then
-    java_bin="$(command -v java || true)"
-  fi
-  if [ -z "$java_bin" ]; then
-    echo "V25 requires Java $V25_JAVA_MIN+, but no java executable was found." >&2
-    echo "Set JAVA_HOME to a JDK $V25_JAVA_MIN+ install and retry." >&2
-    exit 3
-  fi
+fi
+
+# JDK 21+ is required for BOTH majors now: the reactor includes the Vaadin-25
+# demo module, which compiles with release 21. (V24 targets stay release 17 —
+# a 21 JDK compiles them fine; the bytecode target is independent of the build
+# JDK.) Honour a caller-provided 21+ JAVA_HOME; otherwise fall back to the
+# container's Temurin 21 so `./test-v24.sh` / `./test-v25.sh` work out of the box.
+DEFAULT_JDK21="/usr/lib/jvm/temurin-21-jdk-amd64"
+java_bin="${JAVA_HOME:+$JAVA_HOME/bin/java}"
+if [ -z "$java_bin" ] || [ ! -x "$java_bin" ]; then
+  java_bin="$(command -v java || true)"
+fi
+java_major=""
+if [ -n "$java_bin" ]; then
   java_major="$("$java_bin" -version 2>&1 | head -1 \
       | sed -E 's/^[^"]+"([0-9]+).*/\1/')"
-  if ! [ "$java_major" -ge "$V25_JAVA_MIN" ] 2>/dev/null; then
-    echo "V25 requires Java $V25_JAVA_MIN+, but $java_bin is Java $java_major." >&2
+fi
+if ! [ "${java_major:-0}" -ge "$V25_JAVA_MIN" ] 2>/dev/null; then
+  if [ -x "$DEFAULT_JDK21/bin/java" ]; then
+    echo "Active java is ${java_major:-none} (<$V25_JAVA_MIN); using $DEFAULT_JDK21."
+    export JAVA_HOME="$DEFAULT_JDK21"
+  else
+    echo "This build requires Java $V25_JAVA_MIN+ (Vaadin-25 demo module)." >&2
     echo "Set JAVA_HOME to a JDK $V25_JAVA_MIN+ install and retry, e.g.:" >&2
-    echo "  JAVA_HOME=/path/to/jdk-21 ./test-v25.sh" >&2
+    echo "  JAVA_HOME=/path/to/jdk-21 $0" >&2
     exit 3
   fi
 fi
@@ -133,9 +140,31 @@ echo "Running: ${CMD[*]}  (wipe=$WIPE, addon-only=$ADDON_ONLY)" | tee -a "$LOG"
 echo "Log: $LOG" | tee -a "$LOG"
 
 echo "$$" > "$PIDFILE"
-"${CMD[@]}" 2>&1 | tee -a "$LOG"
-EXIT=${PIPESTATUS[0]}
 
-rm -f "$PIDFILE"
+# The E2E module launches TestApplication via the spring-boot-maven-plugin
+# `start` goal. When a later goal fails (build-frontend, playwright-test),
+# Maven aborts before the bound `stop` goal runs, leaking that JVM. The leaked
+# JVM inherits our stdout, so piping Maven through `tee` would block forever
+# waiting for EOF that never comes. Fix in two parts:
+#   1. Run Maven with output redirected to the log (no pipe), and mirror it to
+#      the console with a `tail` that dies when Maven exits — so no inherited
+#      child can hold a pipe open and wedge the script.
+#   2. Always reap the leaked app (and any stray Playwright procs) on exit,
+#      even on interrupt.
+cleanup() {
+  pkill -9 -f "TestApplication" 2>/dev/null || true
+  pkill -9 -f "playwright test" 2>/dev/null || true
+  rm -f "$PIDFILE"
+}
+trap cleanup EXIT INT TERM
+
+"${CMD[@]}" >>"$LOG" 2>&1 &
+MVN_PID=$!
+# Mirror only newly appended lines to the console (header already echoed via
+# tee above); tail terminates itself when Maven exits.
+tail -n 0 -f --pid="$MVN_PID" "$LOG" &
+wait "$MVN_PID"
+EXIT=$?
+
 echo "==== exit=$EXIT $(date -Iseconds) ====" | tee -a "$LOG"
 exit "$EXIT"
