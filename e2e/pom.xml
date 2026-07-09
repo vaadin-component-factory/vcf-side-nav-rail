@@ -21,6 +21,10 @@
         <!-- never install or deploy this module -->
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <!-- Playwright test selector passed to `npx playwright test <spec>`. Defaults
+             to the whole tests/ dir (full suite); override to iterate on a single
+             suite, e.g. -Dplaywright.spec=tests/rail-tooltip-popover.spec.ts -->
+        <playwright.spec>tests</playwright.spec>
     </properties>
 
     <dependencies>
@@ -53,6 +57,16 @@
                         <phase>compile</phase>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- Always rebuild the production bundle from scratch instead of
+                         reusing a pre-compiled one from src/main/bundles/. `mvn clean`
+                         does NOT remove that directory, so across cross-version runs
+                         (test.sh flips -Dvaadin.version between 24 and 25) a stale
+                         bundle would otherwise be reused and the app renders broken
+                         (unstyled, popovers empty). Forcing the build keeps the bundle
+                         in lockstep with the active Vaadin version. -->
+                    <forceProductionBuild>true</forceProductionBuild>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -125,6 +139,7 @@
                             <arguments>
                                 <argument>playwright</argument>
                                 <argument>test</argument>
+                                <argument>${playwright.spec}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -145,4 +160,50 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            Vaadin 25 target for the E2E suite. Activate explicitly:
+
+                ./mvnw -Pe2e,v25 -pl addon,e2e clean verify
+
+            Without this profile the module inherits the parent's Vaadin 24
+            (the compatibility floor), so `-Pe2e clean verify` tests V24. Selecting
+            the version through a named profile — rather than a loose
+            -Dvaadin.version override that is easy to forget — makes the target
+            unambiguous. The profile also re-imports the BOMs at hardcoded versions
+            first, so the choice can't be silently overridden by an inherited
+            property. Only the E2E runtime moves to V25; the addon itself still
+            builds against V24 API (version-agnostic bytecode that runs on both),
+            which is exactly the cross-version contract we want to exercise.
+
+            Requires JDK 21+ and Node 24 on PATH (see test-v25.sh / memory).
+        -->
+        <profile>
+            <id>v25</id>
+            <properties>
+                <vaadin.version>25.2.1</vaadin.version>
+                <spring-boot.version>4.0.6</spring-boot.version>
+                <maven.compiler.release>21</maven.compiler.release>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>vaadin-bom</artifactId>
+                        <version>25.2.1</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-dependencies</artifactId>
+                        <version>4.0.6</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
 </project>

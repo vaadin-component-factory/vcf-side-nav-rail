@@ -33,7 +33,7 @@ PROD_BUNDLE_DIR="$WORKSPACE/e2e/src/main/bundles"
 FRONTEND_GENERATED_DIR="$WORKSPACE/e2e/src/main/frontend"
 
 # Vaadin 25 + Spring Boot 4 pinned versions. Bump when new stable releases land.
-V25_VAADIN="25.1.3"
+V25_VAADIN="25.2.1"
 V25_SPRING_BOOT="4.0.6"
 V25_KARIBU="2.7.0"
 V25_JAVA_RELEASE="21"
