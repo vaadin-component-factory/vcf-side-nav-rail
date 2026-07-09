@@ -1,6 +1,6 @@
 # SideNav Rail
 
-A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-side-nav>` — collapsed icon-only navigation with on-demand hover popovers, full keyboard support, and Lumo-styled tooltips.
+A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-side-nav>` — collapsed icon-only navigation with on-demand hover popovers, full keyboard support, and tooltips styled to match your Vaadin theme.
 
 [![Vaadin Directory](https://img.shields.io/vaadin-directory/v/vcf-side-nav-rail.svg)](https://vaadin.com/directory/component/vcf-side-nav-rail)
 
@@ -20,7 +20,7 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 ## Compatibility
 
-- **Vaadin Flow 24.9** or later — verified on 24.10 and 25.1.
+- **Vaadin Flow 24.9 or later** — one artifact, verified on **24.10 (Lumo)** and **25.2 (Aura)**. The addon is written against the Vaadin 24 API and runs unchanged on 25; its styling is theme-agnostic and renders correctly under both the Lumo (Vaadin 24 default) and Aura (Vaadin 25 default) themes.
 - **Java 17** or later.
 - Flow-only by design — Hilla / client-side views are not in scope.
 
@@ -148,7 +148,7 @@ rail.setPopoverPosition(PopoverPosition.START_TOP);  // for a right-edge rail in
 
 ### Popover arrow
 
-By default each popover renders the small Lumo arrow that points back at its target item. Toggle it off if you prefer a cleaner look — e.g. when popovers sit tightly against the rail and the arrow adds visual noise:
+By default each popover renders the small theme arrow that points back at its target item. Toggle it off if you prefer a cleaner look — e.g. when popovers sit tightly against the rail and the arrow adds visual noise:
 
 ```java
 rail.setPopoverArrowVisible(false);  // default: true
@@ -162,7 +162,7 @@ By default Vaadin's `<vaadin-side-nav-item>` auto-expands when a descendant rout
 rail.setChildrenOnlyInPopover(true);  // default: false
 ```
 
-The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small Lumo angle-right glyph next to parents — see the [Subitem indicator CSS custom properties](#subitem-indicator) below for how to restyle it.
+The native chevron toggle is hidden in this mode (it would have nothing to reveal in the rail itself). To preserve the visual hint that an item has more, the addon renders a small angle-right glyph (from the active theme's icon font) next to parents — see the [Subitem indicator CSS custom properties](#subitem-indicator) below for how to restyle it.
 
 Turning `setChildrenOnlyInPopover(false)` restores Vaadin's auto-expanded inline tree for the active route.
 
@@ -175,7 +175,7 @@ Because rail mode shows only icons, users may not be able to tell what each icon
 `RailTooltipMode` selects how root items surface their label:
 
 - `NONE` — no tooltips.
-- `SIMPLE` — Lumo-themed CSS pseudo-element tooltip. Reacts to hover and keyboard focus, and is immune to `vaadin-tooltip-mixin`'s overlay-dismissal behaviour.
+- `SIMPLE` — theme-styled CSS pseudo-element tooltip. Reacts to hover and keyboard focus, and is immune to `vaadin-tooltip-mixin`'s overlay-dismissal behaviour.
 - `POPOVER_HEADER` (default) — uses a Vaadin `Popover` (with the configured `PopoverHeaderMode` as content) as the tooltip — see `PopoverHeaderMode` for the per-item content options.
 
 ```java
@@ -184,7 +184,7 @@ rail.setRailTooltipMode(RailTooltipMode.NONE);  // disable tooltips entirely
 
 > `SIMPLE` exists because Vaadin's native tooltip auto-dismisses itself whenever a popover opens — see [vaadin/web-components#9768](https://github.com/vaadin/web-components/issues/9768). The CSS pseudo-element does not participate in the overlay system, so it stays visible alongside an open popover.
 
-`POPOVER_HEADER` reuses the configured Vaadin `Popover`'s header as a Lumo-themed tooltip. The header content is whatever `PopoverHeaderMode` produces, so the two knobs are paired:
+`POPOVER_HEADER` reuses the configured Vaadin `Popover`'s header as a theme-styled tooltip. The header content is whatever `PopoverHeaderMode` produces, so the two knobs are paired:
 
 ```java
 rail.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
@@ -247,9 +247,11 @@ new SideNavRailItem("Profile", "/profile", new Avatar("Profile"));  // → "P" l
 
 The addon styles the underlying `<vaadin-side-nav>` so all of the [stock SideNav styling hooks](https://vaadin.com/docs/latest/components/side-nav/styling) — parts, slots, `[current]`, `[expanded]`, etc. — keep working. On top of that, rail mode and the addon's own affordances (popover header, rail tooltip, letter avatar, subitem indicator) introduce a few additional hooks.
 
-Styling is split into three layers: **CSS custom properties** for tokens (colors, sizes, durations), **CSS selectors** for structural overrides, and **recipes** for common visual patterns. All custom properties default to Lumo tokens, so a stock app needs no CSS. Set them on `vaadin-side-nav` (or globally on `html`) to override.
+Styling is split into three layers: **CSS custom properties** for tokens (colors, sizes, durations), **CSS selectors** for structural overrides, and **recipes** for common visual patterns. Every custom property resolves through a fallback chain that ends in the active theme's token, so the addon needs no CSS in a stock app and renders correctly under both **Lumo** (Vaadin 24 default) and **Aura** (Vaadin 25 default). Set them on `vaadin-side-nav` (or globally on `html`) to override.
 
 ### Style properties
+
+The **Default** columns below list the Lumo token each property resolves to in a Vaadin 24 app. Under Aura (Vaadin 25) the same properties resolve to the equivalent Aura token via the fallback chain, so the defaults stay theme-appropriate without any override.
 
 #### Rail
 
@@ -358,7 +360,7 @@ vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::par
 
 ## Scope and known gaps
 
-- **Dark mode**: supported automatically through Lumo — no extra wiring needed.
+- **Dark mode**: supported automatically through the active theme (Lumo or Aura) — no extra wiring needed.
 - **RTL layouts**: not currently validated. The rail uses logical CSS properties where possible, but RTL has not been exercised end-to-end.
 - **Touch / mobile**: out of scope. The rail keeps its desktop hover-popover behaviour on touch devices.
 - **Inside an overflow container**: placing the rail inside a container with `overflow: auto` (e.g. a `VerticalLayout` with `setOverflow(Overflow.AUTO)`) can cause an unwanted horizontal scrollbar. The root cause is an internal margin on a slot element inside `vaadin-side-nav-item`'s shadow DOM that cannot be addressed from outside. Workaround — add the following to your theme CSS:
