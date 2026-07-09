@@ -24,7 +24,9 @@ vaadin-side-nav {
 }
 
 vaadin-side-nav[theme~="rail"] {
-    width: var(--side-nav-rail-width, var(--lumo-size-l));
+    /* --lumo-size-l has no generic --vaadin- or --aura- equivalent, so the chain
+       ends in a hard fallback (the Lumo value). */
+    width: var(--side-nav-rail-width, var(--lumo-size-l, 2.75rem));
 }
 
 /*
@@ -131,9 +133,9 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
  *
  * Customizable via CSS custom properties:
  *
- *   --side-nav-rail-subitem-indicator-content   (default: var(--lumo-icons-angle-right))
- *   --side-nav-rail-subitem-indicator-color     (default: var(--lumo-tertiary-text-color))
- *   --side-nav-rail-subitem-indicator-size      (normal mode default: var(--lumo-font-size-m))
+ *   --side-nav-rail-subitem-indicator-content   (default: --lumo-icons-angle-right glyph, or "›" on Aura)
+ *   --side-nav-rail-subitem-indicator-color     (default: --lumo-tertiary-text-color → --vaadin-text-color-secondary)
+ *   --side-nav-rail-subitem-indicator-size      (normal mode default: --lumo-font-size-m → --aura-font-size-m)
  *   --side-nav-rail-subitem-indicator-rail-size (rail mode default:   0.625rem)
  *
  * The normal-mode default is intentionally a touch smaller than the native
@@ -146,12 +148,15 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[has-children] {
 }
 vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
         vaadin-side-nav-item[has-children]::before {
-    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right));
-    font-family: "lumo-icons";
-    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-m));
-    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
+    /* Aura lacks the "lumo-icons" font + --lumo-icons-angle-right glyph → the var
+       resolves empty and content falls back to "\203A" (›), which the browser renders
+       from sans-serif (per-glyph fallback). V24 keeps the exact Lumo glyph. */
+    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right, "\203A"));
+    font-family: "lumo-icons", sans-serif;
+    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-m, var(--aura-font-size-m, 1rem)));
+    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.5))));
     position: absolute;
-    right: var(--lumo-space-s, 0.5rem);
+    right: var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem));
     top: 50%;
     transform: translateY(-50%);
     line-height: 1;
@@ -159,10 +164,11 @@ vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
 }
 vaadin-side-nav[theme~="rail"]
         vaadin-side-nav-item[has-children]::before {
-    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right));
-    font-family: "lumo-icons";
+    /* Same Aura-safe chevron fallback as the normal-mode rule above. */
+    content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right, "\203A"));
+    font-family: "lumo-icons", sans-serif;
     font-size: var(--side-nav-rail-subitem-indicator-rail-size, 0.625rem);
-    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color));
+    color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.5))));
     position: absolute;
     right: 2px;
     top: 50%;
@@ -175,16 +181,31 @@ vaadin-side-nav[theme~="rail"]
  * Popover header (opt-in via SideNavRail#setPopoverHeaderMode). Rendered as a
  * light-DOM div *inside* vaadin-popover-overlay, which teleports to <body> — the rail
  * theme selector above doesn't reach it, so these rules apply globally to the class.
+ *
+ * Customizable via CSS custom properties (defaults resolve Lumo → Aura/Vaadin → hard):
+ *
+ *   --side-nav-rail-popover-header-gap          (default --lumo-space-s)
+ *   --side-nav-rail-popover-header-padding      (default --lumo-space-s --lumo-space-m)
+ *   --side-nav-rail-popover-header-color        (default --lumo-secondary-text-color)
+ *   --side-nav-rail-popover-header-font-size    (default --lumo-font-size-s)
+ *   --side-nav-rail-popover-header-line-height  (default --lumo-line-height-s)
+ *   --side-nav-rail-popover-header-border-color (default --lumo-contrast-10pct)
+ *   --side-nav-rail-popover-header-icon-size    (default --lumo-icon-size-s)
+ *   --side-nav-rail-popover-header-icon-color   (default --lumo-secondary-text-color)
  */
 .side-nav-rail-popover-header {
     display: flex;
     align-items: center;
-    gap: var(--lumo-space-s);
-    padding: var(--lumo-space-s) var(--lumo-space-m);
-    color: var(--lumo-secondary-text-color);
+    gap: var(--side-nav-rail-popover-header-gap, var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem)));
+    padding: var(--side-nav-rail-popover-header-padding,
+        var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem)) var(--lumo-space-m, var(--vaadin-padding-m, 1rem)));
+    color: var(--side-nav-rail-popover-header-color,
+        var(--lumo-secondary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.62))));
     font-weight: 600;
-    font-size: var(--lumo-font-size-s);
-    line-height: var(--lumo-line-height-s);
+    font-size: var(--side-nav-rail-popover-header-font-size,
+        var(--lumo-font-size-s, var(--aura-font-size-s, 0.875rem)));
+    line-height: var(--side-nav-rail-popover-header-line-height,
+        var(--lumo-line-height-s, var(--aura-line-height-s, 1.375)));
 }
 
 /*
@@ -193,13 +214,15 @@ vaadin-side-nav[theme~="rail"]
  * header is the only content; a border-bottom would render as a stray underline.
  */
 .side-nav-rail-popover-header:has(+ vaadin-side-nav) {
-    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    border-bottom: 1px solid var(--side-nav-rail-popover-header-border-color,
+        var(--lumo-contrast-10pct, var(--vaadin-border-color-secondary, rgba(0,0,0,.1))));
 }
 
 .side-nav-rail-popover-header vaadin-icon {
-    width: var(--lumo-icon-size-s);
-    height: var(--lumo-icon-size-s);
-    color: var(--lumo-secondary-text-color);
+    width: var(--side-nav-rail-popover-header-icon-size, var(--lumo-icon-size-s, var(--vaadin-icon-size, 1.25em)));
+    height: var(--side-nav-rail-popover-header-icon-size, var(--lumo-icon-size-s, var(--vaadin-icon-size, 1.25em)));
+    color: var(--side-nav-rail-popover-header-icon-color,
+        var(--lumo-secondary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.62))));
 }
 
 /*
@@ -222,9 +245,13 @@ vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
  * Bump the abbreviation letter to match the visual weight of the Lumo icons
  * around it. The avatar itself keeps its LUMO_SMALL 24x24 size; only the
  * letter inside is scaled up via the abbr SVG's font-size.
+ *
+ *   --side-nav-rail-letter-avatar-font-size      (default --lumo-font-size-l)
+ *   --side-nav-rail-letter-avatar-current-color  (default --lumo-primary-color)
  */
 vaadin-avatar.side-nav-rail-letter-avatar {
-    font-size: var(--lumo-font-size-l);
+    font-size: var(--side-nav-rail-letter-avatar-font-size,
+        var(--lumo-font-size-l, var(--aura-font-size-l, 1.125rem)));
 }
 
 /*
@@ -236,7 +263,8 @@ vaadin-avatar.side-nav-rail-letter-avatar {
  */
 vaadin-side-nav-item[current] > vaadin-avatar.side-nav-rail-letter-avatar::part(abbr),
 vaadin-side-nav-item:has([current]) > vaadin-avatar.side-nav-rail-letter-avatar::part(abbr) {
-    color: var(--lumo-primary-color);
+    color: var(--side-nav-rail-letter-avatar-current-color,
+        var(--lumo-primary-color, var(--aura-accent-color, var(--vaadin-focus-ring-color, #1f6fff))));
 }
 
 /*
@@ -251,11 +279,11 @@ vaadin-side-nav-item:has([current]) > vaadin-avatar.side-nav-rail-letter-avatar:
  *
  *   --side-nav-rail-tooltip-hover-delay   (default 500ms, matches vaadin-tooltip)
  *   --side-nav-rail-tooltip-fade-duration (default 120ms, the fade itself)
- *   --side-nav-rail-tooltip-background    (default var(--lumo-contrast-90pct))
- *   --side-nav-rail-tooltip-color         (default var(--lumo-base-color))
- *   --side-nav-rail-tooltip-padding       (default 0.1875em var(--lumo-space-xs))
- *   --side-nav-rail-tooltip-border-radius (default var(--lumo-border-radius-s))
- *   --side-nav-rail-tooltip-font-size     (default var(--lumo-font-size-s))
+ *   --side-nav-rail-tooltip-background    (default --lumo-contrast-90pct → --vaadin-text-color)
+ *   --side-nav-rail-tooltip-color         (default --lumo-base-color → --vaadin-background-color)
+ *   --side-nav-rail-tooltip-padding       (default 0.1875em var(--lumo-space-xs, --vaadin-gap-xs))
+ *   --side-nav-rail-tooltip-border-radius (default --lumo-border-radius-s → --vaadin-radius-s)
+ *   --side-nav-rail-tooltip-font-size     (default --lumo-font-size-s → --aura-font-size-s)
  */
 vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip] {
     position: relative;
@@ -268,18 +296,18 @@ vaadin-side-nav[theme~="rail"] vaadin-side-nav-item[data-rail-tooltip]::after {
        Horizontal offset (100%) avoids clipping — labels wider than the rail's
        48px would be cut off if we tried to centre them over the icon. */
     position: absolute;
-    left: var(--lumo-space-s, 0.5rem);
-    top: calc(-1 * var(--lumo-space-s, 0.5rem));
+    left: var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem));
+    top: calc(-1 * var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem)));
     transform: translateY(-50%);
     z-index: 10000; /* above vaadin-popover-overlay (default ~1000) */
 
     /* Lumo tooltip-like appearance (mirrors vaadin-tooltip-overlay styling). */
-    background: var(--side-nav-rail-tooltip-background, var(--lumo-contrast-90pct));
-    color: var(--side-nav-rail-tooltip-color, var(--lumo-base-color));
-    padding: var(--side-nav-rail-tooltip-padding, 0.1875em var(--lumo-space-xs, 0.25rem));
-    border-radius: var(--side-nav-rail-tooltip-border-radius, var(--lumo-border-radius-s, 0.25em));
-    font-size: var(--side-nav-rail-tooltip-font-size, var(--lumo-font-size-s));
-    line-height: var(--lumo-line-height-xs, 1.2);
+    background: var(--side-nav-rail-tooltip-background, var(--lumo-contrast-90pct, var(--vaadin-text-color, #1f2933)));
+    color: var(--side-nav-rail-tooltip-color, var(--lumo-base-color, var(--vaadin-background-color, #fff)));
+    padding: var(--side-nav-rail-tooltip-padding, 0.1875em var(--lumo-space-xs, var(--vaadin-gap-xs, 0.25rem)));
+    border-radius: var(--side-nav-rail-tooltip-border-radius, var(--lumo-border-radius-s, var(--vaadin-radius-s, 0.25em)));
+    font-size: var(--side-nav-rail-tooltip-font-size, var(--lumo-font-size-s, var(--aura-font-size-s, 0.875rem)));
+    line-height: var(--lumo-line-height-xs, var(--aura-line-height-xs, 1.2));
     white-space: nowrap;
     pointer-events: none;
 
