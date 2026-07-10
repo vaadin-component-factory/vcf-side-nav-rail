@@ -340,14 +340,32 @@ If you'd rather keep the active highlight on the leaf alone and tone the root do
 
 `[root-item]` is the addon's hook on direct children of `SideNavRail` (see [Items](#items)). The qualifier matters because `setRootMatchNested(...)` only forces `matchNested = true` on root items — nested parents in between keep their default behaviour and are never `[current]` purely because of a descendant route.
 
-For example, to drop the active background and keep the default text color on roots that aren't themselves the active route:
+Because the active-item look is themed differently in Lumo and Aura — Lumo uses a filled background with primary-colored text, while Aura can additionally draw a border — there is no single override that covers both, so the addon deliberately does **not** bake in a default. Tone the root down using each theme's own hooks, targeting the "ancestor-only" selector from the table above.
+
+**Lumo** — override the content part directly; there are no per-item custom properties, so set `background`/`color` on `::part(content)`:
 
 ```css
+/* Lumo */
 vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current])::part(content) {
     background-color: transparent;
     color: var(--lumo-body-text-color);
 }
 ```
+
+**Aura** — the item exposes dedicated custom properties (`--vaadin-side-nav-item-*`), and its active state can also carry a border, so neutralize background, text, and border through those props (set them on the item element, not `::part(content)`):
+
+```css
+/* Aura */
+vaadin-side-nav-item[root-item][current]:has(vaadin-side-nav-item[current]) {
+    --vaadin-side-nav-item-background: transparent;
+    --vaadin-side-nav-item-text-color: var(--vaadin-text-color);
+    --vaadin-side-nav-item-border-width: 0px;
+    /* …or keep a subtle outline instead of the full highlight:
+       --vaadin-side-nav-item-border-color: var(--vaadin-border-color-secondary); */
+}
+```
+
+Those are just the common three; the full set (`--vaadin-side-nav-item-font-size`, `-padding`, `-border-radius`, …) is in the [Vaadin SideNav styling reference](https://vaadin.com/docs/latest/components/side-nav/styling). What "de-emphasized" should mean (transparent vs. a subtle outline vs. an icon-only tint) is an app-and-theme decision, which is why this lives here as a recipe rather than a fixed default.
 
 `:has()` is supported in all browsers Vaadin 24 targets (Chrome 105+, Safari 15.4+, Firefox 121+).
 
