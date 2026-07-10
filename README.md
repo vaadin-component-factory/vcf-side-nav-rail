@@ -48,7 +48,9 @@ The artifact is published to the Vaadin Add-ons repository, so make sure that re
 
 ## Quick start
 
-You can use the `SideNavRail` like Vaadin's native `SideNav` component. All public types live in the `org.vaadin.addons.componentfactory.sidenavrail` package. Populate the navigation with `SideNavRailItem`s — the addon's own item type, which extends the native `SideNavItem` with the rail-specific behaviour (icon in the rail, popover header, tooltip); passing a plain `SideNavItem` to `addItem(...)` throws `IllegalArgumentException`. The items you add directly to the rail are its **root items** — the icons you see in rail mode; their children appear nested inline or in a popover.
+Use `SideNavRail` like Vaadin's native `SideNav`. Populate it with `SideNavRailItem`s — the addon's own item type, which adds the rail-specific behaviour (icon in the rail, popover header, tooltip) on top of the native `SideNavItem`.
+
+The items you add directly to the rail are its **root items** — the icons you see in rail mode; their children appear nested inline or in a popover.
 
 ```java
 SideNavRail rail = new SideNavRail();
@@ -73,6 +75,8 @@ Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
 add(toggle, rail);
 ```
 
+All public types live in the `org.vaadin.addons.componentfactory.sidenavrail` package. Note that only `SideNavRailItem`s can be added to the rail — passing a plain `SideNavItem` to `addItem(...)` throws `IllegalArgumentException`.
+
 ### No toggle button?
 
 The addon intentionally ships without a built-in toggle button — applications differ too much in layout for a one-size-fits-all default. Wire your own button that calls `setRailMode(boolean)` or `toggleRailMode()`.
@@ -91,11 +95,13 @@ The rail handles keyboard navigation and ARIA wiring out of the box; no extra se
 
 ## Configuration
 
-Most features can be configured to your needs. Please see the following sections for how to modify the `SideNavRail` settings:
+Most behaviour can be configured. The sections below cover each setting:
 
 ### Popover behaviour
 
-By default, any collapsed parent shows its children in a hover popover — in both rail mode and normal mode — so users see the same nested children whether or not the rail is collapsed. Note that this differs from a stock `SideNav`, which expands children inline on click; choose `ONLY_RAIL_MODE` below to keep that inline behaviour whenever the rail isn't collapsed. `PopoverOn` controls when the popover appears:
+By default, any collapsed parent shows its children in a hover popover — in both rail mode and normal mode — so users see the same nested children whether or not the rail is collapsed.
+
+This differs from a stock `SideNav`, which expands children inline on click; choose `ONLY_RAIL_MODE` below to keep that inline behaviour whenever the rail isn't collapsed. `PopoverOn` controls when the popover appears:
 
 - `ALL_COLLAPSED_ITEMS` (default) — popover for every collapsed parent, regardless of depth or rail mode.
 - `ONLY_ROOT_COLLAPSED_ITEMS` — popover only for direct rail-children that are collapsed; nested levels behave like a stock `SideNav`.
@@ -190,7 +196,8 @@ rail.setRailTooltipMode(RailTooltipMode.POPOVER_HEADER);
 rail.setPopoverHeaderMode(PopoverHeaderMode.LABEL_ONLY);  // or ICON_ONLY / FULL
 ```
 
-- **A header is required.** `POPOVER_HEADER` needs something to show, so it only works with a `PopoverHeaderMode` other than `NONE`. The default (`LABEL_ONLY`) is fine; but if you set `PopoverHeaderMode.NONE` while `POPOVER_HEADER` is active, the addon automatically uses `LABEL_ONLY` instead. Note that this safeguard only covers the `NONE` case — `ICON_ONLY` on an [icon-less root](#items-without-an-icon) still produces an empty header, so pair `ICON_ONLY` only with roots that have a real icon. And if you change these values later at runtime, it's up to you to keep the combination valid.
+- **A header is required.** `POPOVER_HEADER` needs something to show, so it only works with a `PopoverHeaderMode` other than `NONE`. The default (`LABEL_ONLY`) is fine; but if you set `PopoverHeaderMode.NONE` while `POPOVER_HEADER` is active, the addon automatically uses `LABEL_ONLY` instead. If you change these values later at runtime, it's up to you to keep the combination valid.
+- **`ICON_ONLY` needs a real icon.** The auto-coercion above only covers the `NONE` case. `ICON_ONLY` on an [icon-less root](#items-without-an-icon) still produces an empty header, so pair `ICON_ONLY` only with roots that have their own icon.
 - **One popover or two.** With `POPOVER_HEADER`, a root item that already has a children popover reuses it as the tooltip — so there's just one popover per item; a leaf root (no children) gets a header-only popover as its tooltip. With `SIMPLE`, a parent item shows two things (its tooltip *and* its children popover); a leaf item only ever shows the tooltip.
 
 ### Reacting to mode changes
