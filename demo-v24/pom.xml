@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.vaadin.addons.componentfactory</groupId>
         <artifactId>vcf-side-nav-rail-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>vcf-side-nav-rail-demo-v24</artifactId>
