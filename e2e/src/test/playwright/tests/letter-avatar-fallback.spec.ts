@@ -33,4 +33,39 @@ test.describe('letter-avatar fallback for items without a prefix icon', () => {
     await expect(dashboard.locator('vaadin-avatar.side-nav-rail-letter-avatar'))
         .toHaveCount(0);
   });
+
+  // Regression: on Aura (V25) vaadin-side-nav-item renders an icon-reservation
+  // spacer as ::part(content)::before that only collapses for a real <vaadin-icon>.
+  // A letter-avatar (<vaadin-avatar>) is not recognized, so the spacer stayed and
+  // shoved the avatar ~26px out of the rail's icon column. The addon collapses that
+  // spacer for avatar items in rail mode; assert the avatar lines up with the real
+  // icons instead of being pushed aside. (No-op on Lumo, so this holds on both.)
+  test('rail-mode letter-avatar aligns with real icons (no Aura spacer shove)', async ({
+    page,
+  }) => {
+    await page.goto('/letter-avatar-fallback');
+    await page.locator('#toggle-rail').click();
+
+    // Dashboard is the first rail child and carries a real icon (its path is "/",
+    // which Vaadin renders as an empty path attribute, so select it positionally).
+    const iconPrefix = page
+        .locator('#rail > vaadin-side-nav-item')
+        .first()
+        .locator('vaadin-icon[slot="prefix"]');
+    const avatarPrefix = page.locator(
+        'vaadin-side-nav-item[path="admin"] > vaadin-avatar.side-nav-rail-letter-avatar');
+    await expect(iconPrefix).toBeVisible();
+    await expect(avatarPrefix).toBeVisible();
+
+    const iconBox = await iconPrefix.boundingBox();
+    const avatarBox = await avatarPrefix.boundingBox();
+    expect(iconBox).not.toBeNull();
+    expect(avatarBox).not.toBeNull();
+
+    const iconCenter = iconBox!.x + iconBox!.width / 2;
+    const avatarCenter = avatarBox!.x + avatarBox!.width / 2;
+    // Fixed state measures ~4px apart; the bug shoved it ~32px. 8px cleanly
+    // separates the two without being brittle about sub-pixel centering.
+    expect(Math.abs(avatarCenter - iconCenter)).toBeLessThanOrEqual(8);
+  });
 });

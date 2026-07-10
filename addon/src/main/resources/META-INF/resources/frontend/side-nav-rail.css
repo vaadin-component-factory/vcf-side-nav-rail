@@ -242,6 +242,21 @@ vaadin-side-nav[theme~="rail"] vaadin-avatar.side-nav-rail-letter-avatar {
 }
 
 /*
+ * Aura only: the Aura theme renders an icon-reservation spacer as the
+ * ::before of vaadin-side-nav-item's content part. For a real <vaadin-icon>
+ * prefix Aura collapses that spacer to width:0 (the icon fills the slot), but
+ * our letter-avatar is a <vaadin-avatar> — not recognized as an icon — so the
+ * ~1.75em spacer stays and pushes the avatar out of the rail's icon column
+ * (measured: avatar shifted ~26px to the right on Aura). Collapse the spacer
+ * for avatar-bearing items in rail mode so the avatar lines up with the real
+ * icons. Lumo (V24) has no such spacer, so this rule is a harmless no-op there.
+ */
+vaadin-side-nav[theme~="rail"]
+        vaadin-side-nav-item:has(> vaadin-avatar.side-nav-rail-letter-avatar)::part(content)::before {
+    display: none;
+}
+
+/*
  * Bump the abbreviation letter to match the visual weight of the Lumo icons
  * around it. The avatar itself keeps its LUMO_SMALL 24x24 size; only the
  * letter inside is scaled up via the abbr SVG's font-size.
