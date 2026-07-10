@@ -16,6 +16,7 @@ WORKDIR $HOME
 COPY pom.xml $HOME/pom.xml
 COPY mvnw $HOME/mvnw
 COPY .mvn/ $HOME/.mvn/
+COPY config/ $HOME/config/
 COPY addon/ $HOME/addon/
 COPY demo/ $HOME/demo/
 
