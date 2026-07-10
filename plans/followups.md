@@ -10,9 +10,11 @@ Tracker for known polish items that surfaced during phase 9.5 (publishing) and s
 
 ## Cross-version theming
 
-- **Aura theme support (V25).** The stylesheet uses `--lumo-*` tokens throughout (19 distinct). On V25 the default theme is Aura, where `--lumo-*` are undefined → the addon's own CSS is effectively unstyled (the failing V25 E2E `rail-tooltip-popover.spec.ts:130` border-bottom test is the visible symptom). Full verified analysis + copy-ready per-token replacement (`var(--lumo-…, var(--vaadin-…/--aura-…, <hard>))`) and the chevron-indicator rework are written up in [`plans/2026-07-09-aura-theme-support.md`](2026-07-09-aura-theme-support.md). Implementation not started.
+- **Aura theme support (V25). ✅ DONE (`0cde6b5`).** The stylesheet used `--lumo-*` tokens throughout (36 usages, 19 distinct); on V25 the default theme is Aura, where `--lumo-*` are undefined → the addon's own CSS was effectively unstyled. Fixed by making every token a fallback chain (`var(--lumo-…, var(--vaadin-…/--aura-…, <hard>))`) plus the chevron-indicator rework, as written up in [`plans/2026-07-09-aura-theme-support.md`](2026-07-09-aura-theme-support.md). Verified green on both V24 (Lumo) and V25.2.1 (Aura); README compatibility/styling sections updated to match.
 
 ## E2E test hardening (do right AFTER the Aura/theming rework)
+
+**Infra-level hardening: ✅ DONE (`14b8cac`).** The `v25` Maven profile (unambiguous version selection), `forceProductionBuild=true` (no more stale-bundle breakage across V24⇄V25 runs), a scopeable `playwright.spec` property, and tightened production-mode timeouts have all landed. What remains below is the deeper **decoupling from `vaadin-popover` internals** — still open, still optional (CI-hygiene, not a release blocker).
 
 Context: the cross-version E2E suite currently couples to Vaadin's **own** `vaadin-popover` internals (overlay location, `role=menu` placement, `positionTarget`/`target`), abstracted behind the dual-form selectors in `e2e/src/test/playwright/lib/popover.ts`. That coupling is the price of E2E-asserting on a framework component that restructured between V24 and V25 — not sloppy test authoring — but a chunk of it is avoidable by giving the addon its own stable, version-independent test seams. Sequenced after the theming rework because that work already operates at the popover boundary.
 

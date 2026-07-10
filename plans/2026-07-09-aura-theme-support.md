@@ -1,7 +1,9 @@
 # Aura theme support for SideNav Rail (V25 cross-version styling)
 
-**Status:** analysis complete + verified, implementation NOT started.
-**Date:** 2026-07-09
+**Status:** IMPLEMENTED and verified — landed in commit `0cde6b5` (branch `aura`).
+The fallback-chain rework + chevron indicator shipped as described below; V24 (Lumo,
+150 unit + 113 E2E) and V25.2.1 (Aura, 113 E2E) gates are both green.
+**Date:** 2026-07-09 (implemented 2026-07-09)
 
 ## Problem (root cause, verified)
 
