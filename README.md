@@ -20,9 +20,8 @@ A Vaadin Component Factory addon that adds a togglable rail mode to `<vaadin-sid
 
 ## Compatibility
 
-- **Vaadin Flow 24.9 or later** — one artifact, verified on **24.10 (Lumo)** and **25.2 (Aura)**. The addon is written against the Vaadin 24 API and runs unchanged on 25; its styling is theme-agnostic and renders correctly under both the Lumo (Vaadin 24 default) and Aura (Vaadin 25 default) themes.
-- **Java 17** or later.
-- Flow-only by design — Hilla / client-side views are not in scope.
+- Vaadin Flow 24.10 or later 
+- Java 17 or later
 
 ## Installation
 
