@@ -173,7 +173,7 @@ Because rail mode shows only icons, users may not be able to tell what each icon
 
 - `NONE` — no tooltips.
 - `SIMPLE` — a small theme-styled tooltip drawn purely in CSS. Shows on hover and on keyboard focus, and stays visible even when a popover is open.
-- `POPOVER_HEADER` (default) — uses a Vaadin `Popover` (with the configured `PopoverHeaderMode` as its header) as the tooltip — see `PopoverHeaderMode` for the per-item content options.
+- `POPOVER_HEADER` (default) — uses the subitems `Popover` to show the tooltip (with the configured `PopoverHeaderMode` as its header). For items without children, the popover just shows the tooltip / header.
 
 ```java
 rail.setRailTooltipMode(RailTooltipMode.NONE);  // disable tooltips entirely
