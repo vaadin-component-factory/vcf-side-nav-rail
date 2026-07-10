@@ -14,13 +14,17 @@ The working version on `main` between releases is `X.Y.(Z+1)-SNAPSHOT` (a patch 
 
 ## Steps
 
-1. Edit `addon/pom.xml` `<version>` to `X.Y.Z` (drop `-SNAPSHOT`).
+1. Bump the version across the **whole reactor** — root `pom.xml`, `demo`, `demo-v24`, `e2e` all need to move together with `addon/pom.xml`. `addon/pom.xml` has no `<parent>` (deliberately, so the published artifact doesn't drag one in), so a plain edit of the root POM's `<version>` does **not** reach it — `demo`/`demo-v24`/`e2e` resolve the addon dependency via `${project.version}`, so a partial bump breaks their dependency resolution. Use `versions-maven-plugin`'s `set` goal with `-DprocessAllModules=true`, which updates every reactor module — including the parentless addon — in one shot:
+   ```bash
+   ./mvnw org.codehaus.mojo:versions-maven-plugin:2.17.1:set \
+     -DnewVersion=X.Y.Z -DprocessAllModules=true -DgenerateBackupPoms=false
+   ```
 
-2. Run `./mvnw clean verify` locally — must be green.
+2. Run `./mvnw clean verify` locally — must be green. Build on JDK 21 (`demo`, the Vaadin 25 showcase, targets release 21 — `addon` still targets 17). CI (`build.yml`/`release.yml`) also runs on JDK 21.
 
 3. Commit:
    ```bash
-   git add addon/pom.xml
+   git add pom.xml addon/pom.xml demo/pom.xml demo-v24/pom.xml e2e/pom.xml
    git commit -m "release: vX.Y.Z"
    git push
    ```
@@ -58,10 +62,11 @@ The working version on `main` between releases is `X.Y.(Z+1)-SNAPSHOT` (a patch 
     ```
     The branch is auto-deployed as the live demo, so this **must** happen before step 11. Otherwise the deployed demo would show snapshot code instead of the released version.
 
-11. Bump `addon/pom.xml` to `X.Y.(Z+1)-SNAPSHOT`, commit, push:
+11. Bump the whole reactor to `X.Y.(Z+1)-SNAPSHOT` (same command as step 1), commit, push:
     ```bash
-    # edit addon/pom.xml: <version>X.Y.(Z+1)-SNAPSHOT</version>
-    git add addon/pom.xml
+    ./mvnw org.codehaus.mojo:versions-maven-plugin:2.17.1:set \
+      -DnewVersion=X.Y.\(Z+1\)-SNAPSHOT -DprocessAllModules=true -DgenerateBackupPoms=false
+    git add pom.xml addon/pom.xml demo/pom.xml demo-v24/pom.xml e2e/pom.xml
     git commit -m "chore: bump to X.Y.(Z+1)-SNAPSHOT"
     git push
     ```
