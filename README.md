@@ -75,7 +75,11 @@ Button toggle = new Button(VaadinIcon.CHEVRON_LEFT_SMALL.create(), e -> {
 add(toggle, rail);
 ```
 
-All public types live in the `org.vaadin.addons.componentfactory.sidenavrail` package. Note that only `SideNavRailItem`s can be added to the rail — passing a plain `SideNavItem` to `addItem(...)` throws `IllegalArgumentException`.
+All public types live in the `org.vaadin.addons.componentfactory.sidenavrail` package.
+
+### Can I use normal `SideNavItem`s?
+
+No. The rail only accepts its own `SideNavRailItem` type — passing a plain `SideNavItem` to `addItem(...)` throws `IllegalArgumentException`. `SideNavRailItem` extends `SideNavItem`, so you keep the full native API and gain the rail-specific behaviour (rail icon, popover header, tooltip) on top.
 
 ### No toggle button?
 
