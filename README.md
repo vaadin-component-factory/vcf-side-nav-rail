@@ -85,18 +85,6 @@ No. The rail only accepts its own `SideNavRailItem` type — passing a plain `Si
 
 The addon intentionally ships without a built-in toggle button — applications differ too much in layout for a one-size-fits-all default. Wire your own button that calls `setRailMode(boolean)` or `toggleRailMode()`.
 
-## Keyboard navigation and accessibility
-
-The rail handles keyboard navigation and ARIA wiring out of the box; no extra setup is required. In rail mode only the root items are visible — nested items remain in the DOM but get `tabindex="-1"`, so the tab order matches what's on screen. The relevant ARIA attributes (`aria-haspopup`, `aria-expanded`, `aria-current`) are kept in sync as the rail mode toggles.
-
-| Key | Behaviour |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Move focus into and out of the rail. Items hidden in rail mode are skipped. |
-| `↓` / `↑` | Move focus to the next / previous visible item, both inside the rail and inside an open popover. Stops at boundaries. |
-| `→` | On a root item with children *while the rail shows only root icons* (rail mode, or `setChildrenOnlyInPopover(true)`): open the hover popover and move focus into it. Elsewhere: expand a collapsed parent, or move focus to the first child of an expanded one. |
-| `←` | If the focused item is expanded, collapse it — this applies both in the rail and inside a popover. Otherwise move focus to the parent item; and if you are already at the top level of a popover, close it and return focus to the root item that owns it. |
-| `Esc` | Close the open popover and return focus to the root item that owns it. |
-
 ## Configuration
 
 Most behaviour can be configured. The sections below cover each setting:
@@ -389,6 +377,18 @@ Those are just the common three; the full set (`--vaadin-side-nav-item-font-size
 - [Vaadin SideNav — styling reference](https://vaadin.com/docs/latest/components/side-nav/styling) — the parts, slots and properties of the underlying component, all of which apply here too.
 - [Vaadin Popover — styling reference](https://vaadin.com/docs/latest/components/popover/styling) — for styling the overlay that hosts subitems.
 - [Vaadin Avatar — styling reference](https://vaadin.com/docs/latest/components/avatar/styling) — for styling the letter-avatar fallback.
+
+## Keyboard navigation and accessibility
+
+The rail handles keyboard navigation and ARIA wiring out of the box; no extra setup is required. In rail mode only the root items are visible — nested items remain in the DOM but get `tabindex="-1"`, so the tab order matches what's on screen. The relevant ARIA attributes (`aria-haspopup`, `aria-expanded`, `aria-current`) are kept in sync as the rail mode toggles.
+
+| Key | Behaviour |
+| --- | --- |
+| `Tab` / `Shift+Tab` | Move focus into and out of the rail. Items hidden in rail mode are skipped. |
+| `↓` / `↑` | Move focus to the next / previous visible item, both inside the rail and inside an open popover. Stops at boundaries. |
+| `→` | On a root item with children *while the rail shows only root icons* (rail mode, or `setChildrenOnlyInPopover(true)`): open the hover popover and move focus into it. Elsewhere: expand a collapsed parent, or move focus to the first child of an expanded one. |
+| `←` | If the focused item is expanded, collapse it — this applies both in the rail and inside a popover. Otherwise move focus to the parent item; and if you are already at the top level of a popover, close it and return focus to the root item that owns it. |
+| `Esc` | Close the open popover and return focus to the root item that owns it. |
 
 ## Scope and known gaps
 
