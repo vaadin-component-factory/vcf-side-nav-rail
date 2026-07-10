@@ -268,8 +268,8 @@ The visual cue that signals an item has children. Rendered as a `::before` pseud
 | --- | --- |--------------------------------------------------------------------------------------|
 | `--side-nav-rail-subitem-indicator-content` | Glyph; any value valid for CSS `content` (e.g. another Lumo icon, an emoji, a string). | `var(--lumo-icons-angle-right)`                                                      |
 | `--side-nav-rail-subitem-indicator-color` | Color of the indicator. | `var(--lumo-tertiary-text-color)`                                                    |
-| `--side-nav-rail-subitem-indicator-size` | Indicator size in normal mode (rendered next to the label). | `var(--lumo-font-size-m)`                                                            |
-| `--side-nav-rail-subitem-indicator-rail-size` | Indicator size in rail mode (rendered as a corner badge). | `0.625rem`                                                                           |
+| `--side-nav-rail-subitem-indicator-size` | Indicator size in normal mode (rendered next to the label). | `var(--lumo-font-size-m)` (Lumo) / `var(--aura-font-size-l)` (Aura) |
+| `--side-nav-rail-subitem-indicator-rail-size` | Indicator size in rail mode (rendered as a corner badge). | `0.625rem` (Lumo) / `var(--aura-font-size-m)` (Aura) |
 
 #### Rail-mode tooltip
 

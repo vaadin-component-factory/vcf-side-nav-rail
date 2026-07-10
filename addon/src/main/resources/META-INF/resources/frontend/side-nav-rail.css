@@ -135,8 +135,8 @@ vaadin-side-nav[theme~="inline-children-hidden"] vaadin-side-nav-item::part(togg
  *
  *   --side-nav-rail-subitem-indicator-content   (default: --lumo-icons-angle-right glyph, or "›" on Aura)
  *   --side-nav-rail-subitem-indicator-color     (default: --lumo-tertiary-text-color → --vaadin-text-color-secondary)
- *   --side-nav-rail-subitem-indicator-size      (normal mode default: --lumo-font-size-m → --aura-font-size-m)
- *   --side-nav-rail-subitem-indicator-rail-size (rail mode default:   0.625rem)
+ *   --side-nav-rail-subitem-indicator-size      (normal mode default: --lumo-font-size-m → --aura-font-size-l)
+ *   --side-nav-rail-subitem-indicator-rail-size (rail mode default:   0.625rem on Lumo → --aura-font-size-m on Aura)
  *
  * The normal-mode default is intentionally a touch smaller than the native
  * toggle, so it reads as a passive "has children" hint rather than an
@@ -153,7 +153,10 @@ vaadin-side-nav[theme~="inline-children-hidden"]:not([theme~="rail"])
        from sans-serif (per-glyph fallback). V24 keeps the exact Lumo glyph. */
     content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right, "\203A"));
     font-family: "lumo-icons", sans-serif;
-    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-m, var(--aura-font-size-m, 1rem)));
+    /* On Aura the glyph is the sans-serif "›" (no lumo-icons font), which reads
+       thinner/smaller than Lumo's icon glyph at the same size — bump it a step.
+       --aura-font-size-l is empty on Lumo, so Lumo keeps --lumo-font-size-m. */
+    font-size: var(--side-nav-rail-subitem-indicator-size, var(--lumo-font-size-m, var(--aura-font-size-l, 1rem)));
     color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.5))));
     position: absolute;
     right: var(--lumo-space-s, var(--vaadin-gap-s, 0.5rem));
@@ -167,7 +170,10 @@ vaadin-side-nav[theme~="rail"]
     /* Same Aura-safe chevron fallback as the normal-mode rule above. */
     content: var(--side-nav-rail-subitem-indicator-content, var(--lumo-icons-angle-right, "\203A"));
     font-family: "lumo-icons", sans-serif;
-    font-size: var(--side-nav-rail-subitem-indicator-rail-size, 0.625rem);
+    /* Lumo keeps the small 0.625rem corner badge (its icon glyph reads large
+       enough); Aura's sans-serif "›" needs a bump to stay legible. --aura-font-size-m
+       is empty on Lumo → Lumo falls through to 0.625rem unchanged. */
+    font-size: var(--side-nav-rail-subitem-indicator-rail-size, var(--aura-font-size-m, 0.625rem));
     color: var(--side-nav-rail-subitem-indicator-color, var(--lumo-tertiary-text-color, var(--vaadin-text-color-secondary, rgba(0,0,0,.5))));
     position: absolute;
     right: 2px;
